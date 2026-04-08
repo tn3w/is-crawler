@@ -1,0 +1,39 @@
+[project]
+name = "is-crawler"
+version = "1.0.0"
+description = "Tiny, zero-dependency crawler detection via regex."
+readme = "README.md"
+authors = [
+    {name = "TN3W", email = "tn3w@protonmail.com"}
+]
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Security",
+]
+keywords = ["crawler", "bot-detection", "user-agent", "spider", "scraper", "web-scraping", "bot", "robot", "useragent", "detection", "security", "middleware"]
+
+[project.urls]
+Homepage = "https://github.com/tn3w/is-crawler"
+Repository = "https://github.com/tn3w/is-crawler.git"
+Issues = "https://github.com/tn3w/is-crawler/issues"
+
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["is_crawler"]
