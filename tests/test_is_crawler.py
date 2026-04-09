@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from is_crawler import __version__, is_crawler
+from is_crawler import __version__, crawler_signals, is_crawler
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -12,13 +12,26 @@ def _load_fixture(name):
 
 
 def test_version():
-    assert __version__ == "1.0.2"
+    assert __version__ == "1.0.3"
 
 
 def test_all_exports():
     import is_crawler as mod
 
-    assert set(mod.__all__) == {"is_crawler", "__version__"}
+    assert set(mod.__all__) == {"is_crawler", "crawler_signals", "__version__"}
+
+
+def test_crawler_signals_returns_matched_names():
+    assert "bot_signal" in crawler_signals("Googlebot/2.1")
+    assert "no_browser_signature" in crawler_signals("Googlebot/2.1")
+    assert (
+        crawler_signals(
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        )
+        == []
+    )
+    assert "known_tool" in crawler_signals("Lighthouse")
+    assert "bare_compatible" in crawler_signals("Mozilla/5.0 (compatible; MyBot/1.0)")
 
 
 # --- bot signal regex ---

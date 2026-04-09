@@ -5,8 +5,8 @@ try:
 except ImportError:
     import re as _regex
 
-__version__ = "1.0.2"
-__all__ = ["is_crawler", "__version__"]
+__version__ = "1.0.3"
+__all__ = ["is_crawler", "crawler_signals", "__version__"]
 
 _match_bot_signal = _regex.compile(
     r"(?i)bot\b|crawl|spider|scrape|fetch|scan\b|index"
@@ -32,6 +32,20 @@ _match_known_tool = _regex.compile(
     r"|^[\w.-]+\.(?:com|net|org|io|ai)[/\s]"
     r"|;\s*\w+-agent[);]"
 ).search
+
+
+_CHECKS = (
+    ("bot_signal", _match_bot_signal),
+    ("no_browser_signature", lambda ua: not _match_browser_sign(ua)),
+    ("bare_compatible", _match_bare_compat),
+    ("known_tool", _match_known_tool),
+)
+
+
+@lru_cache(maxsize=2048)
+def crawler_signals(user_agent: str) -> list[str]:
+    """Return list of matched pattern names, or empty list for real browsers."""
+    return [name for name, check in _CHECKS if check(user_agent)]
 
 
 @lru_cache(maxsize=2048)
