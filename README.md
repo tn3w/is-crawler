@@ -2,6 +2,8 @@
 
 Tiny, zero-dependency Python library that detects bots and crawlers from user-agent strings. Fast, lightweight, and ready to drop into any web app or API.
 
+**Docs & live demo:** [is-crawler.tn3w.dev](https://is-crawler.tn3w.dev)
+
 ## Install
 
 ```bash

@@ -1,6 +1,6 @@
 [project]
 name = "is-crawler"
-version = "1.0.0"
+version = "1.0.1"
 description = "Tiny, zero-dependency crawler detection via regex."
 readme = "README.md"
 authors = [
@@ -27,7 +27,7 @@ classifiers = [
 keywords = ["crawler", "bot-detection", "user-agent", "spider", "scraper", "web-scraping", "bot", "robot", "useragent", "detection", "security", "middleware"]
 
 [project.urls]
-Homepage = "https://github.com/tn3w/is-crawler"
+Homepage = "https://is-crawler.tn3w.dev"
 Repository = "https://github.com/tn3w/is-crawler.git"
 Issues = "https://github.com/tn3w/is-crawler/issues"
 

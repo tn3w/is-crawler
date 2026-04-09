@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="robots" content="noindex" />
+        <title>404 &mdash; is-crawler</title>
+        <style>
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+            :root {
+                --bg: #0a0a0f;
+                --surface: #111118;
+                --border: #2a2a3a;
+                --text: #e4e4ef;
+                --text-dim: #8888a4;
+                --text-muted: #5c5c74;
+                --accent: #7c6aff;
+                --accent-glow: #7c6aff44;
+                --accent: #7c6aff;
+                --radius: 10px;
+            }
+            html,
+            body {
+                height: 100%;
+            }
+            body {
+                background: var(--bg);
+                color: var(--text);
+                font-family:
+                    system-ui,
+                    -apple-system,
+                    'Segoe UI',
+                    sans-serif;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+            }
+
+            .ambient {
+                position: fixed;
+                inset: 0;
+                pointer-events: none;
+                background:
+                    radial-gradient(ellipse 50% 40% at 50% 40%, #7c6aff08 0%, transparent 70%),
+                    radial-gradient(ellipse 60% 50% at 30% 70%, #7c6aff06 0%, transparent 70%);
+            }
+            .grain {
+                position: fixed;
+                inset: 0;
+                pointer-events: none;
+                z-index: 9999;
+                opacity: 0.035;
+                background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+                background-repeat: repeat;
+                background-size: 180px;
+            }
+
+            .card {
+                position: relative;
+                z-index: 1;
+                text-align: center;
+                max-width: 480px;
+                padding: 0 24px;
+                animation: fadeIn 0.6s ease;
+            }
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(12px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .error-code {
+                font-family: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+                font-size: clamp(5rem, 15vw, 8rem);
+                font-weight: 700;
+                letter-spacing: -0.04em;
+                line-height: 1;
+                color: var(--text-muted);
+                position: relative;
+            }
+            .error-code span {
+                color: var(--accent);
+                text-shadow: 0 0 40px #7c6aff33;
+            }
+
+            .title {
+                font-family: Georgia, 'Times New Roman', serif;
+                font-size: 1.5rem;
+                color: var(--text);
+                margin-top: 20px;
+            }
+
+            .desc {
+                color: var(--text-dim);
+                font-size: 0.92rem;
+                margin-top: 10px;
+                line-height: 1.65;
+            }
+            .desc code {
+                font-family: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+                font-size: 0.82rem;
+                background: var(--surface);
+                border: 1px solid var(--border);
+                padding: 2px 8px;
+                border-radius: 5px;
+            }
+
+            .actions {
+                margin-top: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+            .btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 7px;
+                font-family:
+                    system-ui,
+                    -apple-system,
+                    'Segoe UI',
+                    sans-serif;
+                font-size: 0.85rem;
+                font-weight: 500;
+                padding: 10px 22px;
+                border-radius: var(--radius);
+                text-decoration: none;
+                transition: all 0.2s;
+                cursor: pointer;
+                border: none;
+            }
+            .btn-primary {
+                background: var(--accent);
+                color: #fff;
+            }
+            .btn-primary:hover {
+                background: #6b5ce7;
+                box-shadow: 0 0 0 4px var(--accent-glow);
+            }
+            .btn-secondary {
+                background: transparent;
+                color: var(--text-dim);
+                border: 1px solid var(--border);
+            }
+            .btn-secondary:hover {
+                color: var(--text);
+                border-color: #3d3d55;
+                background: var(--surface);
+            }
+
+            .bot-joke {
+                margin-top: 48px;
+                font-family: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+                font-size: 0.72rem;
+                color: var(--text-muted);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="ambient"></div>
+        <div class="grain"></div>
+
+        <div class="card">
+            <div class="error-code">4<span>0</span>4</div>
+            <h1 class="title">Page not found</h1>
+            <p class="desc">
+                The page you're looking for doesn't exist or has been moved. If you're a bot, we
+                probably already knew that.
+            </p>
+            <div class="actions">
+                <a class="btn btn-primary" href="./">Back to docs</a>
+                <a
+                    class="btn btn-secondary"
+                    href="https://github.com/tn3w/is-crawler"
+                    target="_blank"
+                    rel="noopener"
+                    >View on GitHub</a
+                >
+            </div>
+            <p class="bot-joke">
+                is_crawler("404-visitor") &rarr; <span id="verdict">analyzing...</span>
+            </p>
+        </div>
+
+        <script>
+            const el = document.getElementById('verdict');
+            setTimeout(() => {
+                el.textContent = 'probably human';
+                el.style.color = '#34d399';
+            }, 1200);
+        </script>
+    </body>
+</html>

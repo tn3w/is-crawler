@@ -1,0 +1,929 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>is-crawler - Tiny crawler detection for Python</title>
+        <meta
+            name="description"
+            content="Tiny, zero-dependency Python library that detects bots and crawlers from user-agent strings. One function call, regex-powered, blazing fast."
+        />
+        <meta
+            name="keywords"
+            content="crawler detection, bot detection, user-agent, python, spider, scraper, middleware"
+        />
+        <meta name="author" content="TN3W" />
+        <link rel="canonical" href="https://is-crawler.tn3w.dev/" />
+
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://is-crawler.tn3w.dev/" />
+        <meta property="og:title" content="is-crawler - Tiny crawler detection for Python" />
+        <meta
+            property="og:description"
+            content="Tiny, zero-dependency Python library that detects bots and crawlers from user-agent strings. One function call, regex-powered, blazing fast."
+        />
+        <meta property="og:site_name" content="is-crawler" />
+
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="is-crawler - Tiny crawler detection for Python" />
+        <meta
+            name="twitter:description"
+            content="Tiny, zero-dependency Python library that detects bots and crawlers from user-agent strings. One function call, regex-powered, blazing fast."
+        />
+        <style>
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+            :root {
+                --bg: #0a0a0f;
+                --surface: #111118;
+                --surface-2: #1a1a24;
+                --surface-3: #22222e;
+                --border: #2a2a3a;
+                --border-accent: #3d3d55;
+                --text: #e4e4ef;
+                --text-dim: #8888a4;
+                --text-muted: #5c5c74;
+                --accent: #7c6aff;
+                --accent-glow: #7c6aff44;
+                --green: #34d399;
+                --green-dim: #34d39933;
+                --red: #f87171;
+                --red-dim: #f8717133;
+                --amber: #fbbf24;
+                --amber-dim: #fbbf2433;
+                --radius: 10px;
+            }
+            html {
+                scroll-behavior: smooth;
+            }
+            body {
+                background: var(--bg);
+                color: var(--text);
+                font-family:
+                    system-ui,
+                    -apple-system,
+                    'Segoe UI',
+                    sans-serif;
+                line-height: 1.6;
+                min-height: 100vh;
+                overflow-x: hidden;
+            }
+
+            .ambient {
+                position: fixed;
+                inset: 0;
+                pointer-events: none;
+                z-index: 0;
+                background:
+                    radial-gradient(ellipse 60% 40% at 20% 10%, #7c6aff08 0%, transparent 70%),
+                    radial-gradient(ellipse 50% 50% at 80% 80%, #34d39906 0%, transparent 70%);
+            }
+
+            .grain {
+                position: fixed;
+                inset: 0;
+                pointer-events: none;
+                z-index: 9999;
+                opacity: 0.035;
+                background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+                background-repeat: repeat;
+                background-size: 180px;
+            }
+
+            .container {
+                position: relative;
+                z-index: 1;
+                max-width: 880px;
+                margin: 0 auto;
+                padding: 0 24px;
+            }
+
+            header {
+                padding: 48px 0 0;
+            }
+            .header-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 16px;
+            }
+            .logo-group {
+                display: flex;
+                align-items: baseline;
+                gap: 14px;
+            }
+            .logo {
+                font-family: Georgia, 'Times New Roman', serif;
+                font-size: clamp(2rem, 5vw, 2.8rem);
+                font-weight: 400;
+                letter-spacing: -0.02em;
+                color: var(--text);
+            }
+            .logo span {
+                color: var(--accent);
+            }
+            .version {
+                font-family: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+                font-size: 0.75rem;
+                color: var(--text-muted);
+                background: var(--surface-2);
+                border: 1px solid var(--border);
+                padding: 3px 10px;
+                border-radius: 20px;
+                white-space: nowrap;
+            }
+            .header-right {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+            .gh-link {
+                display: inline-flex;
+                align-items: center;
+                gap: 7px;
+                font-size: 0.85rem;
+                font-weight: 500;
+                color: var(--text-dim);
+                text-decoration: none;
+                padding: 7px 14px;
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                transition: all 0.2s;
+            }
+            .gh-link:hover {
+                color: var(--text);
+                border-color: var(--border-accent);
+                background: var(--surface-2);
+            }
+            .gh-link svg {
+                width: 18px;
+                height: 18px;
+                fill: currentColor;
+            }
+
+            .tagline-row {
+                margin-top: 24px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 24px;
+                flex-wrap: wrap;
+            }
+            .tagline {
+                font-size: 1.05rem;
+                color: var(--text-dim);
+                max-width: 480px;
+                line-height: 1.65;
+                flex: 1 1 auto;
+            }
+
+            .install-bar {
+                flex: 0 0 auto;
+                min-width: 320px;
+                display: flex;
+                align-items: stretch;
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                overflow: hidden;
+                transition: border-color 0.2s;
+            }
+            .install-bar:hover {
+                border-color: var(--border-accent);
+            }
+            .install-cmd {
+                flex: 1;
+                font-family: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+                font-size: 0.88rem;
+                color: var(--text);
+                padding: 14px 18px;
+                background: transparent;
+                border: none;
+                user-select: all;
+                cursor: text;
+                outline: none;
+            }
+            .install-cmd::selection {
+                background: var(--accent-glow);
+            }
+            .copy-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 52px;
+                background: var(--surface-2);
+                border: none;
+                border-left: 1px solid var(--border);
+                color: var(--text-dim);
+                cursor: pointer;
+                transition: all 0.2s;
+                position: relative;
+            }
+            .copy-btn:hover {
+                color: var(--text);
+                background: var(--surface-3);
+            }
+            .copy-btn svg {
+                width: 18px;
+                height: 18px;
+            }
+            .copy-btn .check {
+                display: none;
+                color: var(--green);
+            }
+            .copy-btn.copied .clipboard {
+                display: none;
+            }
+            .copy-btn.copied .check {
+                display: block;
+            }
+
+            .detector {
+                margin-top: 52px;
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: calc(var(--radius) + 4px);
+                overflow: hidden;
+            }
+            .detector-header {
+                padding: 20px 24px;
+                border-bottom: 1px solid var(--border);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .detector-title {
+                font-size: 0.8rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                color: var(--text-muted);
+            }
+            .detector-badge {
+                font-family: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+                font-size: 0.7rem;
+                padding: 3px 10px;
+                border-radius: 20px;
+                font-weight: 500;
+                opacity: 0;
+                transform: translateY(4px);
+                transition: all 0.3s ease;
+            }
+            .detector-badge.visible {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            .detector-badge.crawler {
+                background: var(--red-dim);
+                color: var(--red);
+                border: 1px solid #f8717144;
+            }
+            .detector-badge.human {
+                background: var(--green-dim);
+                color: var(--green);
+                border: 1px solid #34d39944;
+            }
+
+            .ua-input-wrap {
+                padding: 24px;
+            }
+            .ua-input {
+                width: 100%;
+                font-family: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+                font-size: 0.95rem;
+                color: var(--text);
+                background: var(--bg);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                padding: 18px 20px;
+                outline: none;
+                transition:
+                    border-color 0.25s,
+                    box-shadow 0.25s;
+                resize: none;
+            }
+            .ua-input::placeholder {
+                color: var(--text-muted);
+                font-style: italic;
+            }
+            .ua-input:focus {
+                border-color: var(--accent);
+                box-shadow: 0 0 0 3px var(--accent-glow);
+            }
+            .detector-header-right {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            .test-own-btn {
+                font-family:
+                    system-ui,
+                    -apple-system,
+                    'Segoe UI',
+                    sans-serif;
+                font-size: 0.7rem;
+                font-weight: 500;
+                color: var(--text-dim);
+                background: var(--surface-2);
+                border: 1px solid var(--border);
+                border-radius: 20px;
+                padding: 4px 12px;
+                cursor: pointer;
+                white-space: nowrap;
+                transition: all 0.2s;
+            }
+            .test-own-btn:hover {
+                color: var(--text);
+                border-color: var(--border-accent);
+                background: var(--surface-3);
+            }
+
+            .results {
+                padding: 0 24px 28px;
+                display: none;
+            }
+            .results.visible {
+                display: block;
+                animation: fadeUp 0.35s ease;
+            }
+            @keyframes fadeUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(8px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .result-summary {
+                font-size: 0.95rem;
+                color: var(--text-dim);
+                margin-bottom: 18px;
+                line-height: 1.7;
+            }
+            .result-summary strong {
+                color: var(--text);
+                font-weight: 600;
+            }
+
+            .match-section {
+                margin-bottom: 16px;
+            }
+            .match-label {
+                font-size: 0.72rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                color: var(--text-muted);
+                margin-bottom: 8px;
+            }
+            .match-row {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 10px 14px;
+                background: var(--surface-2);
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                margin-bottom: 6px;
+                font-family: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+                font-size: 0.8rem;
+                line-height: 1.5;
+                flex-wrap: wrap;
+            }
+            .match-pattern {
+                color: var(--text-muted);
+                font-size: 0.72rem;
+                white-space: nowrap;
+            }
+            .match-text {
+                color: var(--text);
+            }
+            .match-highlight {
+                color: var(--amber);
+                background: var(--amber-dim);
+                padding: 1px 5px;
+                border-radius: 4px;
+                font-weight: 500;
+            }
+            .match-no-browser {
+                color: var(--red);
+                background: var(--red-dim);
+                padding: 1px 5px;
+                border-radius: 4px;
+                font-weight: 500;
+            }
+            .match-tag {
+                font-size: 0.68rem;
+                padding: 2px 8px;
+                border-radius: 20px;
+                font-weight: 500;
+                white-space: nowrap;
+            }
+            .tag-signal {
+                background: #7c6aff22;
+                color: var(--accent);
+                border: 1px solid #7c6aff44;
+            }
+            .tag-browser {
+                background: var(--red-dim);
+                color: var(--red);
+                border: 1px solid #f8717144;
+            }
+            .tag-compat {
+                background: var(--amber-dim);
+                color: var(--amber);
+                border: 1px solid #fbbf2444;
+            }
+            .tag-tool {
+                background: #06b6d422;
+                color: #22d3ee;
+                border: 1px solid #22d3ee44;
+            }
+
+            .section {
+                margin-top: 56px;
+            }
+            .section-title {
+                font-family: Georgia, 'Times New Roman', serif;
+                font-size: 1.5rem;
+                color: var(--text);
+                margin-bottom: 8px;
+            }
+            .section-desc {
+                color: var(--text-dim);
+                font-size: 0.92rem;
+                margin-bottom: 24px;
+                max-width: 600px;
+            }
+            .rules-grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+            .rule-card {
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                padding: 20px;
+                transition: border-color 0.2s;
+            }
+            .rule-card:hover {
+                border-color: var(--border-accent);
+            }
+            .rule-icon {
+                width: 32px;
+                height: 32px;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 0.85rem;
+                margin-bottom: 12px;
+            }
+            .rule-card h3 {
+                font-size: 0.88rem;
+                font-weight: 600;
+                margin-bottom: 6px;
+                color: var(--text);
+            }
+            .rule-card p {
+                font-size: 0.8rem;
+                color: var(--text-dim);
+                line-height: 1.6;
+            }
+
+            .code-block {
+                margin-top: 56px;
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                overflow: hidden;
+            }
+            .code-header {
+                padding: 12px 18px;
+                border-bottom: 1px solid var(--border);
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .code-dot {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background: var(--surface-3);
+            }
+            .code-header span {
+                font-family: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+                font-size: 0.72rem;
+                color: var(--text-muted);
+                margin-left: 8px;
+            }
+            .code-body {
+                padding: 20px 24px;
+                font-family: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+                font-size: 0.82rem;
+                line-height: 1.9;
+                color: var(--text-dim);
+                overflow-x: auto;
+            }
+            .code-body .kw {
+                color: var(--accent);
+            }
+            .code-body .fn {
+                color: #22d3ee;
+            }
+            .code-body .str {
+                color: var(--green);
+            }
+            .code-body .cm {
+                color: var(--text-muted);
+                font-style: italic;
+            }
+            .code-body .bool {
+                color: var(--amber);
+            }
+
+            footer {
+                margin-top: 80px;
+                padding: 28px 0;
+                border-top: 1px solid var(--border);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 12px;
+                font-size: 0.78rem;
+                color: var(--text-muted);
+            }
+            footer a {
+                color: var(--text-dim);
+                text-decoration: none;
+                transition: color 0.2s;
+            }
+            footer a:hover {
+                color: var(--text);
+            }
+
+            @media (max-width: 600px) {
+                header {
+                    padding-top: 32px;
+                }
+                .tagline-row {
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+                .ua-input {
+                    font-size: 0.85rem;
+                    padding: 14px 16px;
+                }
+                .rules-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+                footer {
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+            }
+            @media (max-width: 400px) {
+                .logo {
+                    font-size: 1.5rem;
+                }
+                .version {
+                    font-size: 0.65rem;
+                    padding: 2px 7px;
+                }
+                .install-bar {
+                    min-width: 0;
+                    width: 100%;
+                }
+                .rules-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="ambient"></div>
+        <div class="grain"></div>
+
+        <div class="container">
+            <header>
+                <div class="header-row">
+                    <div class="logo-group">
+                        <h1 class="logo">is<span>-</span>crawler</h1>
+                        <span class="version" id="version">v1.0.0</span>
+                    </div>
+                    <div class="header-right">
+                        <a
+                            class="gh-link"
+                            href="https://github.com/tn3w/is-crawler"
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            <svg viewBox="0 0 16 16">
+                                <path
+                                    d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+                                />
+                            </svg>
+                            GitHub
+                        </a>
+                    </div>
+                </div>
+            </header>
+
+            <div class="tagline-row">
+                <p class="tagline">
+                    Tiny, zero-dependency crawler detection for Python. One function call,
+                    regex-powered, blazing fast.
+                </p>
+                <div class="install-bar" id="installBar">
+                    <input
+                        class="install-cmd"
+                        value="pip install is-crawler"
+                        readonly
+                        id="installCmd"
+                    />
+                    <button class="copy-btn" id="copyBtn" aria-label="Copy install command">
+                        <svg
+                            class="clipboard"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <rect x="9" y="9" width="13" height="13" rx="2" />
+                            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                        </svg>
+                        <svg
+                            class="check"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2.5"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="detector">
+                <div class="detector-header">
+                    <span class="detector-title">User-Agent Detector</span>
+                    <div class="detector-header-right">
+                        <span class="detector-badge" id="badge"></span>
+                        <button
+                            class="test-own-btn"
+                            id="testOwnBtn"
+                            title="Test your browser's user-agent"
+                        >
+                            My UA
+                        </button>
+                    </div>
+                </div>
+                <div class="ua-input-wrap">
+                    <textarea
+                        class="ua-input"
+                        id="uaInput"
+                        rows="2"
+                        placeholder="Paste a user-agent string to analyze..."
+                        spellcheck="false"
+                    ></textarea>
+                </div>
+                <div class="results" id="results"></div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">How it works</h2>
+                <p class="section-desc">
+                    Four layered regex checks run in sequence. If any signal fires, the user-agent
+                    is classified as a crawler.
+                </p>
+                <div class="rules-grid">
+                    <div class="rule-card">
+                        <div
+                            class="rule-icon"
+                            style="background: var(--accent-glow); color: var(--accent)"
+                        >
+                            1
+                        </div>
+                        <h3>Bot signals</h3>
+                        <p>
+                            Matches keywords like <em>bot</em>, <em>crawl</em>, <em>spider</em>,
+                            <em>scrape</em>, URLs, and email patterns common in crawler identifiers.
+                        </p>
+                    </div>
+                    <div class="rule-card">
+                        <div
+                            class="rule-icon"
+                            style="background: var(--red-dim); color: var(--red)"
+                        >
+                            2
+                        </div>
+                        <h3>Missing browser signature</h3>
+                        <p>
+                            Real browsers include engine tokens like <em>Mozilla/</em>,
+                            <em>WebKit</em>, or <em>Gecko</em>. Absence is a strong crawler signal.
+                        </p>
+                    </div>
+                    <div class="rule-card">
+                        <div
+                            class="rule-icon"
+                            style="background: var(--amber-dim); color: var(--amber)"
+                        >
+                            3
+                        </div>
+                        <h3>Bare compatible</h3>
+                        <p>
+                            Detects <code>(compatible; ...)</code> strings without real OS/browser
+                            tokens - a pattern used by bots mimicking browsers.
+                        </p>
+                    </div>
+                    <div class="rule-card">
+                        <div class="rule-icon" style="background: #06b6d422; color: #22d3ee">4</div>
+                        <h3>Known tools</h3>
+                        <p>
+                            Identifies specific tools: Lighthouse, Playwright, Selenium, wget, and
+                            patterns like domain-prefixed agents.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <div class="code-dot"></div>
+                    <div class="code-dot"></div>
+                    <div class="code-dot"></div>
+                    <span>example.py</span>
+                </div>
+                <div class="code-body">
+                    <span class="kw">from</span> is_crawler <span class="kw">import</span>
+                    <span class="fn">is_crawler</span> <br /><br />
+                    ua = request.headers.get(<span class="str">"User-Agent"</span>,
+                    <span class="str">""</span>) <br /><br />
+                    <span class="kw">if</span> <span class="fn">is_crawler</span>(ua):
+                    <br />&nbsp;&nbsp;&nbsp;&nbsp;print(<span class="str">"Blocked crawler"</span>)
+                    &nbsp;<span class="cm"># True for bots</span> <br /><span class="kw">else</span
+                    >: <br />&nbsp;&nbsp;&nbsp;&nbsp;print(<span class="str">"Human visitor"</span>)
+                    &nbsp;&nbsp;<span class="cm"># False for real browsers</span>
+                </div>
+            </div>
+
+            <footer>
+                <span>Apache-2.0 &middot; Made by <a href="https://github.com/tn3w">TN3W</a></span>
+                <a href="https://github.com/tn3w/is-crawler">github.com/tn3w/is-crawler</a>
+            </footer>
+        </div>
+
+        <script>
+            const patterns = {
+                botSignal: {
+                    regex: /bot\b|crawl|spider|scrape|fetch|scan\b|index|preview|slurp|archiv|headless|\+https?:\/\/|@[\w.-]+\.\w{2,}\b/i,
+                    label: 'Bot Signal',
+                    tag: 'tag-signal',
+                    desc: 'Matched a crawler keyword or URL/email pattern',
+                },
+                browserSign: {
+                    regex: /mozilla\/|webkit|gecko|trident|presto|khtml|opera[\s/]|links\s|lynx\/|\((?:windows|macintosh|x11|linux)/i,
+                    label: 'Browser Signature',
+                    tag: 'tag-browser',
+                    desc: 'No browser engine token found',
+                },
+                bareCompat: {
+                    regex: /\(compatible;(?![^)]*(?:windows|mac|linux|msie|konqueror))[^)]*\)/i,
+                    label: 'Bare Compatible',
+                    tag: 'tag-compat',
+                    desc: 'Suspicious (compatible; ...) without real OS/browser',
+                },
+                knownTool: {
+                    regex: /lighthouse|playwright|selenium|wget[\s/]|nikto|sqlmap|nmap\b|pingdom|httrack|google[\s-](?:favicon|ads|safety|extended)|\bby\s+\S+\.(?:com|org|net)\b|^[\w.-]+\.(?:com|net|org|io|ai)[/\s]|;\s*\w+-agent[);]/i,
+                    label: 'Known Tool',
+                    tag: 'tag-tool',
+                    desc: 'Matched a known automation tool or agent pattern',
+                },
+            };
+
+            const copyBtn = document.getElementById('copyBtn');
+            const installCmd = document.getElementById('installCmd');
+            copyBtn.addEventListener('click', () => {
+                navigator.clipboard.writeText(installCmd.value).then(() => {
+                    copyBtn.classList.add('copied');
+                    setTimeout(() => copyBtn.classList.remove('copied'), 1800);
+                });
+            });
+
+            const uaInput = document.getElementById('uaInput');
+            const badge = document.getElementById('badge');
+            const resultsEl = document.getElementById('results');
+            let debounce;
+
+            document.getElementById('testOwnBtn').addEventListener('click', () => {
+                uaInput.value = navigator.userAgent;
+                uaInput.dispatchEvent(new Event('input'));
+            });
+
+            uaInput.addEventListener('input', () => {
+                clearTimeout(debounce);
+                debounce = setTimeout(analyze, 200);
+            });
+
+            function highlightMatch(ua, match) {
+                const idx = match.index;
+                const len = match[0].length;
+                const before = escHtml(ua.slice(Math.max(0, idx - 20), idx));
+                const mid = escHtml(match[0]);
+                const after = escHtml(ua.slice(idx + len, idx + len + 20));
+                const ellipsisBefore = idx > 20 ? '&hellip;' : '';
+                const ellipsisAfter = idx + len + 20 < ua.length ? '&hellip;' : '';
+                return `${ellipsisBefore}${before}<span class="match-highlight">${mid}</span>${after}${ellipsisAfter}`;
+            }
+
+            function escHtml(s) {
+                return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            }
+
+            function analyze() {
+                const ua = uaInput.value.trim();
+                if (!ua) {
+                    badge.className = 'detector-badge';
+                    resultsEl.className = 'results';
+                    resultsEl.innerHTML = '';
+                    return;
+                }
+
+                const matches = [];
+                let isCrawler = false;
+
+                const botMatch = patterns.botSignal.regex.exec(ua);
+                if (botMatch) {
+                    isCrawler = true;
+                    matches.push({ ...patterns.botSignal, match: botMatch });
+                }
+
+                const browserMatch = patterns.browserSign.regex.exec(ua);
+                if (!browserMatch) {
+                    isCrawler = true;
+                    matches.push({
+                        label: 'No Browser Signature',
+                        tag: 'tag-browser',
+                        desc: 'No browser engine token found - real browsers always include one',
+                        noBrowser: true,
+                    });
+                }
+
+                const compatMatch = patterns.bareCompat.regex.exec(ua);
+                if (compatMatch) {
+                    isCrawler = true;
+                    matches.push({ ...patterns.bareCompat, match: compatMatch });
+                }
+
+                const toolMatch = patterns.knownTool.regex.exec(ua);
+                if (toolMatch) {
+                    isCrawler = true;
+                    matches.push({ ...patterns.knownTool, match: toolMatch });
+                }
+
+                badge.textContent = isCrawler ? 'CRAWLER' : 'HUMAN';
+                badge.className = `detector-badge visible ${isCrawler ? 'crawler' : 'human'}`;
+
+                if (matches.length === 0) {
+                    resultsEl.className = 'results visible';
+                    resultsEl.innerHTML = `<div class="result-summary">All checks passed - this user-agent looks like a <strong>real browser</strong>.</div>`;
+                    return;
+                }
+
+                let html = `<div class="result-summary">${matches.length} rule${matches.length > 1 ? 's' : ''} matched - classified as <strong>crawler</strong>.</div>`;
+
+                matches.forEach((m) => {
+                    html += `<div class="match-section">`;
+                    html += `<div class="match-row">`;
+                    html += `<span class="match-tag ${m.tag}">${m.label}</span>`;
+                    if (m.noBrowser) {
+                        html += `<span class="match-text"><span class="match-no-browser">missing</span> mozilla/, webkit, gecko, trident &hellip;</span>`;
+                    } else if (m.match) {
+                        html += `<span class="match-text">${highlightMatch(ua, m.match)}</span>`;
+                    }
+                    html += `</div>`;
+                    html += `</div>`;
+                });
+
+                resultsEl.className = 'results visible';
+                resultsEl.innerHTML = html;
+            }
+        </script>
+    </body>
+</html>
