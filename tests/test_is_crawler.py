@@ -2,7 +2,13 @@ from pathlib import Path
 
 import pytest
 
-from is_crawler import __version__, crawler_name, crawler_signals, is_crawler
+from is_crawler import (
+    __version__,
+    crawler_name,
+    crawler_signals,
+    crawler_version,
+    is_crawler,
+)
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -12,7 +18,7 @@ def _load_fixture(name):
 
 
 def test_version():
-    assert __version__ == "1.0.4"
+    assert __version__ == "1.0.5"
 
 
 def test_all_exports():
@@ -21,6 +27,7 @@ def test_all_exports():
     assert set(mod.__all__) == {
         "is_crawler",
         "crawler_name",
+        "crawler_version",
         "crawler_signals",
         "__version__",
     }
@@ -91,6 +98,40 @@ def test_crawler_name_returns_none_for_known_browser_tokens_only():
         "Chrome/59.0.3071.109 Safari/537.36"
     )
     assert crawler_name(ua) is None
+
+
+@pytest.mark.parametrize(
+    ("ua", "expected"),
+    [
+        ("curl/7.64.1", "7.64.1"),
+        (
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.3478.1649 "
+            "Mobile Safari/537.36; Bytespider",
+            None,
+        ),
+        ("Mozilla/5.0 (compatible; Miniflux/2.0.10; +https://miniflux.net)", "2.0.10"),
+        (
+            "Mozilla/5.0 (compatibl$; Miniflux/2.0.x-dev; +https://miniflux.app)",
+            "2.0.x-dev",
+        ),
+        ("Googlebot/2.1 (+http://www.google.com/bot.html)", "2.1"),
+        (
+            "Mozilla/5.0 (compatible; heritrix/3.1.1 +http://places.tomtom.com/crawlerinfo)",
+            "3.1.1",
+        ),
+        (
+            "Mozilla/5.0 (compatible; Daum/4.1; +http://cs.daum.net/faq/15/4118.html?faqId=28966)",
+            "4.1",
+        ),
+        (
+            "Mozilla/5.0 (compatible; AndersPinkBot/1.0; +http://anderspink.com/bot.html)",
+            "1.0",
+        ),
+    ],
+)
+def test_crawler_version_extracts_expected_version(ua, expected):
+    assert crawler_version(ua) == expected
 
 
 # --- bot signal regex ---

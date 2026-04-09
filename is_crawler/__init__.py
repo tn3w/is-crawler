@@ -5,8 +5,14 @@ try:
 except ImportError:
     import re as _regex
 
-__version__ = "1.0.4"
-__all__ = ["is_crawler", "crawler_name", "crawler_signals", "__version__"]
+__version__ = "1.0.5"
+__all__ = [
+    "is_crawler",
+    "crawler_name",
+    "crawler_version",
+    "crawler_signals",
+    "__version__",
+]
 
 _match_bot_signal = _regex.compile(
     r"(?i)bot\b|crawl|spider|scrape|fetch|scan\b|index"
@@ -36,16 +42,34 @@ _match_known_tool = _regex.compile(
 _search_compatible_name = _regex.compile(
     r"(?i)\(compatible;\s*([A-Za-z][\w.-]*)(?:/[\w.-]+)?"
 ).search
+_search_compatible_version = _regex.compile(
+    r"(?i)\(compatible;\s*[A-Za-z][\w.-]*/([\w.-]+)"
+).search
 _search_prefix_name = _regex.compile(
     r"^([A-Z][\w.-]*(?: [A-Z][\w.-]*)*)(?=(?:/[\w.-]+)?(?:\s|$| - ))"
 ).search
 _find_name = _regex.compile(r"([A-Z][\w.-]*(?: [A-Z][\w.-]*)*)(?:/[\w.-]+)?").findall
+_search_token_version = _regex.compile(r"/([\w.-]+)").search
 _strip_comments = _regex.compile(r"\([^)]*\)").sub
 _strip_browser_bits = _regex.compile(
     r"\b(?:Mozilla/\S+|AppleWebKit/\S+|KHTML,?|like|Gecko|"
     r"Chrome/\S+|Chromium/\S+|Safari/\S+|Version/\S+|Firefox/\S+|"
     r"Ubuntu|Mobile)\b"
 ).sub
+_KNOWN_VERSION_TOKENS = frozenset(
+    {
+        "Mozilla",
+        "AppleWebKit",
+        "Gecko",
+        "Chrome",
+        "Chromium",
+        "Safari",
+        "Version",
+        "Firefox",
+        "Ubuntu",
+        "Mobile",
+    }
+)
 
 
 _CHECKS = (
@@ -78,6 +102,27 @@ def crawler_name(user_agent: str) -> str | None:
 
     names = _find_name(_strip_browser_bits(" ", _strip_comments(" ", user_agent)))
     return names[-1] if names else None
+
+
+@lru_cache(maxsize=2048)
+def crawler_version(user_agent: str) -> str | None:
+    """Return the crawler version when one can be picked out of the UA."""
+    if not user_agent.startswith("Mozilla/5.0"):
+        parts = (user_agent.split() or [""])[0].split("/", 1)
+        return parts[1] if len(parts) > 1 else None
+
+    match = _search_compatible_version(user_agent)
+    if match:
+        return match.group(1)
+
+    for token in user_agent.replace("(", " ").replace(")", " ").split():
+        name = token.split("/", 1)[0]
+        if name not in _KNOWN_VERSION_TOKENS:
+            match = _search_token_version(token[len(name) :])
+            if match:
+                return match.group(1)
+
+    return None
 
 
 @lru_cache(maxsize=2048)

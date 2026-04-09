@@ -836,8 +836,22 @@
                 },
             };
             const compatibleName = /\(compatible;\s*([A-Za-z][\w.-]*)(?:\/[\w.-]+)?/i;
+            const compatibleVersion = /\(compatible;\s*[A-Za-z][\w.-]*\/([\w.-]+)/i;
             const prefixName = /^([A-Z][\w.-]*(?: [A-Z][\w.-]*)*)(?=(?:\/[\w.-]+)?(?:\s|$| - ))/;
             const findNames = /([A-Z][\w.-]*(?: [A-Z][\w.-]*)*)(?:\/[\w.-]+)?/g;
+            const tokenVersion = /\/([\w.-]+)/;
+            const KNOWN_VERSION_TOKENS = new Set([
+                'Mozilla',
+                'AppleWebKit',
+                'Gecko',
+                'Chrome',
+                'Chromium',
+                'Safari',
+                'Version',
+                'Firefox',
+                'Ubuntu',
+                'Mobile',
+            ]);
             const stripComments = /\([^)]*\)/g;
             const stripBrowserBits =
                 /\b(?:Mozilla\/\S+|AppleWebKit\/\S+|KHTML,?|like|Gecko|Chrome\/\S+|Chromium\/\S+|Safari\/\S+|Version\/\S+|Firefox\/\S+|Ubuntu|Mobile)\b/g;
@@ -881,6 +895,24 @@
                 return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
             }
 
+            function crawlerVersion(ua) {
+                if (!ua.startsWith('Mozilla/5.0')) {
+                    const first = (ua.trim().split(/\s+/, 1)[0] || '').split('/', 2);
+                    return first.length > 1 ? first[1] : null;
+                }
+                const cv = ua.match(compatibleVersion);
+                if (cv) return cv[1];
+                const tokens = ua.replace(/\(/g, ' ').replace(/\)/g, ' ').trim().split(/\s+/);
+                for (const token of tokens) {
+                    const name = token.split('/', 1)[0];
+                    if (!KNOWN_VERSION_TOKENS.has(name)) {
+                        const vm = token.slice(name.length).match(tokenVersion);
+                        if (vm) return vm[1];
+                    }
+                }
+                return null;
+            }
+
             function crawlerName(ua) {
                 const compatible = ua.match(compatibleName);
                 if (compatible) return compatible[1];
@@ -909,6 +941,7 @@
                 const matches = [];
                 let isCrawler = false;
                 const name = crawlerName(ua);
+                const version = crawlerVersion(ua);
 
                 const botMatch = patterns.botSignal.regex.exec(ua);
                 if (botMatch) {
@@ -950,7 +983,7 @@
 
                 let html = `<div class="result-summary">${matches.length} rule${matches.length > 1 ? 's' : ''} matched - classified as <strong>crawler</strong>.</div>`;
                 if (name) {
-                    html += `<div class="result-name">Detected name: <strong>${escHtml(name)}</strong></div>`;
+                    html += `<div class="result-name">Detected name: <strong>${escHtml(name)}</strong>${version ? ` <span style="color:var(--text-dim);">${escHtml(version)}</span>` : ''}</div>`;
                 }
 
                 matches.forEach((m) => {
