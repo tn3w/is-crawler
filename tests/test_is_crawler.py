@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from is_crawler import __version__, crawler_signals, is_crawler
+from is_crawler import __version__, crawler_name, crawler_signals, is_crawler
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -12,13 +12,18 @@ def _load_fixture(name):
 
 
 def test_version():
-    assert __version__ == "1.0.3"
+    assert __version__ == "1.0.4"
 
 
 def test_all_exports():
     import is_crawler as mod
 
-    assert set(mod.__all__) == {"is_crawler", "crawler_signals", "__version__"}
+    assert set(mod.__all__) == {
+        "is_crawler",
+        "crawler_name",
+        "crawler_signals",
+        "__version__",
+    }
 
 
 def test_crawler_signals_returns_matched_names():
@@ -32,6 +37,60 @@ def test_crawler_signals_returns_matched_names():
     )
     assert "known_tool" in crawler_signals("Lighthouse")
     assert "bare_compatible" in crawler_signals("Mozilla/5.0 (compatible; MyBot/1.0)")
+
+
+@pytest.mark.parametrize(
+    ("ua", "expected"),
+    [
+        (
+            "AdsBot-Google (+http://www.google.com/adsbot.html)",
+            "AdsBot-Google",
+        ),
+        (
+            "Caliperbot/1.0 (+http://www.conductor.com/caliperbot)",
+            "Caliperbot",
+        ),
+        ("AdsBot-Google-Mobile-Apps", "AdsBot-Google-Mobile-Apps"),
+        ("Mozilla/5.0 (compatible; BitSightBot/1.0)", "BitSightBot"),
+        (
+            "Mozilla/5.0 (compatible; YandexVideoParser/1.0; +http://yandex.com/bots)",
+            "YandexVideoParser",
+        ),
+        (
+            "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) Speedy Spider (http://www.entireweb.com/about/search_tech/speedy_spider/)",
+            "Speedy Spider",
+        ),
+        (
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/59.0.3071.109 Chrome/59.0.3071.109 Safari/537.36 PingdomPageSpeed/1.0 (pingbot/2.0; +http://www.pingdom.com/)",
+            "PingdomPageSpeed",
+        ),
+        (
+            "NewsBlur Feed Fetcher - 1 subscriber - http://www.newsblur.com/site/0000000/webpage (Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.1 Safari/605.1.15)",
+            "NewsBlur Feed Fetcher",
+        ),
+    ],
+)
+def test_crawler_name_extracts_expected_name(ua, expected):
+    assert crawler_name(ua) == expected
+
+
+def test_crawler_name_returns_none_for_empty_non_mozilla_ua():
+    assert crawler_name("") is None
+
+
+def test_crawler_name_returns_single_bot_hint_in_mozilla_ua():
+    assert (
+        crawler_name("Mozilla/5.0 AppleWebKit/537.36 FooBot Safari/537.36") == "FooBot"
+    )
+
+
+def test_crawler_name_returns_none_for_known_browser_tokens_only():
+    ua = (
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Ubuntu Chromium/59.0.3071.109 "
+        "Chrome/59.0.3071.109 Safari/537.36"
+    )
+    assert crawler_name(ua) is None
 
 
 # --- bot signal regex ---

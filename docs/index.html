@@ -373,6 +373,20 @@
                 color: var(--text);
                 font-weight: 600;
             }
+            .result-name {
+                margin-bottom: 14px;
+                padding: 12px 14px;
+                background: var(--surface-2);
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                font-family: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+                font-size: 0.8rem;
+                color: var(--text-dim);
+            }
+            .result-name strong {
+                color: var(--text);
+                font-weight: 600;
+            }
 
             .match-section {
                 margin-bottom: 16px;
@@ -772,14 +786,19 @@
                 </div>
                 <div class="code-body">
                     <span class="kw">from</span> is_crawler <span class="kw">import</span>
-                    <span class="fn">is_crawler</span> <br /><br />
+                    <span class="fn">crawler_name</span>, <span class="fn">is_crawler</span>
+                    <br /><br />
                     ua = request.headers.get(<span class="str">"User-Agent"</span>,
                     <span class="str">""</span>) <br /><br />
                     <span class="kw">if</span> <span class="fn">is_crawler</span>(ua):
-                    <br />&nbsp;&nbsp;&nbsp;&nbsp;print(<span class="str">"Blocked crawler"</span>)
-                    &nbsp;<span class="cm"># True for bots</span> <br /><span class="kw">else</span
-                    >: <br />&nbsp;&nbsp;&nbsp;&nbsp;print(<span class="str">"Human visitor"</span>)
-                    &nbsp;&nbsp;<span class="cm"># False for real browsers</span>
+                    <br />&nbsp;&nbsp;&nbsp;&nbsp;print(<span class="str">"Blocked crawler"</span>,
+                    <span class="fn">crawler_name</span>(ua)) &nbsp;<span class="cm"
+                        ># e.g. "Googlebot"</span
+                    >
+                    <br /><span class="kw">else</span>: <br />&nbsp;&nbsp;&nbsp;&nbsp;print(<span
+                        class="str"
+                        >"Human visitor"</span
+                    >) &nbsp;&nbsp;<span class="cm"># False for real browsers</span>
                 </div>
             </div>
 
@@ -816,6 +835,12 @@
                     desc: 'Matched a known automation tool or agent pattern',
                 },
             };
+            const compatibleName = /\(compatible;\s*([A-Za-z][\w.-]*)(?:\/[\w.-]+)?/i;
+            const prefixName = /^([A-Z][\w.-]*(?: [A-Z][\w.-]*)*)(?=(?:\/[\w.-]+)?(?:\s|$| - ))/;
+            const findNames = /([A-Z][\w.-]*(?: [A-Z][\w.-]*)*)(?:\/[\w.-]+)?/g;
+            const stripComments = /\([^)]*\)/g;
+            const stripBrowserBits =
+                /\b(?:Mozilla\/\S+|AppleWebKit\/\S+|KHTML,?|like|Gecko|Chrome\/\S+|Chromium\/\S+|Safari\/\S+|Version\/\S+|Firefox\/\S+|Ubuntu|Mobile)\b/g;
 
             const copyBtn = document.getElementById('copyBtn');
             const installCmd = document.getElementById('installCmd');
@@ -856,6 +881,22 @@
                 return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
             }
 
+            function crawlerName(ua) {
+                const compatible = ua.match(compatibleName);
+                if (compatible) return compatible[1];
+
+                if (!ua.startsWith('Mozilla/5.0')) {
+                    const prefix = ua.match(prefixName);
+                    if (prefix) return prefix[1];
+                    const first = ua.trim().split(/\s+/, 1)[0];
+                    return first ? first.split('/', 1)[0] : null;
+                }
+
+                const cleaned = ua.replace(stripComments, ' ').replace(stripBrowserBits, ' ');
+                const names = [...cleaned.matchAll(findNames)].map((match) => match[1]);
+                return names.length ? names[names.length - 1] : null;
+            }
+
             function analyze() {
                 const ua = uaInput.value.trim();
                 if (!ua) {
@@ -867,6 +908,7 @@
 
                 const matches = [];
                 let isCrawler = false;
+                const name = crawlerName(ua);
 
                 const botMatch = patterns.botSignal.regex.exec(ua);
                 if (botMatch) {
@@ -907,6 +949,9 @@
                 }
 
                 let html = `<div class="result-summary">${matches.length} rule${matches.length > 1 ? 's' : ''} matched - classified as <strong>crawler</strong>.</div>`;
+                if (name) {
+                    html += `<div class="result-name">Detected name: <strong>${escHtml(name)}</strong></div>`;
+                }
 
                 matches.forEach((m) => {
                     html += `<div class="match-section">`;

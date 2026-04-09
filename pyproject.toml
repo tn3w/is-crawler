@@ -1,6 +1,6 @@
 [project]
 name = "is-crawler"
-version = "1.0.3"
+version = "1.0.4"
 description = "Tiny, zero-dependency crawler detection via regex."
 readme = "README.md"
 authors = [

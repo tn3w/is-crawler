@@ -5,8 +5,8 @@ try:
 except ImportError:
     import re as _regex
 
-__version__ = "1.0.3"
-__all__ = ["is_crawler", "crawler_signals", "__version__"]
+__version__ = "1.0.4"
+__all__ = ["is_crawler", "crawler_name", "crawler_signals", "__version__"]
 
 _match_bot_signal = _regex.compile(
     r"(?i)bot\b|crawl|spider|scrape|fetch|scan\b|index"
@@ -33,6 +33,20 @@ _match_known_tool = _regex.compile(
     r"|;\s*\w+-agent[);]"
 ).search
 
+_search_compatible_name = _regex.compile(
+    r"(?i)\(compatible;\s*([A-Za-z][\w.-]*)(?:/[\w.-]+)?"
+).search
+_search_prefix_name = _regex.compile(
+    r"^([A-Z][\w.-]*(?: [A-Z][\w.-]*)*)(?=(?:/[\w.-]+)?(?:\s|$| - ))"
+).search
+_find_name = _regex.compile(r"([A-Z][\w.-]*(?: [A-Z][\w.-]*)*)(?:/[\w.-]+)?").findall
+_strip_comments = _regex.compile(r"\([^)]*\)").sub
+_strip_browser_bits = _regex.compile(
+    r"\b(?:Mozilla/\S+|AppleWebKit/\S+|KHTML,?|like|Gecko|"
+    r"Chrome/\S+|Chromium/\S+|Safari/\S+|Version/\S+|Firefox/\S+|"
+    r"Ubuntu|Mobile)\b"
+).sub
+
 
 _CHECKS = (
     ("bot_signal", _match_bot_signal),
@@ -46,6 +60,24 @@ _CHECKS = (
 def crawler_signals(user_agent: str) -> list[str]:
     """Return list of matched pattern names, or empty list for real browsers."""
     return [name for name, check in _CHECKS if check(user_agent)]
+
+
+@lru_cache(maxsize=2048)
+def crawler_name(user_agent: str) -> str | None:
+    """Return the crawler product name when one can be picked out of the UA."""
+    match = _search_compatible_name(user_agent)
+    if match:
+        return match.group(1)
+
+    if not user_agent.startswith("Mozilla/5.0"):
+        match = _search_prefix_name(user_agent)
+        if match:
+            return match.group(1)
+        parts = user_agent.split()
+        return parts[0].split("/", 1)[0] if parts else None
+
+    names = _find_name(_strip_browser_bits(" ", _strip_comments(" ", user_agent)))
+    return names[-1] if names else None
 
 
 @lru_cache(maxsize=2048)
