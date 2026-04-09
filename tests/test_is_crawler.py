@@ -12,7 +12,7 @@ def _load_fixture(name):
 
 
 def test_version():
-    assert __version__ == "1.0.0"
+    assert __version__ == "1.0.2"
 
 
 def test_all_exports():
@@ -141,3 +141,26 @@ def test_fixture_crawler_detected(ua):
 @pytest.mark.parametrize("ua", _load_fixture("browser_user_agents.txt"))
 def test_fixture_browser_not_detected(ua):
     assert is_crawler(ua) is False
+
+
+# --- callable module ---
+
+
+def test_module_callable():
+    import is_crawler as mod
+
+    assert callable(mod)
+    assert mod("Googlebot/2.1") is True
+    assert (
+        mod(
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        )
+        is False
+    )
+
+
+def test_module_callable_matches_function():
+    import is_crawler as mod
+
+    ua = "Googlebot/2.1 (+http://www.google.com/bot.html)"
+    assert mod(ua) == mod.is_crawler(ua)  # type: ignore[reportCallIssue]

@@ -19,6 +19,14 @@ is_crawler("Googlebot/2.1 (+http://www.google.com/bot.html)")  # True
 is_crawler("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36")  # False
 ```
 
+The module itself is also callable, so you can skip the named import:
+
+```python
+import is_crawler
+
+is_crawler("Googlebot/2.1 (+http://www.google.com/bot.html)")  # True
+```
+
 Works great as middleware, rate-limiter input, or analytics filter:
 
 ```python

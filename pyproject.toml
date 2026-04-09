@@ -1,6 +1,6 @@
 [project]
 name = "is-crawler"
-version = "1.0.1"
+version = "1.0.2"
 description = "Tiny, zero-dependency crawler detection via regex."
 readme = "README.md"
 authors = [
@@ -37,3 +37,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 packages = ["is_crawler"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=is_crawler --cov-report=term-missing --cov-fail-under=100 -v"

@@ -5,7 +5,7 @@ try:
 except ImportError:
     import re as _regex
 
-__version__ = "1.0.0"
+__version__ = "1.0.2"
 __all__ = ["is_crawler", "__version__"]
 
 _match_bot_signal = _regex.compile(
@@ -43,3 +43,20 @@ def is_crawler(user_agent: str) -> bool:
         or _match_bare_compat(user_agent)
         or _match_known_tool(user_agent)
     )
+
+
+import sys as _sys
+import types as _types
+
+
+class _CallableModule(_types.ModuleType):
+    def __call__(self, user_agent: str) -> bool:
+        return is_crawler(user_agent)
+
+
+_self = _sys.modules[__name__]
+_mod = _CallableModule(__name__, __doc__)
+_mod.__dict__.update(
+    {k: v for k, v in _self.__dict__.items() if not k.startswith("_CallableModule")}
+)
+_sys.modules[__name__] = _mod
