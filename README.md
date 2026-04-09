@@ -10,6 +10,12 @@ Tiny, zero-dependency Python library that detects bots and crawlers from user-ag
 pip install is-crawler
 ```
 
+For faster regex matching, optionally install [google-re2](https://pypi.org/project/google-re2/). It will be used automatically when available:
+
+```bash
+pip install is-crawler google-re2
+```
+
 ## Usage
 
 ```python
