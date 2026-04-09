@@ -462,6 +462,11 @@
                 color: #22d3ee;
                 border: 1px solid #22d3ee44;
             }
+            .tag-url {
+                background: #f97316222;
+                color: #fb923c;
+                border: 1px solid #fb923c44;
+            }
 
             .section {
                 margin-top: 56px;
@@ -834,6 +839,12 @@
                     tag: 'tag-tool',
                     desc: 'Matched a known automation tool or agent pattern',
                 },
+                urlInUA: {
+                    regex: /https?:\/\/[^\s);,]+/,
+                    label: 'URL in UA',
+                    tag: 'tag-url',
+                    desc: 'A URL was embedded in the user-agent string',
+                },
             };
             const compatibleName = /\(compatible;\s*([A-Za-z][\w.-]*)(?:\/[\w.-]+)?/i;
             const compatibleVersion = /\(compatible;\s*[A-Za-z][\w.-]*\/([\w.-]+)/i;
@@ -972,6 +983,12 @@
                     matches.push({ ...patterns.knownTool, match: toolMatch });
                 }
 
+                const urlMatch = patterns.urlInUA.regex.exec(ua);
+                if (urlMatch) {
+                    isCrawler = true;
+                    matches.push({ ...patterns.urlInUA, match: urlMatch });
+                }
+
                 badge.textContent = isCrawler ? 'CRAWLER' : 'HUMAN';
                 badge.className = `detector-badge visible ${isCrawler ? 'crawler' : 'human'}`;
 
@@ -983,7 +1000,8 @@
 
                 let html = `<div class="result-summary">${matches.length} rule${matches.length > 1 ? 's' : ''} matched - classified as <strong>crawler</strong>.</div>`;
                 if (name) {
-                    html += `<div class="result-name">Detected name: <strong>${escHtml(name)}</strong>${version ? ` <span style="color:var(--text-dim);">${escHtml(version)}</span>` : ''}</div>`;
+                    const urlFound = urlMatch ? urlMatch[0] : null;
+                    html += `<div class="result-name">Detected name: <strong>${escHtml(name)}</strong>${version ? ` <span style="color:var(--text-dim);">v${escHtml(version)}</span>` : ''}${urlFound ? ` &middot; <span style="color:#fb923c;">${escHtml(urlFound)}</span>` : ''}</div>`;
                 }
 
                 matches.forEach((m) => {

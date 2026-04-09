@@ -6,6 +6,7 @@ from is_crawler import (
     __version__,
     crawler_name,
     crawler_signals,
+    crawler_url,
     crawler_version,
     is_crawler,
 )
@@ -18,7 +19,7 @@ def _load_fixture(name):
 
 
 def test_version():
-    assert __version__ == "1.0.5"
+    assert __version__ == "1.0.6"
 
 
 def test_all_exports():
@@ -28,6 +29,7 @@ def test_all_exports():
         "is_crawler",
         "crawler_name",
         "crawler_version",
+        "crawler_url",
         "crawler_signals",
         "__version__",
     }
@@ -79,6 +81,12 @@ def test_crawler_signals_returns_matched_names():
 )
 def test_crawler_name_extracts_expected_name(ua, expected):
     assert crawler_name(ua) == expected
+
+
+def test_crawler_url_extracts_url():
+    assert crawler_url("Googlebot/2.1 (+http://www.google.com/bot.html)") == "http://www.google.com/bot.html"
+    assert crawler_url("NewsBlur Feed Fetcher - 1 subscriber - http://www.newsblur.com/site/0") == "http://www.newsblur.com/site/0"
+    assert crawler_url("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36") is None
 
 
 def test_crawler_name_returns_none_for_empty_non_mozilla_ua():

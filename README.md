@@ -49,7 +49,7 @@ crawler_signals("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safa
 # []
 ```
 
-Possible signal names: `bot_signal`, `no_browser_signature`, `bare_compatible`, `known_tool`.
+Possible signal names: `bot_signal`, `no_browser_signature`, `bare_compatible`, `known_tool`, `url_in_ua`.
 
 If you also want the crawler product name, use `crawler_name`:
 
@@ -70,6 +70,16 @@ crawler_version("Mozilla/5.0 (compatible; AndersPinkBot/1.0; +http://anderspink.
 crawler_version("Mozilla/5.0 (...) Bytespider")  # None
 ```
 
+To extract a URL embedded in the user-agent string, use `crawler_url`:
+
+```python
+from is_crawler import crawler_url
+
+crawler_url("Googlebot/2.1 (+http://www.google.com/bot.html)")  # "http://www.google.com/bot.html"
+crawler_url("Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)")  # "http://www.bing.com/bingbot.htm"
+crawler_url("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36")  # None
+```
+
 Works great as middleware, rate-limiter input, or analytics filter:
 
 ```python
@@ -83,12 +93,13 @@ def block_bots():
 
 ## How it works
 
-Four fast regex checks, no database or external lookups:
+Five fast regex checks, no database or external lookups:
 
 1. **Bot signals** -- common keywords (`bot`, `crawl`, `spider`, `scrape`, ...), URL/email patterns, `headless`
 2. **Missing browser signature** -- real browsers always include engine tokens like `WebKit`, `Gecko`, or `Trident`
 3. **Bare `(compatible; ...)` block** -- classic bot pattern without OS tokens
 4. **Known tools** -- `playwright`, `selenium`, `wget`, `lighthouse`, `sqlmap`, and more
+5. **URL in UA** -- an embedded `http://` or `https://` URL, a near-universal bot convention
 
 ## Need more?
 

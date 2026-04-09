@@ -5,11 +5,12 @@ try:
 except ImportError:
     import re as _regex
 
-__version__ = "1.0.5"
+__version__ = "1.0.6"
 __all__ = [
     "is_crawler",
     "crawler_name",
     "crawler_version",
+    "crawler_url",
     "crawler_signals",
     "__version__",
 ]
@@ -29,6 +30,9 @@ _match_browser_sign = _regex.compile(
 _match_bare_compat = _regex.compile(
     r"(?i)\(compatible;" r"(?![^)]*(?:windows|mac|linux|msie|konqueror))" r"[^)]*\)"
 ).search
+
+_match_url = _regex.compile(r"(?:^|[+;]|\s-\s)https?://[^\s);,]+").search
+_extract_url = _regex.compile(r"https?://[^\s);,]+").search
 
 _match_known_tool = _regex.compile(
     r"(?i)lighthouse|playwright|selenium|wget[\s/]"
@@ -77,6 +81,7 @@ _CHECKS = (
     ("no_browser_signature", lambda ua: not _match_browser_sign(ua)),
     ("bare_compatible", _match_bare_compat),
     ("known_tool", _match_known_tool),
+    ("url_in_ua", _match_url),
 )
 
 
@@ -126,6 +131,15 @@ def crawler_version(user_agent: str) -> str | None:
 
 
 @lru_cache(maxsize=2048)
+def crawler_url(user_agent: str) -> str | None:
+    """Return the first URL found in the user agent string, or None."""
+    if not _match_url(user_agent):
+        return None
+    match = _extract_url(user_agent)
+    return match.group(0) if match else None
+
+
+@lru_cache(maxsize=2048)
 def is_crawler(user_agent: str) -> bool:
     """Return True if the user agent string looks like a crawler."""
     return bool(
@@ -133,6 +147,7 @@ def is_crawler(user_agent: str) -> bool:
         or not _match_browser_sign(user_agent)
         or _match_bare_compat(user_agent)
         or _match_known_tool(user_agent)
+        or _match_url(user_agent)
     )
 
 
