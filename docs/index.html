@@ -47,7 +47,7 @@
                 --border-accent: #3d3d55;
                 --text: #e4e4ef;
                 --text-dim: #8888a4;
-                --text-muted: #5c5c74;
+                --text-muted: #7a7a96;
                 --accent: #7c6aff;
                 --accent-glow: #7c6aff44;
                 --green: #34d399;
@@ -182,7 +182,17 @@
                 line-height: 1.65;
                 flex: 1 1 auto;
             }
-
+            .sr-only {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                padding: 0;
+                margin: -1px;
+                overflow: hidden;
+                clip: rect(0, 0, 0, 0);
+                white-space: nowrap;
+                border: 0;
+            }
             .install-bar {
                 flex: 0 0 auto;
                 min-width: 320px;
@@ -584,7 +594,7 @@
             }
             footer a {
                 color: var(--text-dim);
-                text-decoration: none;
+                text-decoration: underline;
                 transition: color 0.2s;
             }
             footer a:hover {
@@ -658,165 +668,175 @@
                 </div>
             </header>
 
-            <div class="tagline-row">
-                <p class="tagline">
-                    Tiny, zero-dependency crawler detection for Python. One function call,
-                    regex-powered, blazing fast.
-                </p>
-                <div class="install-bar" id="installBar">
-                    <input
-                        class="install-cmd"
-                        value="pip install is-crawler"
-                        readonly
-                        id="installCmd"
-                    />
-                    <button class="copy-btn" id="copyBtn" aria-label="Copy install command">
-                        <svg
-                            class="clipboard"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        >
-                            <rect x="9" y="9" width="13" height="13" rx="2" />
-                            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-                        </svg>
-                        <svg
-                            class="check"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2.5"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        >
-                            <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                    </button>
-                </div>
-            </div>
-
-            <div class="detector">
-                <div class="detector-header">
-                    <span class="detector-title">User-Agent Detector</span>
-                    <div class="detector-header-right">
-                        <span class="detector-badge" id="badge"></span>
-                        <button
-                            class="test-own-btn"
-                            id="testOwnBtn"
-                            title="Test your browser's user-agent"
-                        >
-                            My UA
-                        </button>
-                        <button
-                            class="test-own-btn"
-                            id="testBotBtn"
-                            title="Test with a bot user-agent"
-                        >
-                            Bot UA
+            <main>
+                <div class="tagline-row">
+                    <p class="tagline">
+                        Tiny, zero-dependency crawler detection for Python. One function call,
+                        regex-powered, blazing fast.
+                    </p>
+                    <div class="install-bar" id="installBar">
+                        <label for="installCmd" class="sr-only">Install command</label>
+                        <input
+                            class="install-cmd"
+                            value="pip install is-crawler"
+                            readonly
+                            id="installCmd"
+                        />
+                        <button class="copy-btn" id="copyBtn" aria-label="Copy install command">
+                            <svg
+                                class="clipboard"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <rect x="9" y="9" width="13" height="13" rx="2" />
+                                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                            </svg>
+                            <svg
+                                class="check"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg>
                         </button>
                     </div>
                 </div>
-                <div class="ua-input-wrap">
-                    <textarea
-                        class="ua-input"
-                        id="uaInput"
-                        rows="2"
-                        placeholder="Paste a user-agent string to analyze..."
-                        spellcheck="false"
-                    ></textarea>
-                </div>
-                <div class="results" id="results"></div>
-            </div>
 
-            <div class="section">
-                <h2 class="section-title">How it works</h2>
-                <p class="section-desc">
-                    Four layered regex checks run in sequence. If any signal fires, the user-agent
-                    is classified as a crawler.
-                </p>
-                <div class="rules-grid">
-                    <div class="rule-card">
-                        <div
-                            class="rule-icon"
-                            style="background: var(--accent-glow); color: var(--accent)"
-                        >
-                            1
+                <div class="detector">
+                    <div class="detector-header">
+                        <span class="detector-title">User-Agent Detector</span>
+                        <div class="detector-header-right">
+                            <span class="detector-badge" id="badge"></span>
+                            <button
+                                class="test-own-btn"
+                                id="testOwnBtn"
+                                title="Test your browser's user-agent"
+                            >
+                                My UA
+                            </button>
+                            <button
+                                class="test-own-btn"
+                                id="testBotBtn"
+                                title="Test with a bot user-agent"
+                            >
+                                Bot UA
+                            </button>
                         </div>
-                        <h3>Bot signals</h3>
-                        <p>
-                            Matches keywords like <em>bot</em>, <em>crawl</em>, <em>spider</em>,
-                            <em>scrape</em>, URLs, and email patterns common in crawler identifiers.
-                        </p>
                     </div>
-                    <div class="rule-card">
-                        <div
-                            class="rule-icon"
-                            style="background: var(--red-dim); color: var(--red)"
-                        >
-                            2
-                        </div>
-                        <h3>Missing browser signature</h3>
-                        <p>
-                            Real browsers include engine tokens like <em>Mozilla/</em>,
-                            <em>WebKit</em>, or <em>Gecko</em>. Absence is a strong crawler signal.
-                        </p>
+                    <div class="ua-input-wrap">
+                        <textarea
+                            class="ua-input"
+                            id="uaInput"
+                            rows="2"
+                            placeholder="Paste a user-agent string to analyze..."
+                            spellcheck="false"
+                        ></textarea>
                     </div>
-                    <div class="rule-card">
-                        <div
-                            class="rule-icon"
-                            style="background: var(--amber-dim); color: var(--amber)"
-                        >
-                            3
-                        </div>
-                        <h3>Bare compatible</h3>
-                        <p>
-                            Detects <code>(compatible; ...)</code> strings without real OS/browser
-                            tokens - a pattern used by bots mimicking browsers.
-                        </p>
-                    </div>
-                    <div class="rule-card">
-                        <div class="rule-icon" style="background: #06b6d422; color: #22d3ee">4</div>
-                        <h3>Known tools</h3>
-                        <p>
-                            Identifies specific tools: Lighthouse, Playwright, Selenium, wget, and
-                            patterns like domain-prefixed agents.
-                        </p>
-                    </div>
+                    <div class="results" id="results"></div>
                 </div>
-            </div>
 
-            <div class="code-block">
-                <div class="code-header">
-                    <div class="code-dot"></div>
-                    <div class="code-dot"></div>
-                    <div class="code-dot"></div>
-                    <span>example.py</span>
+                <div class="section">
+                    <h2 class="section-title">How it works</h2>
+                    <p class="section-desc">
+                        Four layered regex checks run in sequence. If any signal fires, the
+                        user-agent is classified as a crawler.
+                    </p>
+                    <div class="rules-grid">
+                        <div class="rule-card">
+                            <div
+                                class="rule-icon"
+                                style="background: var(--accent-glow); color: var(--accent)"
+                            >
+                                1
+                            </div>
+                            <h3>Bot signals</h3>
+                            <p>
+                                Matches keywords like <em>bot</em>, <em>crawl</em>, <em>spider</em>,
+                                <em>scrape</em>, URLs, and email patterns common in crawler
+                                identifiers.
+                            </p>
+                        </div>
+                        <div class="rule-card">
+                            <div
+                                class="rule-icon"
+                                style="background: var(--red-dim); color: var(--red)"
+                            >
+                                2
+                            </div>
+                            <h3>Missing browser signature</h3>
+                            <p>
+                                Real browsers include engine tokens like <em>Mozilla/</em>,
+                                <em>WebKit</em>, or <em>Gecko</em>. Absence is a strong crawler
+                                signal.
+                            </p>
+                        </div>
+                        <div class="rule-card">
+                            <div
+                                class="rule-icon"
+                                style="background: var(--amber-dim); color: var(--amber)"
+                            >
+                                3
+                            </div>
+                            <h3>Bare compatible</h3>
+                            <p>
+                                Detects <code>(compatible; ...)</code> strings without real
+                                OS/browser tokens - a pattern used by bots mimicking browsers.
+                            </p>
+                        </div>
+                        <div class="rule-card">
+                            <div class="rule-icon" style="background: #06b6d422; color: #22d3ee">
+                                4
+                            </div>
+                            <h3>Known tools</h3>
+                            <p>
+                                Identifies specific tools: Lighthouse, Playwright, Selenium, wget,
+                                and patterns like domain-prefixed agents.
+                            </p>
+                        </div>
+                    </div>
                 </div>
-                <div class="code-body">
-                    <span class="kw">from</span> is_crawler <span class="kw">import</span>
-                    <span class="fn">crawler_name</span>, <span class="fn">is_crawler</span>
-                    <br /><br />
-                    ua = request.headers.get(<span class="str">"User-Agent"</span>,
-                    <span class="str">""</span>) <br /><br />
-                    <span class="kw">if</span> <span class="fn">is_crawler</span>(ua):
-                    <br />&nbsp;&nbsp;&nbsp;&nbsp;print(<span class="str">"Blocked crawler"</span>,
-                    <span class="fn">crawler_name</span>(ua)) &nbsp;<span class="cm"
-                        ># e.g. "Googlebot"</span
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <div class="code-dot"></div>
+                        <div class="code-dot"></div>
+                        <div class="code-dot"></div>
+                        <span>example.py</span>
+                    </div>
+                    <div class="code-body">
+                        <span class="kw">from</span> is_crawler <span class="kw">import</span>
+                        <span class="fn">crawler_name</span>, <span class="fn">is_crawler</span>
+                        <br /><br />
+                        ua = request.headers.get(<span class="str">"User-Agent"</span>,
+                        <span class="str">""</span>) <br /><br />
+                        <span class="kw">if</span> <span class="fn">is_crawler</span>(ua):
+                        <br />&nbsp;&nbsp;&nbsp;&nbsp;print(<span class="str"
+                            >"Blocked crawler"</span
+                        >, <span class="fn">crawler_name</span>(ua)) &nbsp;<span class="cm"
+                            ># e.g. "Googlebot"</span
+                        >
+                        <br /><span class="kw">else</span>:
+                        <br />&nbsp;&nbsp;&nbsp;&nbsp;print(<span class="str">"Human visitor"</span
+                        >) &nbsp;&nbsp;<span class="cm"># False for real browsers</span>
+                    </div>
+                </div>
+
+                <footer>
+                    <span
+                        >Apache-2.0 &middot; Made by
+                        <a href="https://github.com/tn3w">TN3W</a></span
                     >
-                    <br /><span class="kw">else</span>: <br />&nbsp;&nbsp;&nbsp;&nbsp;print(<span
-                        class="str"
-                        >"Human visitor"</span
-                    >) &nbsp;&nbsp;<span class="cm"># False for real browsers</span>
-                </div>
-            </div>
-
-            <footer>
-                <span>Apache-2.0 &middot; Made by <a href="https://github.com/tn3w">TN3W</a></span>
-                <a href="https://github.com/tn3w/is-crawler">github.com/tn3w/is-crawler</a>
-            </footer>
+                    <a href="https://github.com/tn3w/is-crawler">github.com/tn3w/is-crawler</a>
+                </footer>
+            </main>
         </div>
 
         <script>
