@@ -3,8 +3,29 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>404 - Page Not Found | is-crawler</title>
+        <meta
+            name="description"
+            content="Page not found. Return to is-crawler documentation - tiny crawler detection for Python."
+        />
         <meta name="robots" content="noindex" />
-        <title>404 &mdash; is-crawler</title>
+        <meta name="author" content="TN3W" />
+
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://is-crawler.tn3w.dev/404.html" />
+        <meta property="og:title" content="404 - Page Not Found | is-crawler" />
+        <meta
+            property="og:description"
+            content="Page not found. Return to is-crawler documentation - tiny crawler detection for Python."
+        />
+        <meta property="og:site_name" content="is-crawler" />
+
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="404 - Page Not Found | is-crawler" />
+        <meta
+            name="twitter:description"
+            content="Page not found. Return to is-crawler documentation - tiny crawler detection for Python."
+        />
         <style>
             *,
             *::before,
@@ -145,7 +166,7 @@
             }
             .btn-primary {
                 background: var(--accent);
-                color: #fff;
+                color: #ffffff;
             }
             .btn-primary:hover {
                 background: #6b5ce7;
@@ -174,7 +195,7 @@
         <div class="ambient"></div>
         <div class="grain"></div>
 
-        <div class="card">
+        <main class="card">
             <div class="error-code">4<span>0</span>4</div>
             <h1 class="title">Page not found</h1>
             <p class="desc">
@@ -194,7 +215,7 @@
             <p class="bot-joke">
                 is_crawler("404-visitor") &rarr; <span id="verdict">analyzing...</span>
             </p>
-        </div>
+        </main>
 
         <script>
             const el = document.getElementById('verdict');
