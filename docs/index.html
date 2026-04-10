@@ -463,11 +463,10 @@
                 border: 1px solid #22d3ee44;
             }
             .tag-url {
-                background: #f97316222;
+                background: #f9731622;
                 color: #fb923c;
                 border: 1px solid #fb923c44;
             }
-
             .section {
                 margin-top: 56px;
             }
@@ -711,6 +710,13 @@
                         >
                             My UA
                         </button>
+                        <button
+                            class="test-own-btn"
+                            id="testBotBtn"
+                            title="Test with a bot user-agent"
+                        >
+                            Bot UA
+                        </button>
                     </div>
                 </div>
                 <div class="ua-input-wrap">
@@ -883,6 +889,12 @@
 
             document.getElementById('testOwnBtn').addEventListener('click', () => {
                 uaInput.value = navigator.userAgent;
+                uaInput.dispatchEvent(new Event('input'));
+            });
+
+            document.getElementById('testBotBtn').addEventListener('click', () => {
+                uaInput.value =
+                    'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)';
                 uaInput.dispatchEvent(new Event('input'));
             });
 

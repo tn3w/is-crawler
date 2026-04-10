@@ -84,9 +84,22 @@ def test_crawler_name_extracts_expected_name(ua, expected):
 
 
 def test_crawler_url_extracts_url():
-    assert crawler_url("Googlebot/2.1 (+http://www.google.com/bot.html)") == "http://www.google.com/bot.html"
-    assert crawler_url("NewsBlur Feed Fetcher - 1 subscriber - http://www.newsblur.com/site/0") == "http://www.newsblur.com/site/0"
-    assert crawler_url("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36") is None
+    assert (
+        crawler_url("Googlebot/2.1 (+http://www.google.com/bot.html)")
+        == "http://www.google.com/bot.html"
+    )
+    assert (
+        crawler_url(
+            "NewsBlur Feed Fetcher - 1 subscriber - http://www.newsblur.com/site/0"
+        )
+        == "http://www.newsblur.com/site/0"
+    )
+    assert (
+        crawler_url(
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36"
+        )
+        is None
+    )
 
 
 def test_crawler_name_returns_none_for_empty_non_mozilla_ua():
