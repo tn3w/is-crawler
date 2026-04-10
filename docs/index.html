@@ -1032,7 +1032,7 @@
 
                 let html = `<div class="result-summary">${matches.length} rule${matches.length > 1 ? 's' : ''} matched - classified as <strong>crawler</strong>.</div>`;
                 if (name) {
-                    const urlFound = urlMatch ? urlMatch[0] : null;
+                    const urlFound = urlMatch ? urlMatch[0].match(/https?:\/\/[^\s);,]+/)[0] : null;
                     html += `<div class="result-name">Detected name: <strong>${escHtml(name)}</strong>${version ? ` <span style="color:var(--text-dim);">v${escHtml(version)}</span>` : ''}${urlFound ? ` &middot; <span style="color:#fb923c;">${escHtml(urlFound)}</span>` : ''}</div>`;
                 }
 
