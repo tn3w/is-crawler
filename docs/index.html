@@ -846,7 +846,7 @@
                     desc: 'Matched a known automation tool or agent pattern',
                 },
                 urlInUA: {
-                    regex: /https?:\/\/[^\s);,]+/,
+                    regex: /(?:^|[+;]|\s-\s)https?:\/\/[^\s);,]+/,
                     label: 'URL in UA',
                     tag: 'tag-url',
                     desc: 'A URL was embedded in the user-agent string',
