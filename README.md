@@ -54,7 +54,7 @@ To see _which_ rules matched, use `crawler_signals`:
 from is_crawler import crawler_signals
 
 crawler_signals("Googlebot/2.1 (+http://www.google.com/bot.html)")
-# ['bot_signal', 'no_browser_signature']
+# ['bot_signal', 'no_browser_signature', 'url_in_ua']
 
 crawler_signals("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36")
 # []
