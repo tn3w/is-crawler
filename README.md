@@ -1,8 +1,19 @@
+<div align="center">
+
 # is-crawler
 
 Tiny, zero-dependency Python library that detects bots and crawlers from user-agent strings. Fast, lightweight, and ready to drop into any web app or API.
 
+[![PyPI](https://img.shields.io/pypi/v/is-crawler?style=flat-square)](https://pypi.org/project/is-crawler/)
+[![Python](https://img.shields.io/pypi/pyversions/is-crawler?style=flat-square)](https://pypi.org/project/is-crawler/)
+[![License](https://img.shields.io/github/license/tn3w/is-crawler?style=flat-square)](https://github.com/tn3w/is-crawler/blob/main/LICENSE)
+[![Issues](https://img.shields.io/github/issues/tn3w/is-crawler?style=flat-square)](https://github.com/tn3w/is-crawler/issues)
+[![Stars](https://img.shields.io/github/stars/tn3w/is-crawler?style=flat-square)](https://github.com/tn3w/is-crawler/stargazers)
+[![Downloads](https://img.shields.io/pypi/dm/is-crawler?style=flat-square)](https://pypi.org/project/is-crawler/)
+
 **Docs & live demo:** [is-crawler.tn3w.dev](https://is-crawler.tn3w.dev)
+
+</div>
 
 ## Install
 
@@ -26,7 +37,7 @@ is_crawler("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/53
 
 crawler_name("Googlebot/2.1 (+http://www.google.com/bot.html)")  # "Googlebot"
 crawler_version("Googlebot/2.1 (+http://www.google.com/bot.html)")  # "2.1"
-crawler_name("NewsBlur Feed Fetcher - 1 subscriber - http://www.newsblur.com/site/0000000/webpage (Mozilla/5.0 ...)")  # "NewsBlur Feed Fetcher"
+crawler_name("LinkedInBot/1.0 (compatible; Mozilla/5.0; Jakarta Commons-HttpClient/3.1 +http://www.linkedin.com)")  # "LinkedInBot"
 ```
 
 The module itself is also callable, so you can skip the named import:
@@ -56,8 +67,8 @@ If you also want the crawler product name, use `crawler_name`:
 ```python
 from is_crawler import crawler_name
 
-crawler_name("Mozilla/5.0 (compatible; BitSightBot/1.0)")  # "BitSightBot"
-crawler_name("Mozilla/5.0 (...) PingdomPageSpeed/1.0 (pingbot/2.0; +http://www.pingdom.com/)")  # "PingdomPageSpeed"
+crawler_name("Googlebot/2.1 (+http://www.google.com/bot.html)")  # "Googlebot"
+crawler_name("LinkedInBot/1.0 (compatible; Mozilla/5.0; Jakarta Commons-HttpClient/3.1 +http://www.linkedin.com)")  # "LinkedInBot"
 ```
 
 To get just the crawler version in the shortest possible form, use `crawler_version`:
@@ -65,9 +76,9 @@ To get just the crawler version in the shortest possible form, use `crawler_vers
 ```python
 from is_crawler import crawler_version
 
-crawler_version("curl/7.64.1")  # "7.64.1"
-crawler_version("Mozilla/5.0 (compatible; AndersPinkBot/1.0; +http://anderspink.com/bot.html)")  # "1.0"
-crawler_version("Mozilla/5.0 (...) Bytespider")  # None
+crawler_version("Googlebot/2.1 (+http://www.google.com/bot.html)")  # "2.1"
+crawler_version("Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)")  # "2.0"
+crawler_version("LinkedInBot/1.0 (compatible; Mozilla/5.0; Jakarta Commons-HttpClient/3.1 +http://www.linkedin.com)")  # "1.0"
 ```
 
 To extract a URL embedded in the user-agent string, use `crawler_url`:
@@ -77,7 +88,7 @@ from is_crawler import crawler_url
 
 crawler_url("Googlebot/2.1 (+http://www.google.com/bot.html)")  # "http://www.google.com/bot.html"
 crawler_url("Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)")  # "http://www.bing.com/bingbot.htm"
-crawler_url("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36")  # None
+crawler_url("LinkedInBot/1.0 (compatible; Mozilla/5.0; Jakarta Commons-HttpClient/3.1 +http://www.linkedin.com)")  # "http://www.linkedin.com"
 ```
 
 Works great as middleware, rate-limiter input, or analytics filter:
