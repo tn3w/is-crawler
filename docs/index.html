@@ -478,6 +478,170 @@
                 color: #fb923c;
                 border: 1px solid #fb923c44;
             }
+            .result-db-row {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                padding: 12px 14px;
+                background: var(--surface-2);
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                margin-bottom: 6px;
+                font-size: 0.82rem;
+                line-height: 1.5;
+            }
+            .result-db-desc {
+                color: var(--text);
+            }
+            .result-db-meta {
+                display: flex;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+            .result-db-link {
+                font-family: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+                font-size: 0.75rem;
+                color: #fb923c;
+                text-decoration: none;
+            }
+            .result-db-link:hover {
+                text-decoration: underline;
+            }
+            .tag-db {
+                background: #34d39922;
+                color: var(--green);
+                border: 1px solid #34d39944;
+            }
+            .rl {
+                display: flex;
+                flex-direction: column;
+                gap: 14px;
+            }
+            .rl-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                padding: 4px 0 12px;
+            }
+            .rl-verdict {
+                font-family: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+                font-size: 0.68rem;
+                font-weight: 700;
+                letter-spacing: 0.1em;
+                padding: 3px 10px;
+                border-radius: 20px;
+                flex-shrink: 0;
+            }
+            .rl-crawler {
+                background: var(--red-dim);
+                color: var(--red);
+                border: 1px solid #f8717144;
+            }
+            .rl-human {
+                background: var(--green-dim);
+                color: var(--green);
+                border: 1px solid #34d39944;
+            }
+            .rl-identity {
+                display: flex;
+                align-items: baseline;
+                gap: 10px;
+                flex-wrap: wrap;
+                min-width: 0;
+            }
+            .rl-name {
+                font-size: 0.95rem;
+                font-weight: 600;
+                color: var(--text);
+            }
+            .rl-version {
+                font-family: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+                font-size: 0.75rem;
+                color: var(--text-dim);
+            }
+            .rl-ua-url {
+                font-family: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+                font-size: 0.72rem;
+                color: #fb923c;
+                word-break: break-all;
+            }
+            .rl-clean {
+                font-size: 0.85rem;
+                color: var(--text-dim);
+            }
+            .rl-section {
+                display: flex;
+                flex-direction: column;
+                gap: 0;
+            }
+            .rl-section-label {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-size: 0.65rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                color: var(--text-muted);
+                margin-bottom: 8px;
+            }
+            .rl-section-label::after {
+                content: '';
+                flex: 1;
+                height: 1px;
+                background: var(--border);
+            }
+            .rl-signal {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                flex-wrap: wrap;
+                padding: 7px 0;
+            }
+            .rl-snippet {
+                font-family: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+                font-size: 0.76rem;
+                color: var(--text-dim);
+                min-width: 0;
+            }
+            .rl-db-body {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                padding: 12px 14px;
+                background: var(--surface-2);
+                border: 1px solid var(--border);
+                border-radius: 8px;
+            }
+            .rl-desc {
+                font-size: 0.84rem;
+                color: var(--text);
+                line-height: 1.6;
+                margin: 0;
+            }
+            .rl-db-meta {
+                display: flex;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .rl-db-url {
+                font-family: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+                font-size: 0.73rem;
+                color: #fb923c;
+                text-decoration: none;
+                word-break: break-all;
+            }
+            .rl-db-url:hover {
+                text-decoration: underline;
+            }
+            .rl-tags {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 5px;
+            }
             .section {
                 margin-top: 56px;
             }
@@ -894,6 +1058,71 @@
             const stripBrowserBits =
                 /\b(?:Mozilla\/\S+|AppleWebKit\/\S+|KHTML,?|like|Gecko|Chrome\/\S+|Chromium\/\S+|Safari\/\S+|Version\/\S+|Firefox\/\S+|Ubuntu|Mobile)\b/g;
 
+            let crawlerDb = [];
+
+            function parseCSVLine(line) {
+                const result = [];
+                let current = '';
+                let inQuotes = false;
+                for (let i = 0; i < line.length; i++) {
+                    const ch = line[i];
+                    if (ch === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (ch === ',' && !inQuotes) {
+                        result.push(current);
+                        current = '';
+                    } else {
+                        current += ch;
+                    }
+                }
+                result.push(current);
+                return result;
+            }
+
+            const CSV_URL =
+                'https://raw.githubusercontent.com/tn3w/is-crawler/refs/heads/master/is_crawler/crawler-user-agents.csv';
+            const CSV_CACHE_KEY = 'crawler-db-csv';
+
+            function parseDB(text) {
+                crawlerDb = text
+                    .trim()
+                    .split('\n')
+                    .slice(1)
+                    .map((line) => {
+                        const [pattern, url, description, tags] = parseCSVLine(line);
+                        return {
+                            regex: new RegExp(pattern),
+                            url: url || null,
+                            description: description || null,
+                            tags: tags ? tags.split(';') : [],
+                        };
+                    });
+            }
+
+            const cached = localStorage.getItem(CSV_CACHE_KEY);
+            if (cached) {
+                parseDB(cached);
+            } else {
+                fetch(CSV_URL)
+                    .then((r) => r.text())
+                    .then((text) => {
+                        try {
+                            localStorage.setItem(CSV_CACHE_KEY, text);
+                        } catch (_) {}
+                        parseDB(text);
+                    })
+                    .catch(() => {});
+            }
+
+            function crawlerInfoFromDB(ua) {
+                for (const entry of crawlerDb) {
+                    try {
+                        if (entry.regex.test(ua)) return entry;
+                    } catch (_) {}
+                }
+                return null;
+            }
+
             const copyBtn = document.getElementById('copyBtn');
             const installCmd = document.getElementById('installCmd');
             copyBtn.addEventListener('click', () => {
@@ -986,6 +1215,8 @@
                 let isCrawler = false;
                 const name = crawlerName(ua);
                 const version = crawlerVersion(ua);
+                const dbInfo = crawlerInfoFromDB(ua);
+                if (dbInfo) isCrawler = true;
 
                 const botMatch = patterns.botSignal.regex.exec(ua);
                 if (botMatch) {
@@ -1025,30 +1256,64 @@
                 badge.textContent = isCrawler ? 'CRAWLER' : 'HUMAN';
                 badge.className = `detector-badge visible ${isCrawler ? 'crawler' : 'human'}`;
 
-                if (matches.length === 0) {
-                    resultsEl.className = 'results visible';
-                    resultsEl.innerHTML = `<div class="result-summary">All checks passed - this user-agent looks like a <strong>real browser</strong>.</div>`;
-                    return;
+                const hasSignals = matches.length > 0;
+                const urlFound = urlMatch ? urlMatch[0].match(/https?:\/\/[^\s);,]+/)?.[0] : null;
+
+                let html = `<div class="rl">`;
+
+                html += `<div class="rl-header">`;
+                html += `<span class="rl-verdict ${isCrawler ? 'rl-crawler' : 'rl-human'}">${isCrawler ? 'CRAWLER' : 'HUMAN'}</span>`;
+                if (!isCrawler) {
+                    html += `<span class="rl-clean">All checks passed, real browser.</span>`;
+                } else if (name) {
+                    html += `<div class="rl-identity">`;
+                    html += `<span class="rl-name">${escHtml(name)}</span>`;
+                    if (version) html += `<span class="rl-version">v${escHtml(version)}</span>`;
+                    if (urlFound) html += `<span class="rl-ua-url">${escHtml(urlFound)}</span>`;
+                    html += `</div>`;
+                }
+                html += `</div>`;
+
+                if (hasSignals) {
+                    html += `<div class="rl-section">`;
+                    html += `<div class="rl-section-label">Signals</div>`;
+                    matches.forEach((m) => {
+                        html += `<div class="rl-signal">`;
+                        html += `<span class="match-tag ${m.tag}">${m.label}</span>`;
+                        if (m.noBrowser) {
+                            html += `<span class="rl-snippet"><span class="match-no-browser">missing</span> mozilla/, webkit, gecko&hellip;</span>`;
+                        } else if (m.match) {
+                            html += `<span class="rl-snippet">${highlightMatch(ua, m.match)}</span>`;
+                        }
+                        html += `</div>`;
+                    });
+                    html += `</div>`;
                 }
 
-                let html = `<div class="result-summary">${matches.length} rule${matches.length > 1 ? 's' : ''} matched - classified as <strong>crawler</strong>.</div>`;
-                if (name) {
-                    const urlFound = urlMatch ? urlMatch[0].match(/https?:\/\/[^\s);,]+/)[0] : null;
-                    html += `<div class="result-name">Detected name: <strong>${escHtml(name)}</strong>${version ? ` <span style="color:var(--text-dim);">v${escHtml(version)}</span>` : ''}${urlFound ? ` &middot; <span style="color:#fb923c;">${escHtml(urlFound)}</span>` : ''}</div>`;
-                }
-
-                matches.forEach((m) => {
-                    html += `<div class="match-section">`;
-                    html += `<div class="match-row">`;
-                    html += `<span class="match-tag ${m.tag}">${m.label}</span>`;
-                    if (m.noBrowser) {
-                        html += `<span class="match-text"><span class="match-no-browser">missing</span> mozilla/, webkit, gecko, trident &hellip;</span>`;
-                    } else if (m.match) {
-                        html += `<span class="match-text">${highlightMatch(ua, m.match)}</span>`;
+                if (dbInfo) {
+                    html += `<div class="rl-section">`;
+                    html += `<div class="rl-section-label">Database</div>`;
+                    html += `<div class="rl-db-body">`;
+                    if (dbInfo.description) {
+                        html += `<p class="rl-desc">${escHtml(dbInfo.description)}</p>`;
+                    }
+                    html += `<div class="rl-db-meta">`;
+                    if (dbInfo.url) {
+                        html += `<a class="rl-db-url" href="${escHtml(dbInfo.url)}" target="_blank" rel="noopener">${escHtml(dbInfo.url)}</a>`;
+                    }
+                    if (dbInfo.tags.length) {
+                        html += `<div class="rl-tags">`;
+                        dbInfo.tags.forEach((tag) => {
+                            html += `<span class="match-tag tag-db">${escHtml(tag)}</span>`;
+                        });
+                        html += `</div>`;
                     }
                     html += `</div>`;
                     html += `</div>`;
-                });
+                    html += `</div>`;
+                }
+
+                html += `</div>`;
 
                 resultsEl.className = 'results visible';
                 resultsEl.innerHTML = html;
