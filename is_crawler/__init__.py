@@ -10,7 +10,7 @@ try:
 except ImportError:
     import re as _regex
 
-__version__ = "1.0.6"
+__version__ = "1.1.2"
 __all__ = [
     "is_crawler",
     "crawler_name",
@@ -111,13 +111,21 @@ def crawler_info(user_agent: str) -> CrawlerInfo | None:
     return None
 
 
+@lru_cache(maxsize=2048)
+def _crawler_has_tag_cached(user_agent: str, tags: tuple[str, ...]) -> bool:
+    tag_set = set(tags)
+    for pattern, info in _load_crawler_db():
+        if tag_set.isdisjoint(info.tags):
+            continue
+        if pattern.search(user_agent):
+            return True
+    return False
+
+
 def crawler_has_tag(user_agent: str, tags: str | list[str]) -> bool:
     """Return True if the crawler matches any of the given tags."""
-    info = crawler_info(user_agent)
-    if info is None:
-        return False
-    check = {tags} if isinstance(tags, str) else set(tags)
-    return bool(check & set(info.tags))
+    normalized = (tags,) if isinstance(tags, str) else tuple(tags)
+    return _crawler_has_tag_cached(user_agent, normalized)
 
 
 _CHECKS = (

@@ -21,7 +21,7 @@ def _load_fixture(name):
 
 
 def test_version():
-    assert __version__ == "1.0.6"
+    assert __version__ == "1.1.2"
 
 
 def test_all_exports():
