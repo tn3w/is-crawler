@@ -30,91 +30,71 @@ pip install is-crawler google-re2
 ## Usage
 
 ```python
-from is_crawler import crawler_name, crawler_version, is_crawler
+from is_crawler import is_crawler, crawler_info, crawler_has_tag
 
-is_crawler("Googlebot/2.1 (+http://www.google.com/bot.html)")  # True
-is_crawler("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36")  # False
+ua = "Googlebot/2.1 (+http://www.google.com/bot.html)"
 
-crawler_name("Googlebot/2.1 (+http://www.google.com/bot.html)")  # "Googlebot"
-crawler_version("Googlebot/2.1 (+http://www.google.com/bot.html)")  # "2.1"
-crawler_name("LinkedInBot/1.0 (compatible; Mozilla/5.0; Jakarta Commons-HttpClient/3.1 +http://www.linkedin.com)")  # "LinkedInBot"
+is_crawler(ua)                              # True
+crawler_has_tag(ua, "search-engine")        # True
+crawler_has_tag(ua, ["ai-crawler", "seo"])  # False
+
+info = crawler_info(ua)
+# CrawlerInfo(url='http://www.google.com/bot.html',
+#             description="Google's main web crawling bot for search indexing",
+#             tags=['search-engine'])
+info.url          # 'http://www.google.com/bot.html'
+info.description  # "Google's main web crawling bot for search indexing"
+info.tags         # ['search-engine']
 ```
 
-The module itself is also callable, so you can skip the named import:
+The module is also callable directly, no named import required:
 
 ```python
 import is_crawler
-
 is_crawler("Googlebot/2.1 (+http://www.google.com/bot.html)")  # True
 ```
 
-To see _which_ rules matched, use `crawler_signals`:
+### API reference
+
+| Function                   | Returns               | Description                                              |
+| -------------------------- | --------------------- | -------------------------------------------------------- |
+| `is_crawler(ua)`           | `bool`                | Heuristic detection: fast, no DB                         |
+| `crawler_signals(ua)`      | `list[str]`           | Which heuristic rules matched                            |
+| `crawler_info(ua)`         | `CrawlerInfo \| None` | url, description, tags: DB lookup for 646 known crawlers |
+| `crawler_has_tag(ua, tag)` | `bool`                | `tag` can be `str` or `list[str]` (matches any)          |
+| `crawler_name(ua)`         | `str \| None`         | Product name extracted from the UA string                |
+| `crawler_version(ua)`      | `str \| None`         | Version extracted from the UA string                     |
+| `crawler_url(ua)`          | `str \| None`         | URL embedded in the UA string                            |
+
+`crawler_signals` returns a subset of: `bot_signal`, `no_browser_signature`, `bare_compatible`, `known_tool`, `url_in_ua`.
+
+`crawler_info` tags: `search-engine`, `ai-crawler`, `seo`, `social-preview`, `advertising`, `archiver`, `feed-reader`, `monitoring`, `scanner`, `academic`, `http-library`, `browser-automation`.
+
+### Middleware example
 
 ```python
-from is_crawler import crawler_signals
-
-crawler_signals("Googlebot/2.1 (+http://www.google.com/bot.html)")
-# ['bot_signal', 'no_browser_signature', 'url_in_ua']
-
-crawler_signals("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36")
-# []
-```
-
-Possible signal names: `bot_signal`, `no_browser_signature`, `bare_compatible`, `known_tool`, `url_in_ua`.
-
-If you also want the crawler product name, use `crawler_name`:
-
-```python
-from is_crawler import crawler_name
-
-crawler_name("Googlebot/2.1 (+http://www.google.com/bot.html)")  # "Googlebot"
-crawler_name("LinkedInBot/1.0 (compatible; Mozilla/5.0; Jakarta Commons-HttpClient/3.1 +http://www.linkedin.com)")  # "LinkedInBot"
-```
-
-To get just the crawler version in the shortest possible form, use `crawler_version`:
-
-```python
-from is_crawler import crawler_version
-
-crawler_version("Googlebot/2.1 (+http://www.google.com/bot.html)")  # "2.1"
-crawler_version("Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)")  # "2.0"
-crawler_version("LinkedInBot/1.0 (compatible; Mozilla/5.0; Jakarta Commons-HttpClient/3.1 +http://www.linkedin.com)")  # "1.0"
-```
-
-To extract a URL embedded in the user-agent string, use `crawler_url`:
-
-```python
-from is_crawler import crawler_url
-
-crawler_url("Googlebot/2.1 (+http://www.google.com/bot.html)")  # "http://www.google.com/bot.html"
-crawler_url("Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)")  # "http://www.bing.com/bingbot.htm"
-crawler_url("LinkedInBot/1.0 (compatible; Mozilla/5.0; Jakarta Commons-HttpClient/3.1 +http://www.linkedin.com)")  # "http://www.linkedin.com"
-```
-
-Works great as middleware, rate-limiter input, or analytics filter:
-
-```python
-from is_crawler import is_crawler
+from is_crawler import is_crawler, crawler_has_tag
 
 @app.before_request
-def block_bots():
-    if is_crawler(request.headers.get("User-Agent", "")):
-        abort(403)
+def gate():
+    ua = request.headers.get("User-Agent", "")
+    if crawler_has_tag(ua, "ai-crawler"):
+        abort(403)        # block AI scrapers
+    if is_crawler(ua):
+        log_crawler(ua)   # track other bots without blocking
 ```
 
 ## How it works
 
-Five fast regex checks, no database or external lookups:
+**`is_crawler` / `crawler_signals`**: five heuristic regex checks, no lookup:
 
-1. **Bot signals** -- common keywords (`bot`, `crawl`, `spider`, `scrape`, ...), URL/email patterns, `headless`
-2. **Missing browser signature** -- real browsers always include engine tokens like `WebKit`, `Gecko`, or `Trident`
-3. **Bare `(compatible; ...)` block** -- classic bot pattern without OS tokens
-4. **Known tools** -- `playwright`, `selenium`, `wget`, `lighthouse`, `sqlmap`, and more
-5. **URL in UA** -- an embedded `http://` or `https://` URL, a near-universal bot convention
+1. **Bot signals**: common keywords (`bot`, `crawl`, `spider`, `scrape`, ...), URL/email patterns, `headless`
+2. **Missing browser signature**: real browsers always include engine tokens like `WebKit`, `Gecko`, or `Trident`
+3. **Bare `(compatible; ...)` block**: classic bot pattern without OS tokens
+4. **Known tools**: `playwright`, `selenium`, `wget`, `lighthouse`, `sqlmap`, and more
+5. **URL in UA**: an embedded `http://` or `https://` URL, a near-universal bot convention
 
-## Need more?
-
-If you need deeper user-agent analysis -- device type, OS, browser version, or full bot fingerprinting -- check out [cr-ua](https://github.com/tn3w/crua).
+**`crawler_info` / `crawler_has_tag`**: pattern database loaded lazily on first call, built from [monperrus/crawler-user-agents](https://github.com/monperrus/crawler-user-agents) with supplemental tags. Returns url, description, and tags for 646 known crawlers.
 
 ## Formatting
 

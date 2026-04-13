@@ -1,4 +1,9 @@
+from __future__ import annotations
+
+from csv import reader as _csv_reader
 from functools import lru_cache
+from pathlib import Path as _Path
+from typing import NamedTuple
 
 try:
     import re2 as _regex  # type: ignore[reportMissingImports]
@@ -12,8 +17,29 @@ __all__ = [
     "crawler_version",
     "crawler_url",
     "crawler_signals",
+    "crawler_info",
+    "crawler_has_tag",
+    "CrawlerInfo",
     "__version__",
 ]
+
+
+class CrawlerInfo(NamedTuple):
+    url: str
+    description: str
+    tags: list[str]
+
+
+@lru_cache(maxsize=1)
+def _load_crawler_db() -> tuple:
+    path = _Path(__file__).parent / "crawler-user-agents.csv"
+    with path.open(encoding="utf-8") as f:
+        rows = list(_csv_reader(f))[1:]
+    return tuple(
+        (_regex.compile(p), CrawlerInfo(u, d, t.split(";") if t else []))
+        for p, u, d, t in rows
+    )
+
 
 _match_bot_signal = _regex.compile(
     r"(?i)bot\b|crawl|spider|scrape|fetch|scan\b|index"
@@ -74,6 +100,24 @@ _KNOWN_VERSION_TOKENS = frozenset(
         "Mobile",
     }
 )
+
+
+@lru_cache(maxsize=2048)
+def crawler_info(user_agent: str) -> CrawlerInfo | None:
+    """Return url, description, and tags for the first matching crawler pattern."""
+    for pattern, info in _load_crawler_db():
+        if pattern.search(user_agent):
+            return info
+    return None
+
+
+def crawler_has_tag(user_agent: str, tags: str | list[str]) -> bool:
+    """Return True if the crawler matches any of the given tags."""
+    info = crawler_info(user_agent)
+    if info is None:
+        return False
+    check = {tags} if isinstance(tags, str) else set(tags)
+    return bool(check & set(info.tags))
 
 
 _CHECKS = (

@@ -4,6 +4,8 @@ import pytest
 
 from is_crawler import (
     __version__,
+    crawler_has_tag,
+    crawler_info,
     crawler_name,
     crawler_signals,
     crawler_url,
@@ -31,6 +33,9 @@ def test_all_exports():
         "crawler_version",
         "crawler_url",
         "crawler_signals",
+        "crawler_info",
+        "crawler_has_tag",
+        "CrawlerInfo",
         "__version__",
     }
 
@@ -275,6 +280,63 @@ def test_fixture_crawler_detected(ua):
 @pytest.mark.parametrize("ua", _load_fixture("browser_user_agents.txt"))
 def test_fixture_browser_not_detected(ua):
     assert is_crawler(ua) is False
+
+
+# --- crawler_info ---
+
+_GOOGLEBOT = "Googlebot/2.1 (+http://www.google.com/bot.html)"
+_BINGBOT = "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)"
+_LINKEDINBOT = "LinkedInBot/1.0 (compatible; Mozilla/5.0; Jakarta Commons-HttpClient/3.1 +http://www.linkedin.com)"
+
+
+def test_crawler_info_returns_none_for_browser():
+    ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36"
+    assert crawler_info(ua) is None
+
+
+def test_crawler_info_googlebot():
+    info = crawler_info(_GOOGLEBOT)
+    assert info is not None
+    assert info.url == "http://www.google.com/bot.html"
+    assert info.description == "Google's main web crawling bot for search indexing"
+    assert info.tags == ["search-engine"]
+
+
+def test_crawler_info_bingbot():
+    info = crawler_info(_BINGBOT)
+    assert info is not None
+    assert info.url == "http://www.bing.com/bingbot.htm"
+    assert info.description == "Microsoft's web crawling bot for Bing search indexing"
+    assert info.tags == ["search-engine"]
+
+
+def test_crawler_info_linkedinbot():
+    info = crawler_info(_LINKEDINBOT)
+    assert info is not None
+    assert info.url == ""
+    assert (
+        info.description
+        == "LinkedIn's bot for crawling professional content and profiles"
+    )
+    assert info.tags == ["social-preview"]
+
+
+# --- crawler_has_tag ---
+
+
+def test_crawler_has_tag_single_string():
+    assert crawler_has_tag(_GOOGLEBOT, "search-engine") is True
+    assert crawler_has_tag(_GOOGLEBOT, "ai-crawler") is False
+
+
+def test_crawler_has_tag_list():
+    assert crawler_has_tag(_GOOGLEBOT, ["search-engine", "ai-crawler"]) is True
+    assert crawler_has_tag(_GOOGLEBOT, ["ai-crawler", "scanner"]) is False
+
+
+def test_crawler_has_tag_returns_false_for_browser():
+    ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36"
+    assert crawler_has_tag(ua, "search-engine") is False
 
 
 # --- callable module ---

@@ -30,25 +30,45 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).parent.parent
 
-DEFAULT_INPUT  = REPO_ROOT / "crawler-user-agents.json"
-DEFAULT_OUTPUT = REPO_ROOT / "crawler-user-agents.csv"
-DEFAULT_FLAGS  = REPO_ROOT / "tools" / "crawler-user-agents-flags.json"
+DEFAULT_INPUT = REPO_ROOT / "crawler-user-agents.json"
+DEFAULT_OUTPUT = REPO_ROOT / "is_crawler" / "crawler-user-agents.csv"
+DEFAULT_FLAGS = REPO_ROOT / "tools" / "crawler-user-agents-flags.json"
 
 
 def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--input",  default=DEFAULT_INPUT,  type=Path, metavar="FILE",
-                   help="source JSON file (default: %(default)s)")
-    p.add_argument("--output", default=DEFAULT_OUTPUT, type=Path, metavar="FILE",
-                   help="output CSV file (default: %(default)s)")
-    p.add_argument("--flags",  default=DEFAULT_FLAGS,  type=Path, metavar="FILE",
-                   help="supplemental pattern→tags JSON mapping (default: %(default)s)")
+    p = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    p.add_argument(
+        "--input",
+        default=DEFAULT_INPUT,
+        type=Path,
+        metavar="FILE",
+        help="source JSON file (default: %(default)s)",
+    )
+    p.add_argument(
+        "--output",
+        default=DEFAULT_OUTPUT,
+        type=Path,
+        metavar="FILE",
+        help="output CSV file (default: %(default)s)",
+    )
+    p.add_argument(
+        "--flags",
+        default=DEFAULT_FLAGS,
+        type=Path,
+        metavar="FILE",
+        help="supplemental pattern→tags JSON mapping (default: %(default)s)",
+    )
     return p.parse_args()
 
 
 def load_flags(flags_path: Path) -> dict[str, list[str]]:
     if not flags_path.exists():
-        print(f"Warning: flags file not found at {flags_path}, tags will be empty", file=sys.stderr)
+        print(
+            f"Warning: flags file not found at {flags_path}, tags will be empty",
+            file=sys.stderr,
+        )
         return {}
     with flags_path.open(encoding="utf-8") as f:
         return json.load(f)
@@ -67,14 +87,18 @@ def build_csv(input_path: Path, output_path: Path, flags_path: Path) -> None:
             pattern = entry.get("pattern", "")
             # Prefer tags already present in the source; fall back to flags mapping.
             tags = entry.get("tags") or flags.get(pattern, [])
-            writer.writerow([
-                pattern,
-                entry.get("url", ""),
-                entry.get("description", ""),
-                ";".join(tags),
-            ])
+            writer.writerow(
+                [
+                    pattern,
+                    entry.get("url", ""),
+                    entry.get("description", ""),
+                    ";".join(tags),
+                ]
+            )
 
-    print(f"Wrote {len(data)} entries to {output_path} ({output_path.stat().st_size:,} bytes)")
+    print(
+        f"Wrote {len(data)} entries to {output_path} ({output_path.stat().st_size:,} bytes)"
+    )
 
 
 if __name__ == "__main__":
