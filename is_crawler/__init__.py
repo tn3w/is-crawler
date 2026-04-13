@@ -165,6 +165,8 @@ def crawler_version(user_agent: str) -> str | None:
         return match.group(1)
 
     for token in user_agent.replace("(", " ").replace(")", " ").split():
+        if "://" in token:
+            continue
         name = token.split("/", 1)[0]
         if name not in _KNOWN_VERSION_TOKENS:
             match = _search_token_version(token[len(name) :])

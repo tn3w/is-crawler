@@ -1177,6 +1177,7 @@
                 if (cv) return cv[1];
                 const tokens = ua.replace(/\(/g, ' ').replace(/\)/g, ' ').trim().split(/\s+/);
                 for (const token of tokens) {
+                    if (token.includes('://')) continue;
                     const name = token.split('/', 1)[0];
                     if (!KNOWN_VERSION_TOKENS.has(name)) {
                         const vm = token.slice(name.length).match(tokenVersion);

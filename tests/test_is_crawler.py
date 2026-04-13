@@ -154,6 +154,10 @@ def test_crawler_name_returns_none_for_known_browser_tokens_only():
             "Mozilla/5.0 (compatible; AndersPinkBot/1.0; +http://anderspink.com/bot.html)",
             "1.0",
         ),
+        (
+            "Mozilla/5.0 (compatible; WPScan; +https://wpscan.com/wordpress-security-scanner)",
+            None,
+        ),
     ],
 )
 def test_crawler_version_extracts_expected_version(ua, expected):
