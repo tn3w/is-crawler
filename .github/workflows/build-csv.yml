@@ -1,0 +1,41 @@
+name: Build crawler CSV
+
+on:
+  schedule:
+    # Run weekly on Mondays at 04:00 UTC to pick up upstream changes
+    - cron: "0 4 * * 1"
+  push:
+    paths:
+      - "tools/crawler-user-agents-flags.json"
+      - "tools/build_csv.py"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch upstream crawler-user-agents.json
+        run: |
+          curl -fsSL \
+            https://raw.githubusercontent.com/monperrus/crawler-user-agents/refs/heads/master/crawler-user-agents.json \
+            -o crawler-user-agents.json
+
+      - name: Build CSV
+        run: python3 tools/build_csv.py
+
+      - name: Commit updated files
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add crawler-user-agents.csv
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "chore(data): update crawler-user-agents from upstream"
+            git push
+          fi

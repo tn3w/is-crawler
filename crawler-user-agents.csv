@@ -1,0 +1,647 @@
+pattern,url,description,tags
+Googlebot\/,http://www.google.com/bot.html,Google's main web crawling bot for search indexing,search-engine
+Googlebot-Mobile,,Google's legacy mobile crawler for Google Search indexing,search-engine
+Googlebot-Image,,Google's image-specific web crawling bot for image search indexing,search-engine
+Googlebot-News,,Google's news-specific web crawling bot for Google News indexing,search-engine
+Googlebot-Video,,Google's video crawler for video-related Google Search features,search-engine
+AdsBot-Google([^-]|$),https://support.google.com/webmasters/answer/1061943?hl=en,Google's Ads bot for checking web page ad quality,advertising
+AdsBot-Google-Mobile,https://support.google.com/adwords/answer/2404197,Google's mobile Ads bot for crawling mobile pages to serve targeted ads,advertising
+Feedfetcher-Google,https://support.google.com/webmasters/answer/178852,Google's feed fetcher bot for fetching RSS and Atom feeds for Google services,feed-reader
+Mediapartners-Google,https://support.google.com/webmasters/answer/1061943?hl=en,Google's Mediapartners bot for AdSense and AdMob crawling,advertising
+Mediapartners \(Googlebot\),https://support.google.com/webmasters/answer/1061943?hl=en,Google's Mediapartners bot variant for AdSense and AdMob crawling,advertising
+APIs-Google,https://support.google.com/webmasters/answer/1061943?hl=en,Google's APIs bot for crawling API documentation and services,search-engine
+Google-InspectionTool,https://developers.google.com/search/docs/crawling-indexing/overview-google-crawlers,Google's inspection tool bot for testing and debugging search indexing,search-engine
+Storebot-Google,https://developers.google.com/search/docs/crawling-indexing/overview-google-crawlers,Google's Storebot for crawling product and e-commerce pages,search-engine
+GoogleOther,https://developers.google.com/search/docs/crawling-indexing/overview-google-crawlers,Google's other bots and services for various Google search features,search-engine
+bingbot,http://www.bing.com/bingbot.htm,Microsoft's web crawling bot for Bing search indexing,search-engine
+Slurp,http://help.yahoo.com/help/us/ysearch/slurp,Yahoo's web crawling bot for Yahoo search indexing,search-engine
+[wW]get,,GNU Wget command-line tool for downloading web content,http-library
+LinkedInBot,,LinkedIn's bot for crawling professional content and profiles,social-preview
+Python-urllib,,Python's built-in URL library for HTTP requests,http-library
+python-requests,,Popular Python HTTP library for making web requests,http-library
+aiohttp,https://docs.aiohttp.org/en/stable/,Asynchronous HTTP client library for Python,http-library
+httpx,https://www.python-httpx.org,Modern Python HTTP client with async support,http-library
+libwww-perl,,Perl library for making HTTP requests and web crawling,http-library
+httpunit,,Java library for automated web application testing,http-library
+Nutch,,Apache Nutch open-source web crawler framework,search-engine
+Go-http-client,https://golang.org/pkg/net/http/,Go programming language HTTP client library,http-library
+phpcrawl,http://phpcrawl.cuab.de/,PHP web crawler library for scraping websites,http-library
+msnbot,http://search.msn.com/msnbot.htm,Microsoft's search engine bot for web indexing,search-engine
+jyxobot,,Jyxo search engine bot for web crawling,search-engine
+FAST-WebCrawler,,FAST search engine web crawler for indexing,search-engine
+FAST Enterprise Crawler,,FAST enterprise-grade web crawler for search,search-engine
+BIGLOTRON,,Biglotron search engine web crawler bot,search-engine
+Teoma,http://about.ask.com/en/docs/about/webmasters.shtml,Ask Jeeves Teoma search engine web crawler,search-engine
+convera,http://ews.converasearch.com/crawl.htm,Convera search engine web crawler bot,search-engine
+seekbot,http://www.seekbot.net/bot.html,Seekbot search engine web crawler for indexing,search-engine
+Gigabot,http://www.gigablast.com/spider.html,Gigablast search engine web crawler bot,search-engine
+Gigablast,https://github.com/gigablast/open-source-search-engine,Gigablast open-source search engine crawler,search-engine
+exabot,,Exabot search engine web crawler for indexing,search-engine
+ia_archiver,,Internet Archive Wayback Machine web crawler,archiver
+GingerCrawler,,Ginger Software's language assistant web crawler,seo
+webmon ,,Webmon website monitoring and crawling bot,monitoring
+HTTrack,,HTTrack website copier for offline browsing,http-library
+grub\.org,,Grub search engine web crawler for indexing,search-engine
+UsineNouvelleCrawler,,Usine Nouvelle news site web crawler,search-engine
+antibot,,Antibot web crawler for content discovery,scanner
+netresearchserver,,Net Research Server web crawler bot,seo
+speedy,,Entireweb Speedy Spider web crawler bot,search-engine
+fluffy,,Fluffy search engine web crawler bot,search-engine
+findlink,,Findlinks web crawler for link discovery,seo
+msrbot,,Microsoft Research web crawler bot,search-engine
+panscient,,Panscient web crawler for content analysis,seo
+yacybot,,YaCy decentralized search engine web crawler,search-engine
+AISearchBot,,AI-powered search engine web crawler bot,search-engine;ai-crawler
+ips-agent,,IPS agent web crawler for content indexing,seo
+tagoobot,,Tagoo search engine web crawler bot,search-engine
+MJ12bot,,Majestic-12 search engine web crawler bot,seo
+woriobot,,Worio search engine web crawler bot,search-engine
+yanga,,Yanga search engine web crawler bot,search-engine
+buzzbot,,Buzzstream web crawler for link research,seo
+mlbot,,Metadata Labs web crawler for analysis,seo
+yandex\.com\/bots,https://yandex.ru/support/webmaster/robot-workings/check-yandex-robots.html#robot-in-logs,Yandex search engine web crawler bots,search-engine
+purebot,,Pure web crawler for content discovery,search-engine
+Linguee Bot,http://www.linguee.com/bot,Linguee translation web crawler bot,search-engine
+CyberPatrol,http://www.cyberpatrol.com/cyberpatrolcrawler.asp,CyberPatrol web content filtering bot,scanner
+voilabot,,Voila search engine web crawler bot,search-engine
+Baiduspider,http://www.baidu.jp/spider/,Baidu search engine web crawler bot,search-engine
+citeseerxbot,,CiteSeerX academic web crawler bot,academic
+spbot,http://www.seoprofiler.com/bot,SEO Profiler web crawler for analysis,seo
+twengabot,http://www.twenga.com/bot.html,Twenga shopping web crawler bot,seo
+postrank,http://www.postrank.com,PostRank web crawler for content ranking,seo
+Turnitin,http://www.turnitin.com,Turnitin plagiarism detection web crawler,academic
+scribdbot,http://www.scribd.com,Scribd document web crawler bot,search-engine
+page2rss,http://www.page2rss.com,Page2RSS web crawler for RSS conversion,feed-reader
+sitebot,http://www.sitebot.org,Sitebot web crawler for site analysis,seo
+linkdex,http://www.linkdex.com,Linkdex SEO tool web crawler for link analysis,seo
+Adidxbot,https://www.bing.com/webmasters/help/which-crawlers-does-bing-use-8c184ec0,Bing's advertising index web crawler bot,advertising;search-engine
+ezooms,http://www.phpbb.com/community/viewtopic.php?f=64&t=935605&start=450#p12948289,Ezooms search engine web crawler bot,seo
+dotbot,,Moz DotBot web crawler for SEO analysis,seo
+Mail\.RU_Bot,,Mail.RU search engine web crawler bot,search-engine
+discobot,http://discoveryengine.com/discobot.html,Discovery Engine web crawler for content discovery,search-engine
+heritrix,https://github.com/internetarchive/heritrix3/wiki,Internet Archive's Heritrix web crawler framework,archiver
+findthatfile,http://www.findthatfile.com/,FindThatFile web crawler for file discovery,search-engine
+europarchive\.org,,European Archive web crawler for preservation,archiver
+NerdByNature\.Bot,http://www.nerdbynature.net/bot,NerdByNature web crawler for content indexing,seo
+(sistrix|SISTRIX) [cC]rawler,https://www.sistrix.com/tutorials/crawling-errors-in-the-optimizer/,SISTRIX SEO tool web crawler for analysis,seo
+Ahrefs(Bot|SiteAudit),,Ahrefs SEO tool web crawler for link analysis,seo
+fuelbot,,Fuel web crawler for content discovery,seo
+CrunchBot,,LeadCrunch web crawler for lead generation,seo
+IndeedBot,,Indeed job search web crawler bot,search-engine
+mappydata,,Mappy web crawler for mapping data,seo
+woobot,,Woo web crawler for content analysis,seo
+ZoominfoBot,,ZoomInfo web crawler for business intelligence,seo
+PrivacyAwareBot,,PrivacyAware web crawler for privacy analysis,seo
+Multiviewbot,,Multiview web crawler for content discovery,seo
+SWIMGBot,,SWIMG web crawler for image discovery,seo
+Grobbot,,Grob web crawler for content analysis,seo
+eright,,Eright web crawler for content discovery,seo
+Apercite,,Apercite web crawler for content analysis,seo
+semanticbot,,Semantic web crawler for content analysis,seo
+Aboundex,http://www.aboundex.com/crawler/,Aboundex web crawler for content discovery,search-engine
+domaincrawler,,Domain Crawler web crawler for analysis,seo
+wbsearchbot,http://www.warebay.com/bot.html,Warebay search web crawler bot,search-engine
+summify,http://summify.com,Summify web crawler for content summarization,seo
+CCBot,http://www.commoncrawl.org/bot.html,Common Crawl web crawler for indexing,ai-crawler
+edisterbot,,Edister web crawler for content discovery,search-engine
+SeznamBot,,Seznam search engine web crawler bot,search-engine
+ec2linkfinder,,EC2 link finder web crawler bot,scanner
+gslfbot,,GSLFBOT web crawler for content discovery,seo
+aiHitBot,,AiHit web crawler for data collection,search-engine
+intelium_bot,,Intelium web crawler for content discovery,seo
+facebookexternalhit,https://developers.facebook.com/docs/sharing/webmasters/crawler/,Facebook external hit web crawler bot,social-preview
+Yeti,http://naver.me/bot,Naver Yeti search engine web crawler bot,search-engine
+RetrevoPageAnalyzer,,Retrevo page analyzer web crawler bot,seo
+lb-spider,,LB spider web crawler for content discovery,search-engine
+Sogou,http://www.sogou.com/docs/help/webmasters.htm#07,Sogou search engine web crawler bot,search-engine
+lssbot,https://www.lssbot.com/,LSS web crawler for content discovery,seo
+careerbot,http://www.career-x.de/bot.html,Career-X web crawler for job discovery,seo
+wotbox,http://www.wotbox.com,Wotbox web crawler for content discovery,search-engine
+wocbot,http://www.wocodi.com/crawler,Wocodi web crawler for content discovery,search-engine
+ichiro,http://help.goo.ne.jp/help/article/1142,Goo ichiro search engine web crawler bot,search-engine
+DuckDuckBot,http://duckduckgo.com/duckduckbot.html,DuckDuckGo search engine web crawler bot,search-engine
+lssrocketcrawler,,LSS Rocket web crawler for content,seo
+drupact,http://www.arocom.de/drupact,Drupact web crawler for content discovery,seo
+webcompanycrawler,,Web Company web crawler for analysis,seo
+acoonbot,http://www.acoon.de/robot.asp,Acoon web crawler for content discovery,search-engine
+openindexspider,http://www.openindex.io/en/webmasters/spider.html,OpenIndex web crawler for indexing,search-engine
+gnam gnam spider,,Gnam Gnam web crawler for discovery,seo
+web-archive-net\.com\.bot,,Web Archive web crawler for preservation,archiver
+backlinkcrawler,http://www.backlinktest.com/crawler.html,Backlink Crawler web crawler for analysis,seo
+coccoc,http://help.coccoc.vn/,Coccoc search engine web crawler bot,search-engine
+integromedb,http://www.integromedb.org/Crawler,IntegromeDB web crawler for research,academic
+content crawler spider,,Content Crawler web crawler for discovery,seo
+toplistbot,,TopList web crawler for ranking,seo
+it2media-domain-crawler,,IT2Media domain web crawler bot,seo
+ip-web-crawler\.com,,IP Web Crawler web crawler bot,scanner
+siteexplorer\.info,,Site Explorer web crawler for analysis,seo
+elisabot,,Elisa web crawler for content discovery,seo
+proximic,http://www.proximic.com/info/spider.php,Proximic web crawler for content analysis,advertising
+changedetection,http://www.changedetection.com/bot.html,ChangeDetection web crawler for monitoring,monitoring
+arabot,,Arabot web crawler for content discovery,search-engine
+WeSEE:Search,,WeSEE search engine web crawler bot,search-engine
+niki-bot,,Niki web crawler for content discovery,seo
+CrystalSemanticsBot,http://www.crystalsemantics.com/user-agent/,Crystal Semantics web crawler bot,seo
+rogerbot,http://moz.com/help/pro/what-is-rogerbot-,Moz RogerBot web crawler for analysis,seo
+360Spider,http://needs-be.blogspot.co.uk/2013/02/how-to-block-spider360.html,360 search engine web crawler bot,search-engine
+psbot,http://www.picsearch.com/bot.html,PicSearch web crawler for image discovery,search-engine
+InterfaxScanBot,http://scan-interfax.ru,Interfax scan web crawler bot,seo
+CC Metadata Scaper,http://wiki.creativecommons.org/Metadata_Scraper,Creative Commons metadata web crawler,archiver
+g00g1e\.net,http://www.g00g1e.net/,G00g1e web crawler for content discovery,seo
+GrapeshotCrawler,http://www.grapeshot.co.uk/crawler.php,Grapeshot web crawler for content analysis,advertising
+urlappendbot,http://www.profound.net/urlappendbot.html,URL Append web crawler for analysis,seo
+brainobot,,Braino web crawler for content discovery,seo
+fr-crawler,,FR Crawler web crawler for content discovery,search-engine
+binlar,,Binlar web crawler for content discovery,scanner
+SimpleCrawler,,Simple Crawler web crawler framework,http-library
+Twitterbot,https://dev.twitter.com/cards/getting-started,Twitter web crawler for link previews,social-preview
+cXensebot,http://www.cxense.com/bot.html,CXense web crawler for content analysis,advertising
+smtbot,http://www.similartech.com/smtbot,SimilarTech web crawler for technology detection,seo
+bnf\.fr_bot,http://www.bnf.fr/fr/outils/a.dl_web_capture_robot.html,BNF French National Library web crawler,archiver
+A6-Indexer,http://www.a6corp.com/a6-web-scraping-policy/,A6 Corporation web crawler for indexing,search-engine
+ADmantX,http://www.admantx.com,ADmantX semantic analyzer web crawler,advertising
+Facebot,https://developers.facebook.com/docs/sharing/best-practices#crawl,Facebook's web crawler for social sharing,social-preview
+OrangeBot\/,,Orange search engine web crawler bot,search-engine
+memorybot,http://mignify.com/bot.htm,Mignify memory web crawler bot,seo
+AdvBot,http://advbot.net/bot.html,AdvBot web crawler for advertising analysis,advertising
+MegaIndex,https://www.megaindex.ru/?tab=linkAnalyze,MegaIndex SEO tool web crawler for analysis,seo
+SemanticScholarBot,https://www.semanticscholar.org/crawler,Semantic Scholar web crawler for academic content,academic
+ltx71,http://ltx71.com/,LTX71 web crawler for content discovery,scanner
+nerdybot,http://nerdybot.com/,NerdyBot web crawler for content analysis,seo
+xovibot,http://www.xovibot.net/,Xovi SEO tool web crawler for analysis,seo
+BUbiNG,http://law.di.unimi.it/BUbiNG.html,BUbiNG web crawler framework for research,academic
+Qwantify,https://www.qwant.com/,Qwant search engine web crawler bot,search-engine
+archive\.org_bot,http://www.archive.org/details/archive.org_bot,Archive.org web crawler for preservation,archiver
+Applebot,http://www.apple.com/go/applebot,Apple's web crawler for Siri and search,search-engine
+TweetmemeBot,http://datasift.com/bot.html,TweetMeme web crawler for social content,social-preview
+crawler4j,https://github.com/yasserg/crawler4j,Crawler4j Java web crawler framework,http-library
+findxbot,http://www.findxbot.com,FindX web crawler for content discovery,search-engine
+S[eE][mM]rushBot,http://www.semrush.com/bot.html,Semrush SEO tool web crawler for analysis,seo
+yoozBot,http://yooz.ir,Yooz web crawler for content analysis,seo
+lipperhey,http://www.lipperhey.com/,Lipperhey SEO tool web crawler for analysis,seo
+Y!J,https://www.yahoo-help.jp/app/answers/detail/p/595/a_id/42716/~/%E3%82%A6%E3%82%A7%E3%83%96%E3%83%9A%E3%83%BC%E3%82%B8%E3%81%AB%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B9%E3%81%99%E3%82%8B%E3%82%B7%E3%82%B9%E3%83%86%E3%83%A0%E3%81%AE%E3%83%A6%E3%83%BC%E3%82%B6%E3%83%BC%E3%82%A8%E3%83%BC%E3%82%B8%E3%82%A7%E3%83%B3%E3%83%88%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6,Yahoo Japan search engine web crawler bot,search-engine
+Domain Re-Animator Bot,http://domainreanimator.com,Domain Re-Animator web crawler for domain analysis,seo
+AddThis,https://www.addthis.com,AddThis social sharing web crawler bot,social-preview
+Screaming Frog SEO Spider,http://www.screamingfrog.co.uk/seo-spider,Screaming Frog SEO tool web crawler,seo
+MetaURI,http://www.useragentstring.com/MetaURI_id_17683.php,MetaURI API web crawler for metadata,seo
+Scrapy,http://scrapy.org/,Scrapy Python web crawler framework,http-library
+Livelap[bB]ot,http://site.livelap.com/crawler,Livelap web crawler for content discovery,seo
+OpenHoseBot,http://www.openhose.org/bot.html,OpenHose web crawler for content analysis,search-engine
+CapsuleChecker,http://www.capsulink.com/about,Capsule web crawler for link checking,monitoring
+collection@infegy\.com,http://infegy.com/,Infegy web crawler for social listening,seo
+IstellaBot,http://www.tiscali.it/,Istella web crawler for search indexing,search-engine
+DeuSu\/,https://deusu.de/robot.html,DeuSu web crawler for search indexing,search-engine
+betaBot,,BetaBot web crawler for testing,seo
+Cliqzbot\/,http://cliqz.com/company/cliqzbot,Cliqz search engine web crawler bot,search-engine
+MojeekBot\/,https://www.mojeek.com/bot.html,Mojeek search engine web crawler bot,search-engine
+netEstate NE Crawler,http://www.website-datenbank.de/,NetEstate web crawler for domain analysis,seo
+SafeSearch microdata crawler,https://safesearch.avira.com,Avira SafeSearch web crawler for safety,search-engine
+Gluten Free Crawler\/,http://glutenfreepleasure.com/,Gluten Free Pleasure web crawler bot,search-engine
+Sonic,http://www.yama.info.waseda.ac.jp/~crawler/info.html,Sonic web crawler for ranking analysis,seo
+Sysomos,http://www.sysomos.com,Sysomos web crawler for social media analysis,seo
+Trove,http://www.trove.com,Trove web crawler for content discovery,archiver
+deadlinkchecker,http://www.deadlinkchecker.com,Dead Link Checker web crawler for link validation,seo
+Slack-ImgProxy,https://api.slack.com/robots,Slack's image proxy web crawler bot,social-preview
+Embedly,http://support.embed.ly,Embedly web crawler for content embedding,social-preview
+RankActiveLinkBot,https://rankactive.com/resources/rankactive-linkbot,RankActive web crawler for link analysis,seo
+iskanie,http://www.iskanie.com,Iskanie web crawler for content discovery,seo
+SafeDNSBot,https://www.safedns.com/searchbot,SafeDNS web crawler for security analysis,scanner
+SkypeUriPreview,,Skype's URI preview web crawler bot,social-preview
+Veoozbot,http://www.veooz.com/veoozbot.html,Veooz web crawler for marketing analysis,seo
+Slackbot,https://api.slack.com/robots,Slack's link expansion web crawler bot,social-preview
+redditbot,http://www.reddit.com/feedback,Reddit's web crawler for content sharing,social-preview
+datagnionbot,http://www.datagnion.com/bot.html,Datagnion web crawler for data analysis,seo
+Google-Adwords-Instant,http://www.google.com/adsbot.html,Google AdWords instant web crawler bot,advertising
+adbeat_bot,,AdBeat web crawler for advertising analysis,advertising
+WhatsApp,https://www.whatsapp.com/,WhatsApp's web crawler for link previews,social-preview
+contxbot,,Contx web crawler for content discovery,seo
+pinterest\.com\/bot,http://www.pinterest.com/bot.html,Pinterest web crawler for content discovery,social-preview
+electricmonk,https://www.duedil.com/our-crawler/,DueDil electricmonk web crawler bot,seo
+GarlikCrawler,http://garlik.com/,Garlik web crawler for content discovery,seo
+BingPreview\/,https://www.bing.com/webmaster/help/which-crawlers-does-bing-use-8c184ec0,Bing preview web crawler bot,social-preview
+vebidoobot,https://blog.vebidoo.de/vebidoobot/,Vebidoo web crawler for content discovery,seo
+FemtosearchBot,http://femtosearch.com,Femtosearch web crawler for content discovery,search-engine
+Yahoo Link Preview,https://help.yahoo.com/kb/mail/yahoo-link-preview-SLN23615.html,Yahoo link preview web crawler bot,social-preview
+MetaJobBot,http://www.metajob.de/the/crawler,MetaJob web crawler for job discovery,seo
+DomainStatsBot,http://domainstats.io/our-bot,DomainStats web crawler for domain analysis,seo
+mindUpBot,http://www.datenbutler.de/,MindUp web crawler for content discovery,seo
+Daum\/,http://cs.daum.net/faq/15/4118.html?faqId=28966,Daum search engine web crawler bot,search-engine
+Jugendschutzprogramm-Crawler,http://www.jugendschutzprogramm.de,Jugendschutzprogramm web crawler bot,scanner
+Xenu Link Sleuth,http://home.snafu.de/tilman/xenulink.html,Xenu link checker web crawler tool,seo
+Pcore-HTTP,https://bitbucket.org/softvisio/pcore/overview,Pcore HTTP web crawler library,http-library
+moatbot,https://moat.com,Moat web crawler for advertising analysis,advertising
+KosmioBot,http://kosm.io/bot.html,Kosmio web crawler for content discovery,seo
+[pP]ingdom,http://www.pingdom.com,Pingdom website monitoring web crawler,monitoring
+AppInsights,https://docs.microsoft.com/en-us/azure/azure-monitor/app/app-insights-overview,Microsoft AppInsights web crawler bot,monitoring
+PhantomJS,http://phantomjs.org/,PhantomJS headless browser web crawler,browser-automation
+Gowikibot,http://www.gowikibot.com,GoWiki web crawler for content discovery,seo
+PiplBot,http://www.pipl.com/bot/,Pipl web crawler for people search,seo
+Discordbot,https://discordapp.com,Discord web crawler for link previews,social-preview
+TelegramBot,,Telegram web crawler for link previews,social-preview
+Jetslide,http://jetsli.de/crawler,Jetslide web crawler for content discovery,social-preview
+newsharecounts,http://newsharecounts.com/crawler,NewShareCounts web crawler for sharing,social-preview
+James BOT,http://cognitiveseo.com/bot.html,CognitiveSEO James web crawler bot,seo
+Bark[rR]owler,http://www.exensa.com/crawl,Barkrowler web crawler for content discovery,seo
+TinEye,http://www.tineye.com/crawler.html,TinEye reverse image search web crawler,seo
+SocialRankIOBot,http://socialrank.io/about,SocialRank web crawler for social analysis,seo
+trendictionbot,http://www.trendiction.de/bot,Trendiction web crawler for trend analysis,seo
+Ocarinabot,,Ocarina web crawler for content discovery,seo
+epicbot,http://www.epictions.com/epicbot,Epic web crawler for content discovery,seo
+Primalbot,https://www.primal.com,Primal web crawler for content discovery,seo
+DuckDuckGo-Favicons-Bot,http://duckduckgo.com,DuckDuckGo favicon web crawler bot,search-engine
+GnowitNewsbot,http://www.gnowit.com,Gnowit news web crawler bot,seo
+Leikibot,http://www.leiki.com,Leiki web crawler for content discovery,seo
+LinkArchiver,https://github.com/thisisparker/linkarchiver,LinkArchiver web crawler for archiving,archiver
+YaK\/,http://linkfluence.com,Linkfluence YaK web crawler bot,seo
+PaperLiBot,http://support.paper.li/entries/20023257-what-is-paper-li,Paper.li web crawler for content curation,seo
+Digg Deeper,http://digg.com/about,Digg web crawler for content discovery,seo
+dcrawl,https://github.com/kgretzky/dcrawl,dcrawl web crawler framework,seo
+Snacktory,https://github.com/karussell/snacktory,Snacktory web crawler for content extraction,seo
+AndersPinkBot,http://anderspink.com/bot.html,AndersPink web crawler for content discovery,seo
+Fyrebot,,Fyre web crawler for content discovery,seo
+EveryoneSocialBot,http://everyonesocial.com,EveryoneSocial web crawler for sharing,social-preview
+Mediatoolkitbot,http://mediatoolkit.com,Mediatoolkit web crawler for monitoring,monitoring
+Luminator-robots,,Luminator web crawler for content discovery,seo
+ExtLinksBot,https://extlinks.com/Bot.html,ExtLinks web crawler for link analysis,seo
+SurveyBot,,DomainTools survey web crawler bot,seo
+NING\/,,Ning web crawler for content discovery,social-preview
+okhttp,,OkHttp Java HTTP client library,http-library
+Nuzzel,,Nuzzel web crawler for news discovery,seo
+omgili,http://omgili.com,Omgili web crawler for content discovery,seo
+PocketParser,https://getpocket.com/pocketparser_ua,Pocket web crawler for content parsing,seo
+YisouSpider,,Yisou search engine web crawler bot,search-engine
+um-LN,,Ubermetrics web crawler for monitoring,seo
+ToutiaoSpider,http://web.toutiao.com/media_cooperation/,Toutiao news platform web crawler bot,search-engine
+MuckRack,http://muckrack.com,MuckRack journalist database web crawler,seo
+Jamie's Spider,http://jamiembrown.com/,Jamie Brown's personal web crawler bot,seo
+AHC\/,https://github.com/AsyncHttpClient/async-http-client,Async HTTP Client Java library for HTTP requests,http-library
+NetcraftSurveyAgent,,Netcraft survey web crawler bot,scanner
+Laserlikebot,,Laserlike web crawler for content discovery,seo
+^Apache-HttpClient,,Apache HTTP Client Java library for requests,http-library
+AppEngine-Google,,Google App Engine web crawler bot,search-engine
+Jetty,,Jetty web server HTTP client library,http-library
+Upflow,,Upflow web crawler for content analysis,seo
+Thinklab,thinklab.com,Thinklab web crawler for research,academic
+Traackr\.com,https://www.traackr.com/,Traackr influencer marketing web crawler,seo
+Twurly,http://twurly.org,Twurly Ruby web crawler framework,seo
+Mastodon,,Mastodon social network web crawler bot,social-preview
+http_get,,HTTP GET command-line tool for requests,http-library
+DnyzBot,,Dnyz web crawler for content discovery,seo
+botify,,Botify SEO tool web crawler for analysis,seo
+007ac9 Crawler,,007ac9 web crawler for content discovery,seo
+BehloolBot,,Behlool web crawler for content analysis,seo
+BrandVerity,http://www.brandverity.com/why-is-brandverity-visiting-me,BrandVerity web crawler for brand monitoring,seo
+check_http,,Nagios check_http monitoring plugin,monitoring
+BDCbot,,BigDataCorp web crawler for data collection,seo
+ZumBot,,Zum search engine web crawler bot,search-engine
+EZID,,EZID link checker web crawler bot,seo
+ICC-Crawler,http://ucri.nict.go.jp/en/icccrawler.html,ICC web crawler for language research,academic
+ArchiveBot,https://github.com/ArchiveTeam/ArchiveBot,Archive Team web crawler for preservation,archiver
+^LCC ,http://corpora.informatik.uni-leipzig.de/crawler_faq.html,Leipzig Corpora Collection web crawler,academic
+filterdb\.iss\.net\/crawler,http://filterdb.iss.net/crawler/,ISS filter database web crawler,scanner
+BLP_bbot,,BLP web crawler for content discovery,seo
+BomboraBot,http://www.bombora.com/bot,Bombora web crawler for business intelligence,seo
+Buck\/,https://app.hypefactors.com/media-monitoring/about.html,Hypefactors media monitoring web crawler,monitoring
+Companybook-Crawler,https://www.companybooknetworking.com/,Companybook networking web crawler,seo
+Genieo,http://www.genieo.com/webfilter.html,Genieo web filter web crawler bot,seo
+magpie-crawler,http://www.brandwatch.net,Brandwatch magpie web crawler bot,seo
+MeltwaterNews,http://www.meltwater.com,Meltwater news monitoring web crawler,seo
+Moreover,http://www.moreover.com,Moreover news aggregation web crawler,seo
+newspaper\/,,Newspaper Python web scraping library,http-library
+ScoutJet,http://www.scoutjet.com/,ScoutJet web crawler for content discovery,seo
+(^| )sentry\/,https://sentry.io,Sentry error tracking web crawler bot,monitoring
+StorygizeBot,http://www.storygize.com,Storygize web crawler for content analysis,seo
+UptimeRobot,http://www.uptimerobot.com/,UptimeRobot website monitoring web crawler,monitoring
+OutclicksBot,https://www.outclicks.net,Outclicks web crawler for link tracking,advertising
+seoscanners,https://github.com/monperrus/crawler-user-agents/issues/384#issuecomment-2575367162,SEO Scanners web crawler for analysis,seo
+Hatena,,Hatena web services web crawler bot,social-preview
+Google Web Preview,,Google web preview web crawler bot,social-preview
+MauiBot,,Maui web crawler for content discovery,seo
+AlphaBot,http://alphaseobot.com/bot.html,AlphaBot SEO web crawler for analysis,seo
+SBL-BOT,http://sbl.net,Bot of SoftByte BlackWidow,scanner
+IAS crawler,http://integralads.com/site-indexing-policy/,"Bot of Integral Ad Science, Inc.",advertising
+adscanner,,AdScanner web crawler for ad analysis,advertising
+Netvibes,http://www.netvibes.com,Netvibes web crawler for content aggregation,feed-reader
+acapbot,,ACAP web crawler for content analysis,seo
+Baidu-YunGuanCe,https://ce.baidu.com/topic/topic20150908,Baidu Cloud Watch,monitoring
+bitlybot,http://bit.ly/,Bit.ly web crawler for link tracking,seo
+blogmuraBot,http://www.blogmura.com,A blog ranking site which links to blogs on just about every theme possible.,seo
+Bot\.AraTurka\.com,http://www.araturka.com,AraTurka web crawler for content discovery,search-engine
+bot-pge\.chlooe\.com,,Chlooe web crawler for content analysis,seo
+BoxcarBot,https://boxcar.io/,Boxcar web crawler for notifications,seo
+BTWebClient,http://www.utorrent.com/,µTorrent BitTorrent Client,http-library
+ContextAd Bot,,ContextAd web crawler for advertising,advertising
+Digincore bot,http://www.digincore.com/crawler.html,Digincore web crawler for content analysis,seo
+Disqus,https://disqus.com/,validate and quality check pages.,seo
+Feedly,https://www.feedly.com/fetcher.html,Feedly Fetcher is how Feedly grabs RSS or Atom feeds when users choose to add them to their Feedly or any of the other applications built on top of the feedly cloud.,feed-reader
+Fetch\/,,Fetch web crawler for CMS detection,seo
+Fever,http://feedafever.com,Fever feed reader web crawler bot,feed-reader
+Flamingo_SearchEngine,,Flamingo search engine web crawler bot,search-engine
+FlipboardProxy,https://about.flipboard.com/browserproxy/,"a proxy service to fetch, validate, and prepare certain elements of websites for presentation through the Flipboard Application",social-preview
+g2reader-bot,http://www.g2reader.com/,G2Reader web crawler for content discovery,feed-reader
+G2 Web Services,https://www.g2webservices.com/,G2 web services web crawler bot,seo
+imrbot,http://www.mignify.com,Mignify imrbot web crawler bot,seo
+K7MLWCBot,http://www.k7computing.com,Virus scanner,scanner
+Kemvibot,http://kemvi.com,Kemvi web crawler for content discovery,seo
+Landau-Media-Spider,http://bots.landaumedia.de/bot.html,Landau Media web crawler bot,seo
+linkapediabot,http://www.linkapedia.com,Linkapedia web crawler for link discovery,seo
+vkShare,http://vk.com/dev/Share,VK Share web crawler for social sharing,social-preview
+Siteimprove\.com,,Siteimprove web crawler for site analysis,monitoring
+BLEXBot\/,http://webmeup-crawler.com,WebMeUp BLEX web crawler bot,seo
+DareBoost,https://www.dareboost.com/,"Bot to test, Analyze and Optimize website",monitoring
+ZuperlistBot\/,,Zuperlist web crawler for content discovery,seo
+Miniflux\/,https://miniflux.net,Miniflux is a minimalist and opinionated feed reader.,feed-reader
+Feedspot,http://www.feedspot.com/fs/bot,Feedspot web crawler for feed discovery,feed-reader
+Diffbot\/,http://www.diffbot.com,Diffbot web crawler for content extraction,seo
+SEOkicks,https://www.seokicks.de/robot.html,SEOkicks web crawler for SEO analysis,seo
+tracemyfile,,TraceMyFile web crawler for file tracking,seo
+Nimbostratus-Bot,,Nimbostratus web crawler for cloud analysis,seo
+zgrab,https://github.com/zmap/zgrab2,Zgrab web crawler for security scanning,scanner
+PR-CY\.RU,https://a.pr-cy.ru/,PR-CY web crawler for SEO analysis,seo
+AdsTxtCrawler,,AdsTxt web crawler for ads.txt validation,advertising
+Datafeedwatch,https://www.datafeedwatch.com/,Datafeedwatch web crawler for feed analysis,seo
+Zabbix,https://www.zabbix.com/documentation/3.4/manual/web_monitoring,Zabbix web crawler for monitoring,monitoring
+TangibleeBot,http://tangiblee.com/bot,Tangiblee web crawler for visual search,seo
+google-xrawler,https://webmasters.stackexchange.com/questions/105560/what-is-the-google-xrawler-user-agent-used-for,Google xrawler web crawler bot,search-engine
+axios,https://github.com/axios/axios,Axios HTTP client library for requests,http-library
+Amazon CloudFront,https://aws.amazon.com/cloudfront/,Amazon CloudFront web crawler bot,http-library
+Pulsepoint,,Pulsepoint web crawler for content discovery,advertising
+CloudFlare-AlwaysOnline,https://www.cloudflare.com/always-online/,CloudFlare always online web crawler,monitoring
+Cloudflare-Healthchecks,https://developers.cloudflare.com/health-checks/,CloudFlare health checks web crawler,monitoring
+Cloudflare-Traffic-Manager,https://developers.cloudflare.com/load-balancing/monitors/,CloudFlare traffic manager web crawler,monitoring
+CloudFlare-Prefetch,https://developers.cloudflare.com/speed/optimization/content/prefetch-urls/,CloudFlare prefetch web crawler bot,seo
+Cloudflare-SSLDetector,https://developers.cloudflare.com/ssl/origin-configuration/ssl-tls-recommender/,CloudFlare SSL detector web crawler,scanner
+https:\/\/developers\.cloudflare\.com\/security-center\/,https://developers.cloudflare.com/ssl/origin-configuration/ssl-tls-recommender/,CloudFlare security center web crawler,scanner
+Google-Structured-Data-Testing-Tool,https://search.google.com/structured-data/testing-tool,Google structured data testing web crawler,search-engine
+WordupInfoSearch,,Wordup info search web crawler bot,search-engine
+WebDataStats,https://webdatastats.com/,WebDataStats web crawler for data analysis,seo
+HttpUrlConnection,,Java HttpUrlConnection HTTP client,http-library
+ZoomBot,http://suite.seozoom.it/bot.html,SEOZoom web crawler for SEO analysis,seo
+VelenPublicWebCrawler,https://velen.io/,Velen web crawler for content discovery,seo
+MoodleBot,,Moodle web crawler for learning platforms,seo
+jpg-newsbot,https://vipnytt.no/bots/,JPG news web crawler bot,seo
+outbrain,https://www.outbrain.com/help/advertisers/invalid-url/,Outbrain web crawler for content discovery,advertising
+W3C_Validator,https://validator.w3.org/services,W3C HTML validator web crawler bot,monitoring
+Validator\.nu,https://validator.w3.org/services,Validator.nu HTML validator web crawler,monitoring
+W3C-checklink,https://validator.w3.org/services,W3C checklink web crawler for link validation,monitoring
+W3C-mobileOK,https://validator.w3.org/services,W3C mobile OK web crawler bot,monitoring
+W3C_I18n-Checker,https://validator.w3.org/services,W3C internationalization web crawler,monitoring
+FeedValidator,https://validator.w3.org/services,Feed validator web crawler for RSS validation,monitoring
+W3C_CSS_Validator,https://validator.w3.org/services,W3C CSS validator web crawler bot,monitoring
+W3C_Unicorn,https://validator.w3.org/services,W3C Unicorn validator web crawler bot,monitoring
+Google-PhysicalWeb,,Google physical web web crawler bot,search-engine
+Blackboard,https://help.blackboard.com/Learn/Administrator/Hosting/Tools_Management/SafeAssign,Blackboard SafeAssign web crawler bot,academic
+ICBot\/,https://ideasandcode.xyz,Ideas and Code web crawler bot,seo
+BazQux,https://bazqux.com/fetcher,BazQux RSS reader web crawler bot,feed-reader
+Twingly,https://twingly.com,Twingly blog search web crawler bot,seo
+Rivva,http://rivva.de,Rivva blog search web crawler bot,seo
+Experibot,https://amirkr.wixsite.com/experibot,Experibot web crawler for testing,monitoring
+awesomecrawler,,Awesome web crawler for content discovery,seo
+Dataprovider\.com,https://www.dataprovider.com/,Dataprovider web crawler for data collection,seo
+GroupHigh\/,http://www.grouphigh.com/,GroupHigh web crawler for influencer marketing,seo
+theoldreader\.com,https://www.theoldreader.com/,The Old Reader web crawler bot,feed-reader
+AnyEvent,http://software.schmorp.de/pkg/AnyEvent.html,AnyEvent Perl HTTP web crawler library,http-library
+Uptimebot\.org,http://uptimebot.org/,Uptimebot website monitoring web crawler,monitoring
+Nmap Scripting Engine,https://nmap.org/book/nse.html,Nmap NSE web crawler for security scanning,scanner
+2ip\.ru,https://2ip.ru/cms/,2IP CMS detector web crawler bot,seo
+Clickagy,https://www.clickagy.com,Clickagy intelligence web crawler bot,advertising
+Caliperbot,http://www.conductor.com/caliperbot,Conductor Caliperbot web crawler for analysis,seo
+MBCrawler,https://monitorbacklinks.com,Monitor Backlinks web crawler bot,seo
+online-webceo-bot,http://online.webceo.com,Online WebCEO web crawler for analysis,seo
+B2B Bot,,B2B web crawler for business discovery,seo
+AddSearchBot,http://www.addsearch.com/bot,AddSearch web crawler for site search,search-engine
+Google Favicon,,Google favicon web crawler bot,search-engine
+HubSpot,,HubSpot web crawler for marketing automation,seo
+Chrome-Lighthouse,https://developers.google.com/speed/pagespeed/insights,Chrome Lighthouse web crawler for audits,monitoring
+HeadlessChrome,https://developers.google.com/web/updates/2017/04/headless-chrome,Headless Chrome web crawler for testing,browser-automation
+CheckMarkNetwork\/,https://www.checkmarknetwork.com/,CheckMark Network web crawler bot,monitoring
+www\.uptime\.com,http://www.uptime.com/uptimebot,Uptime.com website monitoring web crawler,monitoring
+Streamline3Bot\/,https://www.ubtsupport.com/legal/Streamline3Bot.php,Streamline3 web crawler for monitoring,monitoring
+serpstatbot\/,http://serpstatbot.com,Serpstat web crawler for backlink tracking,seo
+MixnodeCache\/,https://cache.mixnode.com/,Mixnode cache web crawler bot,seo
+^curl,https://curl.haxx.se/,cURL command-line tool for HTTP requests,http-library
+SimpleScraper,https://github.com/ramonkcom/simple-scraper/,Simple Scraper web scraping tool,seo
+RSSingBot,http://www.rssing.com,RSSing RSS reader web crawler bot,feed-reader
+Jooblebot,http://jooble.org/jooble-bot,Jooble job search web crawler bot,search-engine
+fedoraplanet,http://fedoraplanet.org/,Fedora Planet web crawler for aggregation,feed-reader
+Friendica,https://hoyer.xyz,Friendica social network web crawler bot,social-preview
+NextCloud,https://nextcloud.com/,NextCloud news reader web crawler bot,feed-reader
+Tiny Tiny RSS,http://tt-rss.org/,Tiny Tiny RSS reader web crawler bot,feed-reader
+RegionStuttgartBot,http://it.region-stuttgart.de/competenzatlas/unternehmen-suchen/,Region Stuttgart web crawler bot,seo
+Bytespider,https://stackoverflow.com/questions/57908900/what-is-the-bytespider-user-agent,ByteDance Bytespider web crawler bot,ai-crawler
+Datanyze,https://www.datanyze.com/dnyzbot/,Datanyze web crawler for technology detection,seo
+Google-Site-Verification,https://support.google.com/webmasters/answer/9008080,Google site verification web crawler bot,search-engine
+TrendsmapResolver,https://www.trendsmap.com/,Trendsmap web crawler for trend analysis,seo
+tweetedtimes,https://tweetedtimes.com/,Tweeted Times web crawler for news,seo
+NTENTbot,https://ntent.com/ntentbot/,NTENT web crawler for search results,search-engine
+Gwene,https://gwene.org,Gwene RSS to news gateway web crawler,feed-reader
+SimplePie,http://simplepie.org,SimplePie PHP feed parser web crawler,feed-reader
+SearchAtlas,http://SearchAtlas.com,SearchAtlas SEO web crawler for analysis,seo
+Superfeedr,http://superfeedr.com,Superfeedr feed reader web crawler bot,feed-reader
+feedbot,http://wp.com,WordPress.com feed web crawler bot,feed-reader
+UT-Dorkbot,https://security.utexas.edu/dorkbot,University of Texas security web crawler,scanner
+Amazonbot,https://developer.amazon.com/support/amazonbot,Amazon web crawler for product discovery,search-engine
+AmazonProductDiscovery,https://vendorcentral.amazon.com/support/amazonproductbot,Amazon product discovery web crawler,search-engine
+AmazonSellerInitiatedListing,https://vendorcentral.amazon.com/support/amazonproductbot,Amazon seller listing web crawler,search-engine
+SerendeputyBot,http://serendeputy.com/about/serendeputy-bot,Serendeputy web crawler for content discovery,seo
+Eyeotabot,http://www.eyeota.com,Eyeota web crawler for audience data,advertising
+officestorebot,https://aka.ms/officestorebot,Microsoft Office Store web crawler bot,search-engine
+Neticle Crawler,https://neticle.com/bot/en/,Neticle web crawler for content analysis,seo
+SurdotlyBot,http://sur.ly/bot.html,Surly web crawler for link shortening,seo
+LinkisBot,,Linkis web crawler for link sharing,seo
+AwarioSmartBot,https://awario.com/bots.html,Awario smart web crawler bot,seo
+AwarioRssBot,https://awario.com/bots.html,Awario RSS feed web crawler bot,feed-reader;seo
+RyteBot,https://bot.ryte.com/,Ryte web crawler for site analysis,seo
+FreeWebMonitoring SiteChecker,https://www.freewebmonitoring.com/bot.html,FreeWebMonitoring site checker web crawler,monitoring
+AspiegelBot,https://aspiegel.com,Aspiegel web crawler for content discovery,search-engine
+NAVER Blog Rssbot,http://www.naver.com,Naver blog RSS web crawler bot,feed-reader
+zenback bot,http://corp.logly.co.jp/,Zenback web crawler for content discovery,seo
+SentiBot,https://sites.google.com/senti1.com/sentibot-eu/home,SentiBot web crawler for sentiment analysis,seo
+Domains Project\/,https://github.com/tb0hdan/domains,Domains Project web crawler bot,seo
+Pandalytics,https://domainsbot.com/pandalytics/,Pandalytics web crawler for domain analysis,seo
+VKRobot,,VK social network web crawler bot,social-preview
+bidswitchbot,https://www.bidswitch.com/about-us/,BidSwitch web crawler for advertising,advertising
+tigerbot,,Tiger web crawler for content discovery,seo
+NIXStatsbot,http://www.nixstats.com/bot.html,NIXStats web crawler for monitoring,monitoring
+Atom Feed Robot,https://rssmicro.com,RSSMicro atom feed web crawler bot,feed-reader
+[Cc]urebot,,Cure web crawler for content discovery,monitoring
+PagePeeker\/,https://pagepeeker.com/robots/,PagePeeker web crawler for screenshots,seo
+Vigil\/,http://vigil-app.com/bot.html,Vigil web crawler for monitoring,monitoring
+rssbot\/,https://github.com/iovxw/rssbot,RSS bot web crawler for feeds,feed-reader
+startmebot\/,https://start.me/bot,Start.me web crawler for content discovery,seo
+JobboerseBot,http://www.jobboerse.com/bot.htm,Jobboerse web crawler for job discovery,search-engine
+seewithkids,http://seewithkids.com/bot,SeeWithKids web crawler for content discovery,seo
+NINJA bot,,NINJA web crawler for content discovery,scanner
+Cutbot,http://cutbot.net/,Cutbot web crawler for content discovery,seo
+BublupBot,https://www.bublup.com/bublup-bot.html,Bublup web crawler for content discovery,seo
+BrandONbot,http://brandonmedia.net,BrandON web crawler for brand monitoring,seo
+RidderBot,https://ridder.co/,Ridder web crawler for content discovery,seo
+Taboolabot,http://www.taboola.com,Taboola web crawler for content discovery,advertising
+Dubbotbot,http://dubbot.com,Dubbot web crawler for content discovery,monitoring
+FindITAnswersbot,http://search.it-influentials.com/bot.htm,FindITAnswers web crawler for discovery,seo
+infoobot,https://www.infoo.nl/bot.html,Infoo web crawler for content discovery,seo
+Refindbot,https://refind.com/about,Refind web crawler for content discovery,seo
+BlogTraffic\/\d\.\d+ Feed-Fetcher,http://www.blogtraffic.de/rss-bot.html,BlogTraffic feed fetcher web crawler,feed-reader
+SeobilityBot,https://www.seobility.net/sites/bot.html,Seobility web crawler for SEO analysis,seo
+Cincraw,http://cincrawdata.net/bot/,Cincraw web crawler for data collection,seo
+Dragonbot,http://www.dragonmetrics.com,DragonMetrics web crawler for analysis,seo
+VoluumDSP-content-bot,https://codewise.com,Voluum DSP web crawler for advertising,advertising
+FreshRSS,https://freshrss.org,FreshRSS feed reader web crawler bot,feed-reader
+BitBot,https://bitbot.dev,BitBot web crawler for content discovery,seo
+^PHP-Curl-Class,https://github.com/php-curl-class/php-curl-class,PHP Curl Class HTTP client library,http-library
+Google-Certificates-Bridge,,Google certificates bridge web crawler,search-engine
+centurybot,,Century web crawler for content discovery,seo
+Viber,https://www.viber.com/,Viber messaging web crawler bot,social-preview
+e\.ventures Investment Crawler,https://www.eventures.vc/,E.ventures investment web crawler bot,seo
+evc-batch,https://www.eventures.vc/,E.ventures batch web crawler bot,seo
+PetalBot,https://webmaster.petalsearch.com/site/petalbot,Petal search engine web crawler bot,search-engine
+virustotal,https://www.virustotal.com/gui/home/url,VirusTotal web crawler for security,scanner
+(^| )PTST\/,https://www.webpagetest.org,WebPageTest web crawler for testing,monitoring
+minicrawler,https://www.testomato.com/bot,Testomato web crawler for testing,monitoring
+Cookiebot,https://www.cookiebot.com/,Cookiebot web crawler for cookie scanning,scanner
+trovitBot,http://www.trovit.com/bot.html,Trovit web crawler for content discovery,search-engine
+seostar\.co,https://seostar.co/robot/,SEOstar web crawler for SEO analysis,seo
+IonCrawl,https://www.ionos.de/terms-gtc/faq-crawler-en,IONOS IonCrawl web crawler bot,seo
+Uptime-Kuma,https://uptime.kuma.pet/,Uptime Kuma web crawler for monitoring,monitoring
+Seekport,https://bot.seekport.com,Seekport web crawler for content discovery,search-engine
+FreshpingBot,https://www.freshworks.com/website-monitoring/,Freshping web crawler for monitoring,monitoring
+Feedbin,https://feedbin.com/,Feedbin feed reader web crawler bot,feed-reader
+CriteoBot,https://www.criteo.com/,Criteo web crawler for advertising,advertising
+Snap URL Preview Service,https://snap.com/,Snapchat URL preview web crawler,social-preview
+Better Uptime Bot,https://betteruptime.com/,Better Uptime web crawler for monitoring,monitoring
+RuxitSynthetic,https://www.dynatrace.com/support/help/platform-modules/digital-experience/synthetic-monitoring/browser-monitors/configure-browser-monitors#expand--default-user-agent,Dynatrace Ruxit synthetic web crawler,monitoring
+Google-Read-Aloud,https://developers.google.com/search/docs/crawling-indexing/overview-google-crawlers,Google read aloud web crawler bot,search-engine
+Valve\/Steam,,Steam web crawler for link previews,social-preview
+OdklBot\/,https://odnoklassniki.ru/,Odnoklassniki web crawler for sharing,social-preview
+GPTBot,https://platform.openai.com/docs/gptbot,OpenAI GPT web crawler bot,ai-crawler
+ChatGPT-User,https://openai.com/bot,ChatGPT user web crawler bot,ai-crawler
+OAI-SearchBot,https://platform.openai.com/docs/bots,OpenAI search web crawler bot,ai-crawler;search-engine
+YandexRenderResourcesBot\/,http://yandex.com/bots,Yandex render resources web crawler,search-engine
+LightspeedSystemsCrawler,,Lightspeed Systems web crawler bot,scanner
+ev-crawler\/,https://headline.com/legal/crawler,Headline web crawler for content discovery,seo
+BitSightBot\/,https://www.bitsight.com,BitSight web crawler for security,scanner
+woorankreview\/,https://www.woorank.com/,WooRank web crawler for SEO analysis,seo
+Google-Safety,https://developers.google.com/search/docs/crawling-indexing/overview-google-crawlers,Google safety web crawler bot,search-engine
+AwarioBot,https://awario.com/bots.html,Awario web crawler for monitoring,seo
+DataForSeoBot,https://dataforseo.com/dataforseo-bot,DataForSEO web crawler for analysis,seo
+Linespider,https://help2.line.me/linesearchbot/web/?contentId=50006055&lang=en,LINE Linespider web crawler bot,social-preview
+WellKnownBot,https://well-known.dev/about/#bot),WellKnown web crawler for discovery,seo
+A Patent Crawler,http://scitas.epfl.ch/,EPFL patent web crawler bot,academic
+StractBot,https://trystract.com/webmasters,Stract search engine web crawler bot,search-engine
+search\.marginalia\.nu,https://search.marginalia.nu,Marginalia search web crawler bot,search-engine
+YouBot,https://you.com/,You.com search engine web crawler bot,search-engine
+Nicecrawler,http://www.nicecrawler.com/,Nicecrawler web crawler for discovery,search-engine
+Neevabot,https://neeva.com/neevabot,Neeva search engine web crawler bot,search-engine
+BrightEdge Crawler,https://www.brightedge.com/,BrightEdge web crawler for SEO,seo
+SiteCheckerBotCrawler,http://sitechecker.pro,SiteChecker web crawler for analysis,seo
+TombaPublicWebCrawler,https://tombascraper.com,Tomba web crawler for email discovery,seo
+CrawlyProjectCrawler,https://crawlyproject.digitaldragon.dev/,Crawly Project web crawler framework,seo
+KomodiaBot,http://www.komodia.com/newwiki/index.php/URL_server_crawler,Komodia web crawler for classification,seo
+KStandBot,http://url-classification.io,KStand web crawler for classification,seo
+CISPA Webcrawler,https://vuln-notify-checker.cispa.saarland,CISPA web crawler for vulnerability,academic
+MTRobot,https://metrics-tools.de/robot.html,Metrics Tools web crawler for analysis,seo
+hyscore\.io,https://hyscore.io/crawler/,HyScore web crawler for analysis,seo
+AlexandriaOrgBot,https://www.alexandria.org/bot.html,Alexandria web crawler for discovery,search-engine
+2ip bot,http://2ip.io,2IP web crawler for analysis,seo
+Yellowbrandprotectionbot,https://www.yellowbp.com/bot.html,Yellow brand protection web crawler,seo
+SEOlizer,https://www.seolizer.de/bot.html,SEOlizer web crawler for SEO analysis,seo
+vuhuvBot,http://vuhuv.com/bot.html,Vuhuv web crawler for content discovery,seo
+INETDEX-BOT,https://inetdex.com/bot.html,INETDEX web crawler for indexing,search-engine
+Synapse,https://github.com/matrix-org/synapse,Matrix Synapse web crawler bot,social-preview
+t3versionsBot,https://www.t3versions.com/bot,T3versions web crawler for discovery,seo
+deepnoc,https://deepnoc.com/bot,DeepNOC web crawler for monitoring,monitoring
+Cocolyzebot,https://cocolyze.com/bot,Cocolyze web crawler for analysis,seo
+hypestat,https://hypestat.com/bot,Hypestat web crawler for analysis,seo
+ReverseEngineeringBot,https://torus.company/bot.html,Torus reverse engineering web crawler,scanner
+sempi\.tech,http://sempi.tech/bot.html,Sempi web crawler for analysis,seo
+Iframely,https://iframely.com/docs/about,Iframely web crawler for embeds,social-preview
+MetaInspector,https://github.com/jaimeiniesta/metainspector,MetaInspector web crawler for metadata,seo
+node-fetch,https://github.com/bitinn/node-fetch,Node-fetch HTTP client library,http-library
+l9explore,https://github.com/LeakIX/l9explore,L9explore web crawler for discovery,scanner
+python-opengraph,https://github.com/jaywink/python-opengraph,Python OpenGraph web crawler bot,http-library
+OpenGraphCheck,https://opengraphcheck.com,OpenGraphCheck web crawler for metadata,seo
+developers\.google\.com\/\+\/web\/snippet,https://developers.google.com/+/web/snippet,Google snippet web crawler bot,search-engine
+SenutoBot,https://www.senuto.com,Senuto web crawler for SEO analysis,seo
+MaCoCu,https://www.clarin.si/info/macocu-massive-collection-and-curation-of-monolingual-and-bilingual-data,MaCoCu web crawler for language research,academic
+NewsBlur,http://www.newsblur.com,NewsBlur feed reader web crawler bot,feed-reader
+inoreader,http://inoreader.com,Inoreader feed reader web crawler bot,feed-reader
+NetSystemsResearch,http://netsystemsresearch.com,NetSystemsResearch web crawler bot,scanner
+PageThing,http://pagething.com,PageThing web crawler for content discovery,seo
+WordPress\/,https://wordpress.org,WordPress web crawler for site discovery,seo
+PhxBot,,Phoenix web crawler for content discovery,search-engine
+ImagesiftBot,https://imagesift.com/about,Imagesift bot for image search and indexing,search-engine
+Expanse,https://www.paloaltonetworks.com/cortex/cortex-xpanse,Palo Alto Networks Expanse bot for internet asset discovery,scanner
+InternetMeasurement,https://internet-measurement.com,Internet Measurement bot for network research and analysis,academic
+^BW\/,https://builtwith.com/biup,BuiltWith web crawler for technology detection,seo
+GeedoBot,http://www.geedo.com,Geedo web crawler for content discovery,search-engine
+Audisto Crawler,https://audisto.com/help/crawler/bot/,Audisto SEO web crawler for analysis,seo
+PerplexityBot\/,https://docs.perplexity.ai/docs/perplexitybot,Perplexity AI web crawler for search,ai-crawler;search-engine
+[cC]laude[bB]ot,https://www.anthropic.com/,Anthropic Claude web crawler bot,ai-crawler
+Monsidobot,http://monsido.com/bot.html,Monsido web crawler for website monitoring,monitoring
+GroupMeBot,https://groupme.com/,GroupMe web crawler for messaging,social-preview
+Vercelbot,https://github.com/vercel/vercel/discussions/5095#discussioncomment-58705,Vercel web crawler for deployment,seo
+vercel-screenshot,,Vercel screenshot web crawler bot,seo
+facebookcatalog\/,https://developers.facebook.com/docs/sharing/webmasters/web-crawlers,Facebook catalog web crawler bot,advertising
+meta-externalads\/,https://developers.facebook.com/docs/sharing/webmasters/web-crawlers,Meta external ads web crawler bot,advertising
+meta-externalagent\/,https://developers.facebook.com/docs/sharing/webmasters/web-crawlers,Meta external agent web crawler bot,ai-crawler;social-preview
+meta-externalfetcher\/,https://developers.facebook.com/docs/sharing/webmasters/web-crawlers,Meta external fetcher web crawler bot,social-preview
+AcademicBotRTU,https://academicbot.rtu.lv,Academic Bot RTU web crawler bot,academic
+KeybaseBot,https://book.keybase.io/docs/chat/link-previews,Keybase web crawler for link previews,social-preview
+Lemmy,https://leminal.space,Lemmy social network web crawler bot,social-preview
+CookieHubScan,https://www.cookiehub.com/,CookieHub web crawler for cookie scanning,scanner
+Hydrozen\.io,https://docs.hydrozen.io/overview/misc/user-agent-and-ip-list,Hydrozen web crawler for monitoring,monitoring
+HTTP Banner Detection,https://security.ipip.net,IPIP HTTP banner detection web crawler,scanner
+SummalyBot,https://github.com/misskey-dev/summaly,Summaly web crawler for content summarization,social-preview
+MicrosoftPreview\/,https://www.bing.com/webmasters/help/which-crawlers-does-bing-use-8c184ec0,Microsoft preview web crawler bot,social-preview
+GeedoProductSearch,http://www.geedo.com/product-search.html,Geedo product search web crawler bot,search-engine
+TikTokSpider,,TikTok web crawler for content discovery,ai-crawler;social-preview
+OnCrawl\/,http://www.oncrawl.com,OnCrawl SEO web crawler for analysis,seo
+sindresorhus\/got,https://github.com/sindresorhus/got,Got HTTP client library for requests,http-library
+CensysInspect\/,https://about.censys.io,Censys web crawler for security scanning,scanner
+SBIntuitionsBot\/,https://www.sbintuitions.co.jp/bot/,SB Intuitions web crawler bot,ai-crawler
+sitebulb,https://sitebulb.com/,Sitebulb SEO web crawler for analysis,seo
+YextBot\/,https://hitchhikers.yext.com/modules/kg140-yext-site-crawler/01-create-a-crawler/,Yext web crawler for site crawling,seo
+DatadogSynthetics,https://docs.datadoghq.com/synthetics/,Datadog synthetics web crawler bot,monitoring
+Google-Ads-Conversions,https://developers.google.com/google-ads/api/docs/conversions/upload-online,Google Ads conversions web crawler,advertising
+ObservePoint,https://help.observepoint.com/en/articles/9101465-allow-exclude-observepoint-traffic#h_2a8176c9b9,ObservePoint web crawler for monitoring,monitoring
+Checkly,https://www.checklyhq.com/docs/,Checkly web crawler for monitoring,monitoring
+ALittle Client,https://udger.com/resources/ua-list/bot-detail?bot=ALittle+Client,ALittle web crawler for content discovery,http-library
+AliyunSecBot,https://service.alibaba.com,Alibaba Aliyun security web crawler bot,scanner
+Claude-Web,https://anthropic.com,Anthropic Claude web crawler bot,ai-crawler
+anthropic-ai,https://anthropic.com,Anthropic AI web crawler bot,ai-crawler
+Claude-User,https://useragents.io/uas/mozilla-5-0-applewebkit-537-36-khtml-like-gecko-compatible-claudebot-1-0-supportanthropic-com_954fa13a8e1e46d8267fb56e2d48100e,Anthropic Claude user web crawler bot,ai-crawler
+Claude-SearchBot,https://useragents.io/uas/mozilla-5-0-applewebkit-537-36-khtml-like-gecko-compatible-claudebot-1-0-supportanthropic-com_954fa13a8e1e46d8267fb56e2d48100e,Anthropic Claude search web crawler bot,ai-crawler;search-engine
+Google-Extended,https://developers.google.com/search/docs/crawling-indexing/overview-google-crawlers,Google extended web crawler bot,ai-crawler
+cohere-ai,https://cohere.com,Cohere AI web crawler bot,ai-crawler
+Timpibot,https://timpi.io,Timpi web crawler for content discovery,search-engine
+SERankingBacklinksBot,https://seranking.com/backlinks-crawler,SEranking backlinks web crawler bot,seo
+CMSChecker,,CMS Checker web crawler for detection,seo
+Wayback,https://archive.org,Internet Archive Wayback web crawler bot,archiver
+Playwright,https://playwright.dev,Playwright browser automation web crawler,browser-automation
+Puppeteer,https://pptr.dev,Puppeteer browser automation web crawler,browser-automation
+Selenium,https://www.selenium.dev,Selenium browser automation web crawler,browser-automation
+Nikto,https://cirt.net/Nikto2,Nikto web server security scanner bot,scanner
+sqlmap,https://sqlmap.org,SQLMap SQL injection testing web crawler,scanner
+ZmEu,https://en.wikipedia.org/wiki/ZmEu_(vulnerability_scanner),ZmEu vulnerability scanner web crawler,scanner
+masscan,https://github.com/robertdavidgraham/masscan,Masscan network scanner web crawler bot,scanner
+WPScan,https://wpscan.com,WPScan WordPress security scanner bot,scanner
+[aA]cunetix,https://www.acunetix.com,Acunetix web vulnerability scanner bot,scanner
+Nessus,https://www.tenable.com/products/nessus,Nessus vulnerability scanner web crawler,scanner
+[dD]ir[Bb]uster,https://github.com/KajanM/DirBuster,DirBuster directory scanner web crawler,scanner
+StatusCake,https://www.statuscake.com,StatusCake uptime monitoring web crawler,monitoring
+colly,https://go-colly.org,Colly Go web crawler framework,http-library
+[mM]echanize,https://github.com/sparklemotion/mechanize,Mechanize Ruby web crawler library,http-library
+air\.ai\/scanning,,Air.ai web crawler for scanning,scanner
+asnriskscorer,,ASN Risk Scorer web crawler bot,scanner
+OICrawler,https://openindex.ai,OpenIndex web crawler for indexing,search-engine
+l9scan,https://github.com/LeakIX/l9scan,L9scan web crawler for scanning,scanner
+SlaccaleBot,,Slaccale web crawler bot,seo
+CustomAsyncHttpClient,,Custom async HTTP client web crawler,http-library
+^HTTPie\/,https://httpie.io,HTTPie command-line HTTP client tool,http-library
+Gemini-Deep-Research,https://developers.google.com/search/docs/crawling-indexing/google-common-crawlers,Google Gemini deep research web crawler,ai-crawler;search-engine
+Perplexity-User,https://docs.perplexity.ai/guides/bots,Perplexity user web crawler bot,ai-crawler;search-engine
+PerplexityUser,https://perplexity.ai,Perplexity AI web crawler bot,ai-crawler;search-engine
+meta-webindexer,https://developers.facebook.com/docs/sharing/webmasters/web-crawlers#meta-webindexer,Meta web indexer bot for Facebook and Instagram content crawling,social-preview
+DuckAssistBot,https://duckduckgo.com/duckduckgo-help-pages/results/duckassistbot,DuckDuckGo assistant bot for web crawling and search,search-engine;ai-crawler
+MistralAI-User,,Mistral AI web crawler bot for content indexing,ai-crawler
+webzio,https://webz.io/blog/company/from-omgilibot-to-the-webzbot-duo-a-powerful-leap-for-ethical-and-comprehensive-data-collection/#,Webz.io web crawler bot for ethical data collection,seo
