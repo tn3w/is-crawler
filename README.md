@@ -96,12 +96,54 @@ def gate():
 
 **`crawler_info` / `crawler_has_tag`**: pattern database loaded lazily on first call, built from [monperrus/crawler-user-agents](https://github.com/monperrus/crawler-user-agents) with supplemental tags. Returns url, description, and tags for 646 known crawlers.
 
+## Benchmarks
+
+Measured on Python 3.14, Linux x86_64, stdlib `re` and `google-re2` backends.
+Fixture corpus: **1 231 crawler UAs** and **15 812 browser UAs** from the test suite.
+Each function is timed over the full mixed corpus (17 043 UAs) with `lru_cache(8192)` warm, so results reflect the realistic cache-hit/miss ratio at that corpus size.
+`crawleruseragents` is the [`crawler-user-agents`](https://pypi.org/project/crawler-user-agents/) PyPI package (v1.42, no caching).
+
+### `is_crawler`: heuristic detection (no DB)
+
+| Corpus        | stdlib re | re2     | `cua.is_crawler` | vs re2 | vs cua |
+| ------------- | --------- | ------- | ---------------- | ------ | ------ |
+| crawlers only | 0.78 µs   | 0.26 µs | 61.7 µs          | 3×     | 79×    |
+| browsers only | 73.1 µs   | 25.2 µs | 173.3 µs         | 2.9×   | 2.4×   |
+| mixed         | 30.8 µs   | 23.8 µs | 163.7 µs         | 1.3×   | 5.3×   |
+
+Speedups are re2 vs stdlib re and is_crawler (stdlib re) vs cua respectively.
+`is_crawler` is purely heuristic: no DB involved. Crawler UAs are fast because the first heuristic (`bot_signal`) triggers immediately; browser UAs must exhaust all five checks.
+
+### `crawler_info`: DB pattern lookup
+
+|              | stdlib re | re2     | `cua` equivalent | vs cua |
+| ------------ | --------- | ------- | ---------------- | ------ |
+| mixed corpus | 75.7 µs   | 75.3 µs | 1 172 µs         | 15×    |
+
+`cua` equivalent = `matching_crawlers(ua)[0]` + `CRAWLER_USER_AGENTS_DATA[idx]` lookup. DB scan timing is dominated by pattern matching, not re2 compile; re2 gives no gain here because most UAs are browsers that scan all 646 patterns before returning `None`.
+
+### `crawler_has_tag`
+
+| Tag                       | stdlib re | re2     | Patterns checked |
+| ------------------------- | --------- | ------- | ---------------- |
+| `seo` (252 entries)       | 49.5 µs   | 49.6 µs | ≤ 252            |
+| `ai-crawler` (22 entries) | 5.4 µs    | 5.4 µs  | ≤ 22             |
+
+Tag index built at load time; only patterns that carry the requested tag are searched.
+
+### Cold-start (JSON parse + 646 `re.compile` calls)
+
+|      | stdlib re | re2     | `crawleruseragents` |
+| ---- | --------- | ------- | ------------------- |
+| time | 36.2 ms   | 35.7 ms | 3.5 ms              |
+
+`crawleruseragents` is faster to load because it ships pre-compiled data with no regex work at import time.
+
 ## Formatting
 
 ```bash
 pip install black isort
 isort . && black .
-npx prtfm
 ```
 
 ## License

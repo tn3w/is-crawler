@@ -1171,7 +1171,7 @@
             };
             const compatibleName = /\(compatible;\s*([A-Za-z][\w.-]*)(?:\/[\w.-]+)?/i;
             const compatibleVersion = /\(compatible;\s*[A-Za-z][\w.-]*\/([\w.-]+)/i;
-            const prefixName = /^([A-Z][\w.-]*(?: [A-Z][\w.-]*)*)(?=(?:\/[\w.-]+)?(?:\s|$| - ))/;
+            const prefixName = /^([A-Z][\w.-]*(?: [A-Z][\w.-]*)*)(?:\/[\w.-]+)?(?:\s|$| - )/;
             const findNames = /([A-Z][\w.-]*(?: [A-Z][\w.-]*)*)(?:\/[\w.-]+)?/g;
             const tokenVersion = /\/([\w.-]+)/;
             const KNOWN_VERSION_TOKENS = new Set([
@@ -1192,56 +1192,34 @@
 
             let crawlerDb = [];
 
-            function parseCSVLine(line) {
-                const result = [];
-                let current = '';
-                let inQuotes = false;
-                for (let i = 0; i < line.length; i++) {
-                    const ch = line[i];
-                    if (ch === '"') {
-                        inQuotes = !inQuotes;
-                    } else if (ch === ',' && !inQuotes) {
-                        result.push(current);
-                        current = '';
-                    } else {
-                        current += ch;
-                    }
-                }
-                result.push(current);
-                return result;
+            localStorage.removeItem('crawler-db-csv');
+
+            const DB_URL =
+                'https://raw.githubusercontent.com/tn3w/is-crawler/refs/heads/master/is_crawler/crawler-user-agents.json';
+            const DB_CACHE_KEY = 'crawler-db-json';
+
+            function parseDB(rows) {
+                crawlerDb = rows.map(([pattern, url, description, tags]) => ({
+                    regex: new RegExp(pattern),
+                    url: url || null,
+                    description: description || null,
+                    tags: tags || [],
+                }));
             }
 
-            const CSV_URL =
-                'https://raw.githubusercontent.com/tn3w/is-crawler/refs/heads/master/is_crawler/crawler-user-agents.csv';
-            const CSV_CACHE_KEY = 'crawler-db-csv';
-
-            function parseDB(text) {
-                crawlerDb = text
-                    .trim()
-                    .split('\n')
-                    .slice(1)
-                    .map((line) => {
-                        const [pattern, url, description, tags] = parseCSVLine(line);
-                        return {
-                            regex: new RegExp(pattern),
-                            url: url || null,
-                            description: description || null,
-                            tags: tags ? tags.split(';') : [],
-                        };
-                    });
-            }
-
-            const cached = localStorage.getItem(CSV_CACHE_KEY);
+            const cached = localStorage.getItem(DB_CACHE_KEY);
             if (cached) {
-                parseDB(cached);
+                try {
+                    parseDB(JSON.parse(cached));
+                } catch (_) {}
             } else {
-                fetch(CSV_URL)
-                    .then((r) => r.text())
-                    .then((text) => {
+                fetch(DB_URL)
+                    .then((r) => r.json())
+                    .then((rows) => {
                         try {
-                            localStorage.setItem(CSV_CACHE_KEY, text);
+                            localStorage.setItem(DB_CACHE_KEY, JSON.stringify(rows));
                         } catch (_) {}
-                        parseDB(text);
+                        parseDB(rows);
                     })
                     .catch(() => {});
             }

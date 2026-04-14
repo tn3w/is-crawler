@@ -1,4 +1,4 @@
-name: Build crawler CSV
+name: Build crawler DB
 
 on:
   schedule:
@@ -7,7 +7,7 @@ on:
   push:
     paths:
       - 'tools/crawler-user-agents-flags.json'
-      - 'tools/build_csv.py'
+      - 'tools/build_db.py'
   workflow_dispatch:
 
 jobs:
@@ -25,14 +25,14 @@ jobs:
             https://raw.githubusercontent.com/monperrus/crawler-user-agents/refs/heads/master/crawler-user-agents.json \
             -o crawler-user-agents.json
 
-      - name: Build CSV
-        run: python3 tools/build_csv.py
+      - name: Build DB
+        run: python3 tools/build_db.py
 
       - name: Commit updated files
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add is_crawler/crawler-user-agents.csv
+          git add is_crawler/crawler-user-agents.json
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else

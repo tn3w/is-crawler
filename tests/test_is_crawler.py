@@ -21,7 +21,7 @@ def _load_fixture(name):
 
 
 def test_version():
-    assert __version__ == "1.1.2"
+    assert __version__ == "1.1.3"
 
 
 def test_all_exports():
@@ -341,6 +341,13 @@ def test_crawler_has_tag_list():
 def test_crawler_has_tag_returns_false_for_browser():
     ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36"
     assert crawler_has_tag(ua, "search-engine") is False
+
+
+def test_crawler_has_tag_dedup_multi_tag():
+    # tagoobot is search-engine only; AISearchBot is both ai-crawler and search-engine.
+    # Querying ai-crawler first adds AISearchBot to `seen`; the search-engine pass
+    # hits it again and skips via `continue` before matching tagoobot.
+    assert crawler_has_tag("tagoobot/1.0", ["ai-crawler", "search-engine"]) is True
 
 
 # --- callable module ---
