@@ -1,9 +1,6 @@
 """
 Benchmarks for is_crawler vs crawler-user-agents (PyPI).
 
-Compares stdlib re vs google-re2 (if available), and benchmarks
-each public function against the equivalent crawleruseragents operation.
-
 Run:
     python benchmarks/bench.py
 """
@@ -11,14 +8,14 @@ Run:
 from __future__ import annotations
 
 import importlib
-import importlib.util
-import sys
 import time
 from pathlib import Path
 from statistics import mean, stdev
 from typing import Callable
 
 import crawleruseragents
+
+import is_crawler as _ic
 
 FIXTURES = Path(__file__).parent.parent / "tests" / "fixtures"
 CRAWLERS = [
@@ -33,18 +30,10 @@ BROWSERS = [
 ]
 ALL_UAS = CRAWLERS + BROWSERS
 
-_HAS_RE2 = importlib.util.find_spec("re2") is not None
-
-
-# ---------------------------------------------------------------------------
-# timing helpers
-# ---------------------------------------------------------------------------
-
 
 def _timeit(
     fn: Callable, args: list, iterations: int = 5, warmup: int = 2
 ) -> tuple[float, float]:
-    """Return (mean, stdev) seconds-per-call over `iterations` passes."""
     reps = max(1, (iterations * 1000) // len(args))
     all_args = args * reps
     total = len(all_args)
@@ -77,96 +66,24 @@ def _cold_time(fn: Callable, iterations: int = 10) -> tuple[float, float]:
     return mean(times), stdev(times) if len(times) > 1 else 0.0
 
 
-# ---------------------------------------------------------------------------
-# module reload helpers (switch re vs re2 backend)
-# ---------------------------------------------------------------------------
-
-
-def _load_ic_with(use_re2: bool):
-    """Reload is_crawler forcing a specific regex backend. Returns the module."""
-    # block or restore re2 in sys.modules before reload
-    re2_backup = sys.modules.get("re2", _sentinel := object())
-    if use_re2:
-        if not _HAS_RE2:
-            return None
-        sys.modules.pop("re2", None)  # let natural import succeed
-    else:
-        sys.modules["re2"] = None  # type: ignore[assignment]  # ImportError sentinel
-
-    try:
-        import is_crawler as _ic
-
-        for fn_name in (
-            "is_crawler",
-            "crawler_info",
-            "crawler_signals",
-            "crawler_name",
-            "crawler_version",
-            "crawler_url",
-            "crawler_has_tag",
-            "_crawler_has_tag_cached",
-        ):
-            fn = getattr(_ic, fn_name, None)
-            if fn and hasattr(fn, "cache_clear"):
-                fn.cache_clear()
-        mod = importlib.reload(_ic)
-        return mod
-    finally:
-        if re2_backup is _sentinel:
-            sys.modules.pop("re2", None)
-        else:
-            sys.modules["re2"] = re2_backup  # type: ignore[assignment]
-
-
-# ---------------------------------------------------------------------------
-# cold-start
-# ---------------------------------------------------------------------------
-
-
-def bench_cold_start(ic_re2, ic_re):
+def bench_cold_start():
     print("\n── Cold-start (JSON parse + regex compile) ──")
 
-    for label, mod in [("stdlib re ", ic_re), ("re2       ", ic_re2)]:
-        if mod is None:
-            continue
+    m, sd = _cold_time(lambda: importlib.reload(_ic))
+    print(f"  is_crawler        : {m * 1000:7.2f} ms ± {sd * 1000:.2f}")
 
-        def _reload(mod=mod):
-            importlib.reload(mod)
-
-        m, sd = _cold_time(_reload)
-        ms, sd_ms = m * 1000, sd * 1000
-        print(f"  is_crawler ({label}): {ms:7.2f} ms ± {sd_ms:.2f}")
-
-    def _reload_cua():
-        importlib.reload(crawleruseragents)
-
-    m, sd = _cold_time(_reload_cua)
-    ms, sd_ms = m * 1000, sd * 1000
-    print(f"  crawleruseragents    : {ms:7.2f} ms ± {sd_ms:.2f}")
+    m, sd = _cold_time(lambda: importlib.reload(crawleruseragents))
+    print(f"  crawleruseragents : {m * 1000:7.2f} ms ± {sd * 1000:.2f}")
 
 
-# ---------------------------------------------------------------------------
-# hot-path benchmarks per backend
-# ---------------------------------------------------------------------------
-
-
-def _cua_info(ua: str):
-    indices = crawleruseragents.matching_crawlers(ua)
-    return crawleruseragents.CRAWLER_USER_AGENTS_DATA[indices[0]] if indices else None
-
-
-def _cua_is_crawler(ua: str) -> bool:
-    return crawleruseragents.is_crawler(ua)
-
-
-def bench_hot(mod, label: str):
-    ic = mod.is_crawler
-    ci = mod.crawler_info
-    cs = mod.crawler_signals
-    cn = mod.crawler_name
-    cv = mod.crawler_version
-    cu = mod.crawler_url
-    cht = mod.crawler_has_tag
+def bench_hot():
+    ic = _ic.is_crawler
+    ci = _ic.crawler_info
+    cs = _ic.crawler_signals
+    cn = _ic.crawler_name
+    cv = _ic.crawler_version
+    cu = _ic.crawler_url
+    cht = _ic.crawler_has_tag
 
     rows: list[tuple[str, Callable, list]] = [
         ("is_crawler  (crawlers)", ic, CRAWLERS),
@@ -181,17 +98,23 @@ def bench_hot(mod, label: str):
         ("crawler_has_tag(ai)    ", lambda ua: cht(ua, "ai-crawler"), ALL_UAS),
     ]
 
-    print(f"\n── Hot-path per-call [{label}] ──")
+    print("\n── Hot-path per-call [is_crawler] ──")
     for name, fn, args in rows:
         m, sd = _timeit(fn, args)
         print(f"  {name}: {_fmt(m, sd)}")
 
 
 def bench_cua():
+    def _cua_info(ua: str):
+        indices = crawleruseragents.matching_crawlers(ua)
+        return (
+            crawleruseragents.CRAWLER_USER_AGENTS_DATA[indices[0]] if indices else None
+        )
+
     rows: list[tuple[str, Callable, list]] = [
-        ("cua.is_crawler (crawlers)        ", _cua_is_crawler, CRAWLERS),
-        ("cua.is_crawler (browsers)        ", _cua_is_crawler, BROWSERS),
-        ("cua.is_crawler (mixed)           ", _cua_is_crawler, ALL_UAS),
+        ("cua.is_crawler (crawlers)        ", crawleruseragents.is_crawler, CRAWLERS),
+        ("cua.is_crawler (browsers)        ", crawleruseragents.is_crawler, BROWSERS),
+        ("cua.is_crawler (mixed)           ", crawleruseragents.is_crawler, ALL_UAS),
         (
             "cua.matching_crawlers (mixed)    ",
             crawleruseragents.matching_crawlers,
@@ -206,13 +129,8 @@ def bench_cua():
         print(f"  {name}: {_fmt(m, sd)}")
 
 
-# ---------------------------------------------------------------------------
-# accuracy
-# ---------------------------------------------------------------------------
-
-
-def bench_accuracy(mod):
-    ic = mod.is_crawler
+def bench_accuracy():
+    ic = _ic.is_crawler
     print("\n── Accuracy vs crawleruseragents ground truth ──")
 
     tp = fp = fn = tn = 0
@@ -269,27 +187,9 @@ def bench_accuracy(mod):
     print(f"    specificity={specificity:.3f}")
 
 
-# ---------------------------------------------------------------------------
-# main
-# ---------------------------------------------------------------------------
-
 if __name__ == "__main__":
-    print(
-        f"crawlers={len(CRAWLERS)}  browsers={len(BROWSERS)}  "
-        f"re2={'available' if _HAS_RE2 else 'not installed'}"
-    )
-
-    ic_re2 = _load_ic_with(use_re2=True)
-    ic_re = _load_ic_with(use_re2=False)
-
-    backends = [(ic_re, "stdlib re")]
-    if ic_re2 is not None:
-        backends.append((ic_re2, "re2      "))
-
-    bench_cold_start(ic_re2, ic_re)
-
-    for mod, label in backends:
-        bench_hot(mod, label)
-
+    print(f"crawlers={len(CRAWLERS)}  browsers={len(BROWSERS)}")
+    bench_cold_start()
+    bench_hot()
     bench_cua()
-    bench_accuracy(ic_re)
+    bench_accuracy()
