@@ -12,7 +12,7 @@ try:
 except ImportError:  # pragma: no cover
     _regex = _re  # type: ignore[assignment]
 
-__version__ = "1.1.3"
+__version__ = "1.1.4"
 __all__ = [
     "is_crawler",
     "crawler_name",
@@ -32,12 +32,13 @@ class CrawlerInfo(NamedTuple):
     tags: list[str]
 
 
-@lru_cache(maxsize=1)
-def _load_crawler_db() -> tuple[tuple, dict]:
+def _build_db() -> tuple[tuple, dict, object]:
     path = _Path(__file__).parent / "crawler-user-agents.json"
     with path.open(encoding="utf-8") as f:
         rows = _json.load(f)
 
+    patterns = [p for p, *_ in rows]
+    combined = _regex.compile("|".join(f"(?:{p})" for p in patterns))
     entries = tuple((_regex.compile(p), CrawlerInfo(u, d, t)) for p, u, d, t in rows)
 
     tag_index: dict[str, list] = {}
@@ -45,7 +46,13 @@ def _load_crawler_db() -> tuple[tuple, dict]:
         for tag in info.tags:
             tag_index.setdefault(tag, []).append((pattern, info))
 
-    return entries, {k: tuple(v) for k, v in tag_index.items()}
+    return entries, {k: tuple(v) for k, v in tag_index.items()}, combined
+
+
+_DB_ENTRIES: tuple
+_DB_TAG_INDEX: dict
+_DB_COMBINED: object
+_DB_ENTRIES, _DB_TAG_INDEX, _DB_COMBINED = _build_db()
 
 
 _match_bot_signal = _regex.compile(
@@ -119,22 +126,21 @@ _KNOWN_VERSION_TOKENS = frozenset(
 @lru_cache(maxsize=8192)
 def crawler_info(user_agent: str) -> CrawlerInfo | None:
     """Return url, description, and tags for the first matching crawler pattern."""
-    entries, _tag_index = _load_crawler_db()
+    if not _DB_COMBINED.search(user_agent):  # type: ignore[union-attr]
+        return None
 
-    for pattern, info in entries:
+    for pattern, info in _DB_ENTRIES:
         if pattern.search(user_agent):
             return info
 
-    return None
+    return None  # pragma: no cover
 
 
 @lru_cache(maxsize=8192)
 def _crawler_has_tag_cached(user_agent: str, tags: tuple[str, ...]) -> bool:
-    _entries, tag_index = _load_crawler_db()
-
     seen: set = set()
     for tag in tags:
-        for pattern, _info in tag_index.get(tag, ()):
+        for pattern, _info in _DB_TAG_INDEX.get(tag, ()):
             if id(pattern) in seen:
                 continue
             seen.add(id(pattern))

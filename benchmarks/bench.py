@@ -96,7 +96,6 @@ def _load_ic_with(use_re2: bool):
     try:
         import is_crawler as _ic
 
-        _ic._load_crawler_db.cache_clear()
         for fn_name in (
             "is_crawler",
             "crawler_info",
@@ -111,7 +110,6 @@ def _load_ic_with(use_re2: bool):
             if fn and hasattr(fn, "cache_clear"):
                 fn.cache_clear()
         mod = importlib.reload(_ic)
-        mod._load_crawler_db()
         return mod
     finally:
         if re2_backup is _sentinel:
@@ -126,15 +124,14 @@ def _load_ic_with(use_re2: bool):
 
 
 def bench_cold_start(ic_re2, ic_re):
-    print("\n── Cold-start (CSV parse + regex compile) ──")
+    print("\n── Cold-start (JSON parse + regex compile) ──")
 
     for label, mod in [("stdlib re ", ic_re), ("re2       ", ic_re2)]:
         if mod is None:
             continue
 
         def _reload(mod=mod):
-            mod._load_crawler_db.cache_clear()
-            mod._load_crawler_db()
+            importlib.reload(mod)
 
         m, sd = _cold_time(_reload)
         ms, sd_ms = m * 1000, sd * 1000
