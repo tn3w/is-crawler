@@ -8,7 +8,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import NamedTuple
 
-__version__ = "1.2.0"
+__version__ = "1.3.0"
 __all__ = [
     "is_crawler",
     "crawler_name",
@@ -25,25 +25,32 @@ __all__ = [
 class CrawlerInfo(NamedTuple):
     url: str
     description: str
-    tags: list[str]
+    tags: tuple[str, ...]
 
 
-def _build_db():
+_ENTRIES: tuple[tuple[re.Pattern[str], CrawlerInfo], ...] | None = None
+_COMBINED: re.Pattern[str] | None = None
+
+
+def _ensure_db():
+    global _ENTRIES, _COMBINED
+    if _ENTRIES is not None:
+        return
+
     path = Path(__file__).parent / "crawler-user-agents.json"
     with path.open(encoding="utf-8") as f:
         rows = json.load(f)
 
     patterns = [p for p, *_ in rows]
-    combined = re.compile("|".join(f"(?:{p})" for p in patterns))
-    entries = tuple((re.compile(p), CrawlerInfo(u, d, t)) for p, u, d, t in rows)
+    _COMBINED = re.compile("|".join(f"(?:{p})" for p in patterns))
+    _ENTRIES = tuple(
+        (re.compile(p), CrawlerInfo(u, d, tuple(t))) for p, u, d, t in rows
+    )
 
-    return entries, combined
-
-
-_ENTRIES, _COMBINED = _build_db()
 
 _search_bot_signal = re.compile(
-    r"(?i)bot\b|crawl|spider|scrape|fetch|scan\b|index"
+    r"(?i)bot\b|crawl|spider|scrape|fetch(?![\w]*api)"
+    r"|scan\b|index(?:er|ing)"
     r"|preview|slurp|archiv|headless"
     r"|\+https?://|@[\w.-]+\.\w{2,}\b"
 ).search
@@ -76,7 +83,7 @@ _search_compat_version = re.compile(
     r"(?i)\(compatible;\s*[A-Za-z][\w.-]*/([\w.-]+)"
 ).search
 _search_prefix_name = re.compile(
-    r"^([A-Z][\w.-]*(?: [A-Z][\w.-]*)*)(?:/[\w.-]+)?(?:\s|$| - )"
+    r"^([A-Z][\w.-]*(?: [A-Z][\w.-]*)*)(?:/[\w.-]+)?" r"(?:\s|$| - )"
 ).search
 _find_name = re.compile(r"([A-Z][\w.-]*(?: [A-Z][\w.-]*)*)(?:/[\w.-]+)?").findall
 _search_token_version = re.compile(r"/([\w.-]+)").search
@@ -120,24 +127,21 @@ _CHECKS = (
 
 
 @lru_cache(maxsize=8192)
-def is_crawler(user_agent: str) -> bool:
-    return bool(
-        _search_bot_signal(user_agent)
-        or not _search_browser(user_agent)
-        or _match_bare_compat(user_agent)
-        or _search_known_tool(user_agent)
-        or _search_url(user_agent)
-    )
-
-
-@lru_cache(maxsize=8192)
 def crawler_signals(user_agent: str) -> list[str]:
     return [name for name, check in _CHECKS if check(user_agent)]
 
 
 @lru_cache(maxsize=8192)
+def is_crawler(user_agent: str) -> bool:
+    return bool(crawler_signals(user_agent))
+
+
+@lru_cache(maxsize=8192)
 def crawler_info(user_agent: str) -> CrawlerInfo | None:
-    if not _COMBINED.search(user_agent):  # type: ignore[union-attr]
+    _ensure_db()
+    assert _COMBINED is not None and _ENTRIES is not None
+
+    if not _COMBINED.search(user_agent):
         return None
 
     for pattern, info in _ENTRIES:

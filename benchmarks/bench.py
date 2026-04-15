@@ -69,7 +69,14 @@ def _cold_time(fn: Callable, iterations: int = 10) -> tuple[float, float]:
 def bench_cold_start():
     print("\n── Cold-start (JSON parse + regex compile) ──")
 
-    m, sd = _cold_time(lambda: importlib.reload(_ic))
+    def _reload_and_init():
+        mod = importlib.reload(_ic)
+        mod._ENTRIES = None
+        mod._COMBINED = None
+        mod.crawler_info.cache_clear()
+        mod._ensure_db()
+
+    m, sd = _cold_time(_reload_and_init)
     print(f"  is_crawler        : {m * 1000:7.2f} ms ± {sd * 1000:.2f}")
 
     m, sd = _cold_time(lambda: importlib.reload(crawleruseragents))

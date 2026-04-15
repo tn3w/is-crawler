@@ -21,7 +21,7 @@ def _load_fixture(name):
 
 
 def test_version():
-    assert __version__ == "1.2.0"
+    assert __version__ == "1.3.0"
 
 
 def test_all_exports():
@@ -303,26 +303,25 @@ def test_crawler_info_googlebot():
     assert info is not None
     assert info.url == "http://www.google.com/bot.html"
     assert info.description == "Google's main web crawling bot for search indexing"
-    assert info.tags == ["search-engine"]
+    assert info.tags == ("search-engine",)
 
 
 def test_crawler_info_bingbot():
     info = crawler_info(_BINGBOT)
     assert info is not None
     assert info.url == "http://www.bing.com/bingbot.htm"
-    assert info.description == "Microsoft's web crawling bot for Bing search indexing"
-    assert info.tags == ["search-engine"]
+    assert info.description == ("Microsoft's web crawling bot for Bing search indexing")
+    assert info.tags == ("search-engine",)
 
 
 def test_crawler_info_linkedinbot():
     info = crawler_info(_LINKEDINBOT)
     assert info is not None
     assert info.url == ""
-    assert (
-        info.description
-        == "LinkedIn's bot for crawling professional content and profiles"
+    assert info.description == (
+        "LinkedIn's bot for crawling professional content" " and profiles"
     )
-    assert info.tags == ["social-preview"]
+    assert info.tags == ("social-preview",)
 
 
 # --- crawler_has_tag ---

@@ -34,11 +34,11 @@ crawler_has_tag(ua, ["ai-crawler", "seo"])  # False
 
 info = crawler_info(ua)
 # CrawlerInfo(url='http://www.google.com/bot.html',
-#             description="Google's main web crawling bot for search indexing",
-#             tags=['search-engine'])
+#             description="Google's main web crawling bot...",
+#             tags=('search-engine',))
 info.url          # 'http://www.google.com/bot.html'
 info.description  # "Google's main web crawling bot for search indexing"
-info.tags         # ['search-engine']
+info.tags         # ('search-engine',)
 ```
 
 The module is also callable directly, no named import required:
@@ -88,7 +88,7 @@ def gate():
 4. **Known tools**: `playwright`, `selenium`, `wget`, `lighthouse`, `sqlmap`, and more
 5. **URL in UA**: an embedded `http://` or `https://` URL, a near-universal bot convention
 
-**`crawler_info` / `crawler_has_tag`**: pattern database loaded lazily on first call, built from [monperrus/crawler-user-agents](https://github.com/monperrus/crawler-user-agents) with supplemental tags. Returns url, description, and tags for 646 known crawlers.
+**`crawler_info` / `crawler_has_tag`**: pattern database loaded lazily on first call (no import-time I/O), built from [monperrus/crawler-user-agents](https://github.com/monperrus/crawler-user-agents) with supplemental tags. Returns url, description, and tags for 646 known crawlers.
 
 ## Benchmarks
 
@@ -99,9 +99,9 @@ Measured on Python 3.14, Linux x86_64. Fixture corpus: **1 231 crawler UAs** and
 
 | Corpus        | is_crawler | `cua.is_crawler` | speedup |
 | ------------- | ---------- | ---------------- | ------- |
-| crawlers only | 0.23 µs    | 62.8 µs          | 273×    |
-| browsers only | 9.3 µs     | 173.0 µs         | 18×     |
-| mixed         | 8.9 µs     | 165.1 µs         | 18×     |
+| crawlers only | 0.73 µs    | 60.8 µs          | 83×     |
+| browsers only | 24.8 µs    | 166.6 µs         | 7×      |
+| mixed         | 24.5 µs    | 158.8 µs         | 6×      |
 
 Purely heuristic, no DB. Crawler UAs are fast because `bot_signal` triggers immediately; browser UAs exhaust all five checks.
 
@@ -109,16 +109,10 @@ Purely heuristic, no DB. Crawler UAs are fast because `bot_signal` triggers imme
 
 |                   | is_crawler | `cua` equivalent | speedup |
 | ----------------- | ---------- | ---------------- | ------- |
-| `crawler_info`    | 31.2 µs    | 906 µs           | 29×     |
-| `crawler_has_tag` | 31.3 µs    | —                | —       |
+| `crawler_info`    | 125.9 µs   | 866.8 µs         | 7×      |
+| `crawler_has_tag` | 125.9 µs   | —                | —       |
 
 `crawler_has_tag` delegates to `crawler_info` (cached); cost is independent of tag cardinality.
-
-### Cold-start (JSON parse + 646 `re.compile` calls)
-
-|      | is_crawler | `crawleruseragents` |
-| ---- | ---------- | ------------------- |
-| time | 13.7 ms    | 1.1 ms              |
 
 ## Formatting
 
