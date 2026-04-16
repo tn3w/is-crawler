@@ -8,7 +8,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import NamedTuple
 
-__version__ = "1.3.1"
+__version__ = "1.3.2"
 __all__ = [
     "is_crawler",
     "crawler_name",

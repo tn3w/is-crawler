@@ -80,15 +80,17 @@ def gate():
 
 ## How it works
 
-**`is_crawler` / `crawler_signals`**: five heuristic regex checks, no lookup:
+**`is_crawler`**: three-step short-circuit, no DB lookup.
 
-1. **Bot signals**: common keywords (`bot`, `crawl`, `spider`, `scrape`, ...), URL/email patterns, `headless`
-2. **Missing browser signature**: real browsers always include engine tokens like `WebKit`, `Gecko`, or `Trident`
-3. **Bare `(compatible; ...)` block**: classic bot pattern without OS tokens
-4. **Known tools**: `playwright`, `selenium`, `wget`, `lighthouse`, `sqlmap`, and more
-5. **URL in UA**: an embedded `http://` or `https://` URL, a near-universal bot convention
+1. **Positive signal**: one fused regex combining bot keywords (`bot`, `crawl`, `spider`, `scrape`, `headless`, ...), known tools (`playwright`, `selenium`, `wget`, `lighthouse`, `sqlmap`, ...), and URL-in-UA patterns. One hit → crawler.
+2. **No browser signature**: missing `WebKit`/`Gecko`/`Trident`/etc. → crawler.
+3. **Bare `(compatible; ...)`**: classic bot block without OS tokens → crawler.
 
-**`crawler_info` / `crawler_has_tag`**: pattern database loaded lazily on first call (no import-time I/O), built from [monperrus/crawler-user-agents](https://github.com/monperrus/crawler-user-agents) with supplemental tags. Returns url, description, and tags for 646 known crawlers.
+**`crawler_signals`**: exposes which of the five individual checks fired (bot_signal, no_browser_signature, bare_compatible, known_tool, url_in_ua). Useful for diagnostics; `is_crawler` does not call it.
+
+**`crawler_info` / `crawler_has_tag`**: gated by `is_crawler` so browser UAs skip the DB entirely. On a crawler hit, patterns (from [monperrus/crawler-user-agents](https://github.com/monperrus/crawler-user-agents) plus supplemental tags) are sharded into 48-entry chunks; each chunk's combined filter and its per-pattern regexes compile lazily on first match. Returns url, description, and tags.
+
+**Caching**: 32k-entry LRU cache on every public function. Repeat UAs hit in ~40 ns.
 
 ## Benchmarks
 
