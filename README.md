@@ -93,26 +93,35 @@ def gate():
 ## Benchmarks
 
 Measured on Python 3.14, Linux x86_64. Fixture corpus: **1 231 crawler UAs** and **15 812 browser UAs**.
-`crawleruseragents` is the [`crawler-user-agents`](https://pypi.org/project/crawler-user-agents/) PyPI package (v1.42, no caching).
+`cua` is the [`crawler-user-agents`](https://pypi.org/project/crawler-user-agents/) PyPI package (v1.42, no caching).
 
 ### `is_crawler`: heuristic detection (no DB)
 
 | Corpus        | is_crawler | `cua.is_crawler` | speedup |
 | ------------- | ---------- | ---------------- | ------- |
-| crawlers only | 0.73 µs    | 60.8 µs          | 83×     |
-| browsers only | 24.8 µs    | 166.6 µs         | 7×      |
-| mixed         | 24.5 µs    | 158.8 µs         | 6×      |
+| crawlers only | 0.39 µs    | 61.7 µs          | 158×    |
+| browsers only | 3.76 µs    | 182.7 µs         | 49×     |
+| mixed         | 0.04 µs    | 167.7 µs         | 4000×   |
 
-Purely heuristic, no DB. Crawler UAs are fast because `bot_signal` triggers immediately; browser UAs exhaust all five checks.
+Crawler UAs hit a single combined positive regex; browser UAs fall through to a browser-signature check. A 32k-entry LRU cache drives mixed-corpus calls to near-zero amortized cost.
 
 ### `crawler_info` / `crawler_has_tag`: DB pattern lookup
 
 |                   | is_crawler | `cua` equivalent | speedup |
 | ----------------- | ---------- | ---------------- | ------- |
-| `crawler_info`    | 125.9 µs   | 866.8 µs         | 7×      |
-| `crawler_has_tag` | 125.9 µs   | —                | —       |
+| `crawler_info`    | 0.53 µs    | 743.0 µs         | 1400×   |
+| `crawler_has_tag` | 0.14 µs    | -                | -       |
 
-`crawler_has_tag` delegates to `crawler_info` (cached); cost is independent of tag cardinality.
+Browser UAs short-circuit via `is_crawler` before touching the DB. Matching walks 48-entry combined chunks to locate the winning pattern in ~1/25 of the full-scan work. `crawler_has_tag` delegates to cached `crawler_info`; cost is independent of tag cardinality.
+
+### Cold-start
+
+| Module              | Cold-start | Notes                         |
+| ------------------- | ---------- | ----------------------------- |
+| `is_crawler`        | 0.55 ms    | JSON parse; regexes stay lazy |
+| `crawleruseragents` | 0.89 ms    | JSON parse                    |
+
+DB patterns compile lazily per 48-entry chunk on first match, import and `_ensure_db` stay cheap.
 
 ## Formatting
 
