@@ -123,6 +123,14 @@ Browser UAs short-circuit via `is_crawler` before touching the DB. Matching walk
 
 DB patterns compile lazily per 48-entry chunk on first match, import and `_ensure_db` stay cheap.
 
+### Single-UA uncached benchmark
+
+|                      | is_crawler | `cua` equivalent | speedup |
+| -------------------- | ---------- | ---------------- | ------- |
+| `Googlebot` uncached | 1.710 µs   | 70.419 µs        | 41×     |
+
+Direct apples-to-apples check on one crawler UA. Same `Googlebot/2.1 (+http://www.google.com/bot.html)` over 1,000 runs. `is_crawler` clears caches before each call; `cua` reloads `crawleruseragents` before each call.
+
 ## Formatting
 
 ```bash
