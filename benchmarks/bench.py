@@ -3,17 +3,17 @@ Benchmarks for is_crawler vs crawler-user-agents (PyPI).
 
 Run:
     python benchmarks/bench.py
+    python benchmarks/bench.py --with-cua
 """
 
 from __future__ import annotations
 
+import argparse
 import importlib
 import time
 from pathlib import Path
 from statistics import mean, stdev
 from typing import Callable
-
-import crawleruseragents
 
 import is_crawler as _ic
 
@@ -66,7 +66,9 @@ def _cold_time(fn: Callable, iterations: int = 10) -> tuple[float, float]:
     return mean(times), stdev(times) if len(times) > 1 else 0.0
 
 
-def bench_cold_start():
+def bench_cold_start(with_cua: bool = False):
+    import crawleruseragents
+
     print("\n── Cold-start (JSON parse + regex compile) ──")
 
     def _reload_and_init():
@@ -79,8 +81,9 @@ def bench_cold_start():
     m, sd = _cold_time(_reload_and_init)
     print(f"  is_crawler        : {m * 1000:7.2f} ms ± {sd * 1000:.2f}")
 
-    m, sd = _cold_time(lambda: importlib.reload(crawleruseragents))
-    print(f"  crawleruseragents : {m * 1000:7.2f} ms ± {sd * 1000:.2f}")
+    if with_cua:
+        m, sd = _cold_time(lambda: importlib.reload(crawleruseragents))
+        print(f"  crawleruseragents : {m * 1000:7.2f} ms ± {sd * 1000:.2f}")
 
 
 def bench_hot():
@@ -112,6 +115,8 @@ def bench_hot():
 
 
 def bench_cua():
+    import crawleruseragents
+
     def _cua_info(ua: str):
         indices = crawleruseragents.matching_crawlers(ua)
         return (
@@ -137,6 +142,8 @@ def bench_cua():
 
 
 def bench_accuracy():
+    import crawleruseragents
+
     ic = _ic.is_crawler
     print("\n── Accuracy vs crawleruseragents ground truth ──")
 
@@ -195,8 +202,17 @@ def bench_accuracy():
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--with-cua",
+        action="store_true",
+        help="also run crawleruseragents comparison benchmarks",
+    )
+    args = parser.parse_args()
+
     print(f"crawlers={len(CRAWLERS)}  browsers={len(BROWSERS)}")
-    bench_cold_start()
+    bench_cold_start(with_cua=args.with_cua)
     bench_hot()
-    bench_cua()
-    bench_accuracy()
+    if args.with_cua:
+        bench_cua()
+        bench_accuracy()
