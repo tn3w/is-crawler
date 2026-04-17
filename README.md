@@ -127,7 +127,7 @@ DB patterns compile lazily per 48-entry chunk on first match, import and `_ensur
 
 ### Single-UA uncached benchmark
 
-|                      | is_crawler | `cua` equivalent | speedup |
+|                      | is_crawler | `cua.is_crawler` | speedup |
 | -------------------- | ---------- | ---------------- | ------- |
 | `Googlebot` uncached | 1.710 µs   | 70.419 µs        | 41×     |
 
