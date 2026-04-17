@@ -21,7 +21,7 @@ def _load_fixture(name):
 
 
 def test_version():
-    assert __version__ == "1.3.2"
+    assert __version__ == "1.3.3"
 
 
 def test_all_exports():
@@ -347,26 +347,3 @@ def test_crawler_has_tag_dedup_multi_tag():
     # Querying ai-crawler first adds AISearchBot to `seen`; the search-engine pass
     # hits it again and skips via `continue` before matching tagoobot.
     assert crawler_has_tag("tagoobot/1.0", ["ai-crawler", "search-engine"]) is True
-
-
-# --- callable module ---
-
-
-def test_module_callable():
-    import is_crawler as mod
-
-    assert callable(mod)
-    assert mod("Googlebot/2.1") is True
-    assert (
-        mod(
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        )
-        is False
-    )
-
-
-def test_module_callable_matches_function():
-    import is_crawler as mod
-
-    ua = "Googlebot/2.1 (+http://www.google.com/bot.html)"
-    assert mod(ua) == mod.is_crawler(ua)  # type: ignore[reportCallIssue]

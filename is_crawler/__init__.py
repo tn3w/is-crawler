@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import json
 import re
-import sys
-import types
+from collections.abc import Iterable
+from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
 from typing import NamedTuple
 
-__version__ = "1.3.2"
+__version__ = "1.3.3"
 __all__ = [
     "is_crawler",
     "crawler_name",
@@ -32,7 +32,7 @@ class CrawlerInfo(NamedTuple):
 
 
 _BOT_SIGNAL = (
-    r"bot\b|crawl|spider|scrape|fetch(?![\w]*api)"
+    r"bot\b|crawl|spider|scrape|fetch(?!\w*api)"
     r"|scan\b|index(?:er|ing)|preview|slurp|archiv|headless"
     r"|\+https?://|@[\w.-]+\.\w{2,}\b"
 )
@@ -95,19 +95,17 @@ _BROWSER_TOKENS = frozenset(
 )
 
 
-def _bare_compat(user_agent: str):
+def _bare_compat(user_agent: str) -> bool:
     match = _search_compat(user_agent)
-    if match and not _reject_compat(match.group(0)):
-        return match
-    return None
+    return bool(match and not _reject_compat(match.group(0)))
 
 
 _CHECKS = (
-    ("bot_signal", _search_bot_signal),
+    ("bot_signal", lambda ua: bool(_search_bot_signal(ua))),
     ("no_browser_signature", lambda ua: not _search_browser(ua)),
     ("bare_compatible", _bare_compat),
-    ("known_tool", _search_known_tool),
-    ("url_in_ua", _search_url),
+    ("known_tool", lambda ua: bool(_search_known_tool(ua))),
+    ("url_in_ua", lambda ua: bool(_search_url(ua))),
 )
 
 
@@ -122,41 +120,47 @@ def is_crawler(user_agent: str) -> bool:
         return True
     if not _search_browser(user_agent):
         return True
-    return _bare_compat(user_agent) is not None
+    return _bare_compat(user_agent)
 
 
-_CHUNKS: list[list] | None = None
+@dataclass
+class _Chunk:
+    rows: list
+    _combined: re.Pattern | None = field(default=None, init=False, repr=False)
+    _entries: list | None = field(default=None, init=False, repr=False)
+
+    def match(self, user_agent: str) -> CrawlerInfo | None:
+        if self._combined is None:
+            self._combined = re.compile("|".join(f"(?:{p})" for p, *_ in self.rows))
+
+        if not self._combined.search(user_agent):
+            return None
+
+        if self._entries is None:
+            self._entries = [
+                (re.compile(p), CrawlerInfo(u, d, tuple(t))) for p, u, d, t in self.rows
+            ]
+
+        for pattern, info in self._entries:
+            if pattern.search(user_agent):
+                return info
+        return None  # pragma: no cover
 
 
-def _ensure_db():
-    global _CHUNKS
-    if _CHUNKS is not None:
-        return
+_chunks: list[_Chunk] | None = None
+
+
+def _load_chunks() -> list[_Chunk]:
+    global _chunks
+    if _chunks is not None:
+        return _chunks
 
     path = Path(__file__).parent / "crawler-user-agents.json"
     with path.open(encoding="utf-8") as f:
         rows = json.load(f)
 
-    _CHUNKS = [[rows[i : i + _CHUNK], None, None] for i in range(0, len(rows), _CHUNK)]
-
-
-def _chunk_match(chunk, user_agent):
-    rows, combined, entries = chunk
-
-    if combined is None:
-        combined = re.compile("|".join(f"(?:{p})" for p, *_ in rows))
-        chunk[1] = combined
-
-    if not combined.search(user_agent):
-        return None
-
-    if entries is None:
-        entries = [(re.compile(p), CrawlerInfo(u, d, tuple(t))) for p, u, d, t in rows]
-        chunk[2] = entries
-    for pattern, info in entries:
-        if pattern.search(user_agent):
-            return info
-    return None  # pragma: no cover
+    _chunks = [_Chunk(rows[i : i + _CHUNK]) for i in range(0, len(rows), _CHUNK)]
+    return _chunks
 
 
 @lru_cache(maxsize=_CACHE)
@@ -164,21 +168,30 @@ def crawler_info(user_agent: str) -> CrawlerInfo | None:
     if not is_crawler(user_agent):
         return None
 
-    _ensure_db()
-    for chunk in _CHUNKS:  # type: ignore[union-attr]
-        info = _chunk_match(chunk, user_agent)
+    for chunk in _load_chunks():
+        info = chunk.match(user_agent)
         if info is not None:
             return info
+
     return None  # pragma: no cover
 
 
-def crawler_has_tag(user_agent: str, tags: str | list[str]) -> bool:
+def crawler_has_tag(user_agent: str, tags: str | Iterable[str]) -> bool:
     info = crawler_info(user_agent)
     if not info:
         return False
 
     wanted = {tags} if isinstance(tags, str) else set(tags)
     return bool(wanted & set(info.tags))
+
+
+def _name_non_mozilla(user_agent: str) -> str | None:
+    match = _search_prefix_name(user_agent)
+    if match:
+        return match.group(1)
+
+    parts = user_agent.split()
+    return parts[0].split("/", 1)[0] if parts else None
 
 
 @lru_cache(maxsize=_CACHE)
@@ -188,23 +201,19 @@ def crawler_name(user_agent: str) -> str | None:
         return match.group(1)
 
     if not user_agent.startswith("Mozilla/5.0"):
-        match = _search_prefix_name(user_agent)
-        if match:
-            return match.group(1)
-        parts = user_agent.split()
-        return parts[0].split("/", 1)[0] if parts else None
+        return _name_non_mozilla(user_agent)
 
     cleaned = _sub_browser_bits(" ", _sub_comments(" ", user_agent))
     names = _find_name(cleaned)
     return names[-1] if names else None
 
 
-@lru_cache(maxsize=_CACHE)
-def crawler_version(user_agent: str) -> str | None:
-    if not user_agent.startswith("Mozilla/5.0"):
-        parts = (user_agent.split() or [""])[0].split("/", 1)
-        return parts[1] if len(parts) > 1 else None
+def _version_non_mozilla(user_agent: str) -> str | None:
+    parts = (user_agent.split() or [""])[0].split("/", 1)
+    return parts[1] if len(parts) > 1 else None
 
+
+def _version_mozilla(user_agent: str) -> str | None:
     match = _search_compat_version(user_agent)
     if match:
         return match.group(1)
@@ -223,17 +232,16 @@ def crawler_version(user_agent: str) -> str | None:
 
 
 @lru_cache(maxsize=_CACHE)
+def crawler_version(user_agent: str) -> str | None:
+    if not user_agent.startswith("Mozilla/5.0"):
+        return _version_non_mozilla(user_agent)
+    return _version_mozilla(user_agent)
+
+
+@lru_cache(maxsize=_CACHE)
 def crawler_url(user_agent: str) -> str | None:
     if not _search_url(user_agent):
         return None
 
     match = _extract_url(user_agent)
     return match.group(0) if match else None
-
-
-class _CallableModule(types.ModuleType):
-    def __call__(self, user_agent: str) -> bool:
-        return is_crawler(user_agent)
-
-
-sys.modules[__name__].__class__ = _CallableModule

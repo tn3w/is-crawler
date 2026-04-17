@@ -29,7 +29,7 @@ def clear_ic_caches() -> None:
     ic.crawler_name.cache_clear()
     ic.crawler_version.cache_clear()
     ic.crawler_url.cache_clear()
-    ic._CHUNKS = None
+    ic._chunks = None
 
 
 def bench_is_crawler() -> dict[str, float]:
