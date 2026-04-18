@@ -25,8 +25,13 @@ jobs:
             echo "is_new=false" >> "$GITHUB_OUTPUT"
           fi
 
-  build:
+  test:
     needs: check-version
+    if: needs.check-version.outputs.is_new == 'true'
+    uses: ./.github/workflows/_test.yml
+
+  build:
+    needs: [check-version, test]
     if: needs.check-version.outputs.is_new == 'true'
     runs-on: ubuntu-latest
     steps:
