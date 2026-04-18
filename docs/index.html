@@ -3,10 +3,10 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>is-crawler - Tiny crawler detection for Python</title>
+        <title>is-crawler - crawler detection for Python</title>
         <meta
             name="description"
-            content="Tiny, zero-dependency Python library that detects bots and crawlers from user-agent strings. One function call, regex-powered, blazing fast."
+            content="Tiny, zero-dependency Python library that detects bots and crawlers from user-agent strings."
         />
         <meta
             name="keywords"
@@ -15,21 +15,19 @@
         <meta name="author" content="TN3W" />
         <link rel="canonical" href="https://is-crawler.tn3w.dev/" />
         <link rel="icon" href="favicon.ico" type="image/x-icon" />
-
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://is-crawler.tn3w.dev/" />
-        <meta property="og:title" content="is-crawler - Tiny crawler detection for Python" />
+        <meta property="og:title" content="is-crawler - crawler detection for Python" />
         <meta
             property="og:description"
-            content="Tiny, zero-dependency Python library that detects bots and crawlers from user-agent strings. One function call, regex-powered, blazing fast."
+            content="Tiny, zero-dependency Python library that detects bots and crawlers from user-agent strings."
         />
         <meta property="og:site_name" content="is-crawler" />
-
         <meta name="twitter:card" content="summary" />
-        <meta name="twitter:title" content="is-crawler - Tiny crawler detection for Python" />
+        <meta name="twitter:title" content="is-crawler - crawler detection for Python" />
         <meta
             name="twitter:description"
-            content="Tiny, zero-dependency Python library that detects bots and crawlers from user-agent strings. One function call, regex-powered, blazing fast."
+            content="Tiny, zero-dependency Python library that detects bots and crawlers from user-agent strings."
         />
         <style>
             *,
@@ -40,150 +38,278 @@
                 padding: 0;
             }
             :root {
-                --bg: #0a0a0f;
-                --surface: #111118;
-                --surface-2: #1a1a24;
-                --surface-3: #22222e;
-                --border: #2a2a3a;
-                --border-accent: #3d3d55;
-                --text: #e4e4ef;
-                --text-dim: #8888a4;
-                --text-muted: #7a7a96;
-                --accent: #7c6aff;
-                --accent-glow: #7c6aff44;
-                --green: #34d399;
-                --green-dim: #34d39933;
-                --red: #f87171;
-                --red-dim: #f8717133;
-                --amber: #fbbf24;
-                --amber-dim: #fbbf2433;
-                --radius: 10px;
+                --ink: #f5f5f5;
+                --ink-2: #a8a8a8;
+                --ink-3: #6a6a6a;
+                --ink-4: #3a3a3a;
+                --paper: #0a0a0a;
+                --paper-2: #131313;
+                --paper-3: #1a1a1a;
+                --rule: #222222;
+                --amber: #e8a54a;
+                --amber-soft: #f0c878;
+                --red: #e87a5a;
+                --mono:
+                    ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+                --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua',
+                    Georgia, serif;
             }
             html {
                 scroll-behavior: smooth;
             }
             body {
-                background: var(--bg);
-                color: var(--text);
-                font-family:
-                    system-ui,
-                    -apple-system,
-                    'Segoe UI',
-                    sans-serif;
-                line-height: 1.6;
+                background: var(--paper);
+                color: var(--ink);
+                font-family: var(--mono);
+                font-size: 14px;
+                line-height: 1.55;
                 min-height: 100vh;
                 overflow-x: hidden;
+                -webkit-font-smoothing: antialiased;
+            }
+            ::selection {
+                background: var(--amber);
+                color: #0a0a0a;
+            }
+            a {
+                color: inherit;
             }
 
-            .ambient {
+            /* fixed top strip */
+            .topstrip {
                 position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 40;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 18px 32px;
+                font-size: 11px;
+                letter-spacing: 0.18em;
+                text-transform: uppercase;
+                color: var(--ink-3);
+                background: linear-gradient(
+                    to bottom,
+                    rgba(10, 10, 10, 0.92),
+                    rgba(10, 10, 10, 0)
+                );
+                backdrop-filter: blur(6px);
+            }
+            .topstrip a {
+                color: var(--ink-2);
+                text-decoration: none;
+                margin-left: 18px;
+            }
+            .topstrip a:hover {
+                color: var(--amber);
+            }
+            .topstrip .mark {
+                font-family: var(--serif);
+                font-style: italic;
+                font-size: 18px;
+                text-transform: none;
+                letter-spacing: -0.01em;
+                color: var(--ink);
+            }
+            .topstrip .mark .dot {
+                color: var(--amber);
+            }
+
+            /* HERO: full bleed, giant type, right-edge meta column */
+            .hero {
+                position: relative;
+                min-height: 100vh;
+                padding: 140px 32px 80px;
+                display: grid;
+                grid-template-columns: 1fr 280px;
+                gap: 48px;
+                align-items: end;
+                border-bottom: 1px solid var(--rule);
+            }
+            .hero::before {
+                content: '';
+                position: absolute;
                 inset: 0;
-                pointer-events: none;
-                z-index: 0;
                 background:
-                    radial-gradient(ellipse 60% 40% at 20% 10%, #7c6aff08 0%, transparent 70%),
-                    radial-gradient(ellipse 50% 50% at 80% 80%, #34d39906 0%, transparent 70%);
-            }
-
-            .grain {
-                position: fixed;
-                inset: 0;
+                    radial-gradient(
+                        ellipse 70% 50% at 15% 70%,
+                        rgba(232, 165, 74, 0.06),
+                        transparent 70%
+                    ),
+                    radial-gradient(
+                        ellipse 50% 40% at 85% 20%,
+                        rgba(232, 165, 74, 0.035),
+                        transparent 70%
+                    );
                 pointer-events: none;
-                z-index: 9999;
-                opacity: 0.035;
-                background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-                background-repeat: repeat;
-                background-size: 180px;
             }
-
-            .container {
+            .hero-inner {
                 position: relative;
                 z-index: 1;
-                max-width: 880px;
-                margin: 0 auto;
-                padding: 0 24px;
             }
-
-            header {
-                padding: 48px 0 0;
-            }
-            .header-row {
+            .hero-eyebrow {
+                font-size: 11px;
+                letter-spacing: 0.24em;
+                text-transform: uppercase;
+                color: var(--amber);
+                margin-bottom: 36px;
                 display: flex;
                 align-items: center;
-                justify-content: space-between;
-                flex-wrap: wrap;
-                gap: 16px;
-            }
-            .logo-group {
-                display: flex;
-                align-items: baseline;
                 gap: 14px;
             }
-            .logo {
-                font-family: Georgia, 'Times New Roman', serif;
-                font-size: clamp(2rem, 5vw, 2.8rem);
+            .hero-eyebrow::before {
+                content: '';
+                width: 32px;
+                height: 1px;
+                background: var(--amber);
+            }
+            .hero h1 {
+                font-family: var(--serif);
                 font-weight: 400;
-                letter-spacing: -0.02em;
-                color: var(--text);
+                font-size: clamp(3.5rem, 11vw, 9rem);
+                line-height: 0.9;
+                letter-spacing: -0.04em;
+                color: var(--ink);
             }
-            .logo span {
-                color: var(--accent);
+            .hero h1 .soft {
+                color: var(--ink-3);
             }
-            .version {
-                font-family: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
-                font-size: 0.75rem;
-                color: var(--text-dim);
-                background: var(--surface-2);
-                border: 1px solid var(--border);
-                padding: 3px 10px;
-                border-radius: 20px;
-                white-space: nowrap;
+            .hero h1 em {
+                font-style: italic;
+                color: var(--amber);
             }
-            .header-right {
+            .hero-lede {
+                margin-top: 32px;
+                max-width: 520px;
+                font-family: var(--serif);
+                font-size: 18px;
+                line-height: 1.5;
+                color: var(--ink-2);
+            }
+            .hero-side {
+                position: relative;
+                z-index: 1;
+                padding-left: 24px;
+                border-left: 1px solid var(--rule);
                 display: flex;
-                align-items: center;
-                gap: 12px;
+                flex-direction: column;
+                gap: 22px;
             }
-            .gh-link {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                gap: 7px;
-                font-size: 0.85rem;
-                font-weight: 500;
-                color: var(--text-dim);
-                text-decoration: none;
-                padding: 0 14px;
-                height: 34px;
-                border: 1px solid var(--border);
-                border-radius: var(--radius);
-                transition: all 0.2s;
+            .side-block .key {
+                font-size: 10px;
+                letter-spacing: 0.2em;
+                text-transform: uppercase;
+                color: var(--ink-3);
+                margin-bottom: 4px;
             }
-            .gh-link:hover {
-                color: var(--text);
-                border-color: var(--border-accent);
-                background: var(--surface-2);
+            .side-block .val {
+                font-family: var(--serif);
+                font-size: 26px;
+                letter-spacing: -0.015em;
+                color: var(--ink);
             }
-            .gh-link svg {
-                width: 18px;
-                height: 18px;
-                fill: currentColor;
+            .side-block .val .amber {
+                color: var(--amber);
+            }
+            .side-block .sub {
+                font-size: 11px;
+                color: var(--ink-3);
+                margin-top: 2px;
             }
 
-            .tagline-row {
-                margin-top: 24px;
+            .hero-foot {
+                grid-column: 1 / -1;
+                margin-top: 64px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding-top: 18px;
+                border-top: 1px solid var(--rule);
+                font-size: 11px;
+                letter-spacing: 0.18em;
+                text-transform: uppercase;
+                color: var(--ink-3);
+                position: relative;
+                z-index: 1;
+            }
+            .hero-foot .scroll-cue {
                 display: flex;
                 align-items: center;
-                justify-content: space-between;
-                gap: 24px;
-                flex-wrap: wrap;
+                gap: 10px;
+                color: var(--ink-2);
             }
-            .tagline {
-                font-size: 1.05rem;
-                color: var(--text-dim);
-                max-width: 480px;
-                line-height: 1.65;
-                flex: 1 1 auto;
+            .hero-foot .scroll-cue::after {
+                content: '↓';
+                display: inline-block;
+                animation: bob 1.8s ease-in-out infinite;
+            }
+            @keyframes bob {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(4px); }
+            }
+
+            /* install band: single full-width strip */
+            .install-band {
+                display: grid;
+                grid-template-columns: 320px 1fr auto;
+                align-items: center;
+                gap: 0;
+                border-bottom: 1px solid var(--rule);
+            }
+            .install-band .label {
+                padding: 28px 32px;
+                font-size: 11px;
+                letter-spacing: 0.22em;
+                text-transform: uppercase;
+                color: var(--ink-3);
+                border-right: 1px solid var(--rule);
+            }
+            .install-band .label .no {
+                color: var(--amber);
+                margin-right: 10px;
+            }
+            .install-band .cmd-wrap {
+                display: flex;
+                align-items: center;
+                padding: 0 32px;
+                height: 100%;
+            }
+            .install-cmd {
+                width: 100%;
+                background: transparent;
+                border: none;
+                outline: none;
+                font-family: var(--mono);
+                font-size: 17px;
+                color: var(--ink);
+                padding: 28px 0;
+            }
+            .install-cmd::before {
+                content: '$ ';
+                color: var(--amber);
+            }
+            .copy-btn {
+                border: none;
+                border-left: 1px solid var(--rule);
+                background: transparent;
+                color: var(--ink-2);
+                font-family: var(--mono);
+                font-size: 11px;
+                letter-spacing: 0.22em;
+                text-transform: uppercase;
+                padding: 28px 36px;
+                cursor: pointer;
+                height: 100%;
+                white-space: nowrap;
+            }
+            .copy-btn:hover {
+                color: var(--amber);
+                background: var(--paper-2);
+            }
+            .copy-btn.copied {
+                color: var(--amber);
             }
             .sr-only {
                 position: absolute;
@@ -196,977 +322,975 @@
                 white-space: nowrap;
                 border: 0;
             }
-            .install-bar {
-                flex: 0 0 auto;
-                min-width: 320px;
-                display: flex;
-                align-items: stretch;
-                background: var(--surface);
-                border: 1px solid var(--border);
-                border-radius: var(--radius);
-                overflow: hidden;
-                transition: border-color 0.2s;
-            }
-            .install-bar:hover {
-                border-color: var(--border-accent);
-            }
-            .install-cmd {
-                flex: 1;
-                font-family: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
-                font-size: 0.88rem;
-                color: var(--text);
-                padding: 14px 18px;
-                background: transparent;
-                border: none;
-                user-select: all;
-                cursor: text;
-                outline: none;
-            }
-            .install-cmd::selection {
-                background: var(--accent-glow);
-            }
-            .copy-btn {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 52px;
-                background: var(--surface-2);
-                border: none;
-                border-left: 1px solid var(--border);
-                color: var(--text-dim);
-                cursor: pointer;
-                transition: all 0.2s;
+
+            /* common block wrapper */
+            .block {
+                padding: 100px 32px;
+                border-bottom: 1px solid var(--rule);
                 position: relative;
             }
-            .copy-btn:hover {
-                color: var(--text);
-                background: var(--surface-3);
-            }
-            .copy-btn svg {
-                width: 18px;
-                height: 18px;
-            }
-            .copy-btn .check {
-                display: none;
-                color: var(--green);
-            }
-            .copy-btn.copied .clipboard {
-                display: none;
-            }
-            .copy-btn.copied .check {
-                display: block;
-            }
-
-            .detector {
-                margin-top: 52px;
-                background: var(--surface);
-                border: 1px solid var(--border);
-                border-radius: calc(var(--radius) + 4px);
-                overflow: hidden;
-            }
-            .detector-header {
-                padding: 20px 24px;
-                border-bottom: 1px solid var(--border);
+            .block-head {
                 display: flex;
-                align-items: center;
+                align-items: baseline;
                 justify-content: space-between;
+                gap: 32px;
+                margin-bottom: 64px;
+                padding-bottom: 24px;
+                border-bottom: 1px solid var(--rule);
+                flex-wrap: wrap;
             }
-            .detector-title {
-                font-size: 0.8rem;
-                font-weight: 600;
+            .block-num {
+                font-family: var(--serif);
+                font-size: 11px;
+                letter-spacing: 0.24em;
                 text-transform: uppercase;
-                letter-spacing: 0.08em;
-                color: var(--text-muted);
+                color: var(--amber);
             }
-            .detector-badge {
-                font-family: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
-                font-size: 0.7rem;
-                padding: 3px 10px;
-                border-radius: 20px;
-                font-weight: 500;
-                opacity: 0;
-                transform: translateY(4px);
-                transition: all 0.3s ease;
+            .block-title {
+                font-family: var(--serif);
+                font-weight: 400;
+                font-size: clamp(2rem, 5vw, 3.2rem);
+                letter-spacing: -0.025em;
+                line-height: 1;
+                color: var(--ink);
+                flex: 1;
+                text-align: center;
             }
-            .detector-badge.visible {
-                opacity: 1;
-                transform: translateY(0);
+            .block-title em {
+                font-style: italic;
+                color: var(--amber);
             }
-            .detector-badge.crawler {
-                background: var(--red-dim);
-                color: var(--red);
-                border: 1px solid #f8717144;
-            }
-            .detector-badge.human {
-                background: var(--green-dim);
-                color: var(--green);
-                border: 1px solid #34d39944;
+            .block-meta {
+                font-size: 10px;
+                letter-spacing: 0.22em;
+                text-transform: uppercase;
+                color: var(--ink-3);
+                text-align: right;
             }
 
-            .ua-input-wrap {
-                padding: 24px;
+            /* DETECTOR: offset card with stacked header */
+            .detector-wrap {
+                max-width: 1000px;
+                margin: 0 auto;
+            }
+            .detector {
+                border: 1px solid var(--rule);
+                background: var(--paper-2);
+            }
+            .detector-top {
+                display: grid;
+                grid-template-columns: auto 1fr auto;
+                gap: 20px;
+                align-items: center;
+                padding: 18px 22px;
+                border-bottom: 1px solid var(--rule);
+                background: var(--paper-3);
+            }
+            .verdict {
+                display: inline-block;
+                font-family: var(--mono);
+                font-size: 10px;
+                letter-spacing: 0.26em;
+                text-transform: uppercase;
+                padding: 5px 12px;
+                border: 1px solid;
+            }
+            .verdict.idle {
+                color: var(--ink-3);
+                border-color: var(--ink-4);
+            }
+            .verdict.human {
+                color: var(--amber);
+                border-color: var(--amber);
+            }
+            .verdict.crawler {
+                color: var(--red);
+                border-color: var(--red);
+            }
+            .detector-top .title {
+                font-size: 10px;
+                letter-spacing: 0.24em;
+                text-transform: uppercase;
+                color: var(--ink-3);
+                text-align: center;
+            }
+            .detector-actions {
+                display: flex;
+                gap: 6px;
+            }
+            .chip {
+                font-family: var(--mono);
+                font-size: 10px;
+                letter-spacing: 0.14em;
+                text-transform: uppercase;
+                color: var(--ink-2);
+                background: transparent;
+                border: 1px solid var(--rule);
+                padding: 6px 12px;
+                cursor: pointer;
+            }
+            .chip:hover {
+                border-color: var(--amber);
+                color: var(--amber);
+            }
+
+            .ua-field {
+                padding: 26px 24px;
+                border-bottom: 1px solid var(--rule);
             }
             .ua-input {
                 width: 100%;
-                font-family: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
-                font-size: 0.95rem;
-                color: var(--text);
-                background: var(--bg);
-                border: 1px solid var(--border);
-                border-radius: var(--radius);
-                padding: 18px 20px;
+                background: transparent;
+                border: none;
                 outline: none;
-                transition:
-                    border-color 0.25s,
-                    box-shadow 0.25s;
                 resize: none;
+                font-family: var(--mono);
+                font-size: 14px;
+                color: var(--ink);
+                line-height: 1.6;
             }
             .ua-input::placeholder {
-                color: var(--text-muted);
+                color: var(--ink-3);
                 font-style: italic;
             }
-            .ua-input:focus {
-                border-color: var(--accent);
-                box-shadow: 0 0 0 3px var(--accent-glow);
-            }
-            .detector-header-right {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
-            .test-own-btn {
-                font-family:
-                    system-ui,
-                    -apple-system,
-                    'Segoe UI',
-                    sans-serif;
-                font-size: 0.7rem;
-                font-weight: 500;
-                color: var(--text-dim);
-                background: var(--surface-2);
-                border: 1px solid var(--border);
-                border-radius: 20px;
-                padding: 4px 12px;
-                cursor: pointer;
-                white-space: nowrap;
-                transition: all 0.2s;
-            }
-            .test-own-btn:hover {
-                color: var(--text);
-                border-color: var(--border-accent);
-                background: var(--surface-3);
-            }
-
             .results {
-                padding: 0 24px 28px;
                 display: none;
             }
             .results.visible {
                 display: block;
-                animation: fadeUp 0.35s ease;
             }
-            @keyframes fadeUp {
-                from {
-                    opacity: 0;
-                    transform: translateY(8px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
+            .rl-row {
+                display: grid;
+                grid-template-columns: 140px 1fr;
+                gap: 22px;
+                padding: 16px 24px;
+                border-bottom: 1px solid var(--rule);
             }
-
-            .result-summary {
-                font-size: 0.95rem;
-                color: var(--text-dim);
-                margin-bottom: 18px;
-                line-height: 1.7;
+            .rl-row:last-child {
+                border-bottom: none;
             }
-            .result-summary strong {
-                color: var(--text);
-                font-weight: 600;
-            }
-            .result-name {
-                margin-bottom: 14px;
-                padding: 12px 14px;
-                background: var(--surface-2);
-                border: 1px solid var(--border);
-                border-radius: 8px;
-                font-family: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
-                font-size: 0.8rem;
-                color: var(--text-dim);
-            }
-            .result-name strong {
-                color: var(--text);
-                font-weight: 600;
-            }
-
-            .match-section {
-                margin-bottom: 16px;
-            }
-            .match-label {
-                font-size: 0.72rem;
-                font-weight: 600;
+            .rl-row-label {
+                font-size: 10px;
+                letter-spacing: 0.2em;
                 text-transform: uppercase;
-                letter-spacing: 0.08em;
-                color: var(--text-muted);
-                margin-bottom: 8px;
+                color: var(--ink-3);
+                padding-top: 2px;
             }
-            .match-row {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                padding: 10px 14px;
-                background: var(--surface-2);
-                border: 1px solid var(--border);
-                border-radius: 8px;
-                margin-bottom: 6px;
-                font-family: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
-                font-size: 0.8rem;
-                line-height: 1.5;
-                flex-wrap: wrap;
+            .rl-row-value {
+                font-family: var(--mono);
+                font-size: 13px;
+                color: var(--ink);
+                word-break: break-word;
             }
-            .match-pattern {
-                color: var(--text-muted);
-                font-size: 0.72rem;
-                white-space: nowrap;
+            .rl-row-value .dim {
+                color: var(--ink-3);
             }
-            .match-text {
-                color: var(--text);
-            }
-            .match-highlight {
+            .rl-row-value .amber {
                 color: var(--amber);
-                background: var(--amber-dim);
-                padding: 1px 5px;
-                border-radius: 4px;
-                font-weight: 500;
             }
-            .match-no-browser {
-                color: var(--red);
-                background: var(--red-dim);
-                padding: 1px 5px;
-                border-radius: 4px;
-                font-weight: 500;
+            .rl-row-value .url {
+                color: var(--ink-2);
             }
-            .match-tag {
-                font-size: 0.68rem;
-                padding: 2px 8px;
-                border-radius: 20px;
-                font-weight: 500;
-                white-space: nowrap;
-            }
-            .tag-signal {
-                background: #7c6aff22;
-                color: var(--accent);
-                border: 1px solid #7c6aff44;
-            }
-            .tag-browser {
-                background: var(--red-dim);
-                color: var(--red);
-                border: 1px solid #f8717144;
-            }
-            .tag-compat {
-                background: var(--amber-dim);
-                color: var(--amber);
-                border: 1px solid #fbbf2444;
-            }
-            .tag-tool {
-                background: #06b6d422;
-                color: #22d3ee;
-                border: 1px solid #22d3ee44;
-            }
-            .tag-url {
-                background: #f9731622;
-                color: #fb923c;
-                border: 1px solid #fb923c44;
-            }
-            .result-db-row {
+            .rl-signals {
                 display: flex;
                 flex-direction: column;
-                gap: 8px;
-                padding: 12px 14px;
-                background: var(--surface-2);
-                border: 1px solid var(--border);
-                border-radius: 8px;
-                margin-bottom: 6px;
-                font-size: 0.82rem;
-                line-height: 1.5;
-            }
-            .result-db-desc {
-                color: var(--text);
-            }
-            .result-db-meta {
-                display: flex;
-                align-items: center;
-                flex-wrap: wrap;
-                gap: 6px;
-            }
-            .result-db-link {
-                font-family: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
-                font-size: 0.75rem;
-                color: #fb923c;
-                text-decoration: none;
-            }
-            .result-db-link:hover {
-                text-decoration: underline;
-            }
-            .tag-db {
-                background: #34d39922;
-                color: var(--green);
-                border: 1px solid #34d39944;
-            }
-            .rl {
-                display: flex;
-                flex-direction: column;
-                gap: 14px;
-            }
-            .rl-header {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 12px;
-                padding: 4px 0 12px;
-            }
-            .rl-verdict {
-                font-family: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
-                font-size: 0.68rem;
-                font-weight: 700;
-                letter-spacing: 0.1em;
-                padding: 3px 10px;
-                border-radius: 20px;
-                flex-shrink: 0;
-            }
-            .rl-crawler {
-                background: var(--red-dim);
-                color: var(--red);
-                border: 1px solid #f8717144;
-            }
-            .rl-human {
-                background: var(--green-dim);
-                color: var(--green);
-                border: 1px solid #34d39944;
-            }
-            .rl-identity {
-                display: flex;
-                align-items: baseline;
                 gap: 10px;
-                flex-wrap: wrap;
-                min-width: 0;
             }
-            .rl-name {
-                font-size: 0.95rem;
-                font-weight: 600;
-                color: var(--text);
+            .rl-sig {
+                display: grid;
+                grid-template-columns: 170px 1fr;
+                gap: 16px;
+                font-family: var(--mono);
+                font-size: 13px;
             }
-            .rl-version {
-                font-family: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
-                font-size: 0.75rem;
-                color: var(--text-dim);
+            .rl-sig-name {
+                color: var(--ink-2);
+                font-size: 10px;
+                letter-spacing: 0.18em;
+                text-transform: uppercase;
             }
-            .rl-ua-url {
-                font-family: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
-                font-size: 0.72rem;
-                color: #fb923c;
+            .rl-sig-name::before {
+                content: '▸ ';
+                color: var(--amber);
+            }
+            .rl-sig-snippet {
+                color: var(--ink-3);
                 word-break: break-all;
             }
-            .rl-clean {
-                font-size: 0.85rem;
-                color: var(--text-dim);
+            .rl-hl {
+                background: var(--amber);
+                color: #0a0a0a;
+                padding: 1px 4px;
             }
-            .rl-section {
-                display: flex;
-                flex-direction: column;
-                gap: 0;
-            }
-            .rl-section-label {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                font-size: 0.65rem;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 0.1em;
-                color: var(--text-muted);
-                margin-bottom: 8px;
-            }
-            .rl-section-label::after {
-                content: '';
-                flex: 1;
-                height: 1px;
-                background: var(--border);
-            }
-            .rl-signal {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                flex-wrap: wrap;
-                padding: 7px 0;
-            }
-            .rl-snippet {
-                font-family: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
-                font-size: 0.76rem;
-                color: var(--text-dim);
-                min-width: 0;
-            }
-            .rl-db-body {
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
-                padding: 12px 14px;
-                background: var(--surface-2);
-                border: 1px solid var(--border);
-                border-radius: 8px;
-            }
-            .rl-desc {
-                font-size: 0.84rem;
-                color: var(--text);
-                line-height: 1.6;
-                margin: 0;
-            }
-            .rl-db-meta {
-                display: flex;
-                align-items: center;
-                flex-wrap: wrap;
-                gap: 8px;
-            }
-            .rl-db-url {
-                font-family: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
-                font-size: 0.73rem;
-                color: #fb923c;
-                text-decoration: none;
-                word-break: break-all;
-            }
-            .rl-db-url:hover {
-                text-decoration: underline;
+            .rl-missing {
+                color: var(--red);
+                border-bottom: 1px dashed var(--red);
             }
             .rl-tags {
                 display: flex;
                 flex-wrap: wrap;
-                gap: 5px;
+                gap: 6px;
             }
-            .section {
-                margin-top: 56px;
+            .rl-tag {
+                font-size: 10px;
+                letter-spacing: 0.14em;
+                text-transform: uppercase;
+                padding: 3px 9px;
+                border: 1px solid var(--ink-4);
+                color: var(--ink-2);
             }
-            .section-title {
-                font-family: Georgia, 'Times New Roman', serif;
-                font-size: 1.5rem;
-                color: var(--text);
-                margin-bottom: 8px;
-            }
-            .section-desc {
-                color: var(--text-dim);
-                font-size: 0.92rem;
-                margin-bottom: 24px;
-                max-width: 600px;
-            }
-            .rules-grid {
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
-                gap: 12px;
-            }
-            .rules-grid .rule-card:last-child:nth-child(odd) {
-                grid-column: 1 / -1;
-            }
-            .rule-card {
-                background: var(--surface);
-                border: 1px solid var(--border);
-                border-radius: var(--radius);
-                padding: 20px;
-                transition: border-color 0.2s;
-            }
-            .rule-card:hover {
-                border-color: var(--border-accent);
-            }
-            .rule-icon {
-                width: 32px;
-                height: 32px;
-                border-radius: 8px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 0.85rem;
-                margin-bottom: 12px;
-            }
-            .rule-card h3 {
-                font-size: 0.88rem;
-                font-weight: 600;
-                margin-bottom: 6px;
-                color: var(--text);
-            }
-            .rule-card p {
-                font-size: 0.8rem;
-                color: var(--text-dim);
-                line-height: 1.6;
-            }
-            .section-desc a {
-                color: var(--text-dim);
-                text-decoration: underline;
-                transition: color 0.2s;
-            }
-            .section-desc a:hover {
-                color: var(--text);
+            .rl-desc {
+                font-family: var(--serif);
+                font-size: 15px;
+                color: var(--ink);
+                line-height: 1.55;
             }
 
-            .code-block {
-                margin-top: 56px;
-                background: var(--surface);
-                border: 1px solid var(--border);
-                border-radius: var(--radius);
-                overflow: hidden;
+            /* RULES: horizontal card track */
+            .rules-track {
+                display: grid;
+                grid-template-columns: repeat(5, minmax(0, 1fr));
+                gap: 1px;
+                background: var(--rule);
+                border: 1px solid var(--rule);
             }
-            .code-header {
-                padding: 12px 18px;
-                border-bottom: 1px solid var(--border);
+            .rule {
+                background: var(--paper);
+                padding: 32px 28px 36px;
                 display: flex;
-                align-items: center;
+                flex-direction: column;
+                gap: 24px;
+                min-height: 280px;
+                transition: background 0.2s;
+            }
+            .rule:hover {
+                background: var(--paper-2);
+            }
+            .rule-head {
+                display: flex;
+                justify-content: space-between;
+                align-items: baseline;
+            }
+            .rule-letter {
+                font-family: var(--serif);
+                font-style: italic;
+                font-size: 40px;
+                color: var(--amber);
+                line-height: 1;
+            }
+            .rule-index {
+                font-size: 10px;
+                letter-spacing: 0.2em;
+                color: var(--ink-3);
+            }
+            .rule-name {
+                font-family: var(--serif);
+                font-size: 20px;
+                color: var(--ink);
+                letter-spacing: -0.01em;
+                line-height: 1.15;
+            }
+            .rule-body {
+                color: var(--ink-2);
+                font-size: 13px;
+                line-height: 1.65;
+                margin-top: auto;
+            }
+            .rule-body em {
+                color: var(--ink);
+                font-style: normal;
+                background: var(--paper-3);
+                padding: 1px 6px;
+            }
+            .rule-body code {
+                color: var(--amber);
+                font-family: var(--mono);
+                font-size: 12px;
+            }
+
+            /* DATABASE: asymmetric split */
+            .db-split {
+                display: grid;
+                grid-template-columns: 1.1fr 1fr;
+                gap: 0;
+                border: 1px solid var(--rule);
+            }
+            .db-text {
+                padding: 48px 48px;
+                border-right: 1px solid var(--rule);
+            }
+            .db-text .count {
+                font-family: var(--serif);
+                font-size: clamp(4rem, 10vw, 7rem);
+                line-height: 1;
+                letter-spacing: -0.03em;
+                color: var(--amber);
+            }
+            .db-text .count-label {
+                font-size: 10px;
+                letter-spacing: 0.22em;
+                text-transform: uppercase;
+                color: var(--ink-3);
+                margin-top: 12px;
+                margin-bottom: 28px;
+            }
+            .db-text p {
+                font-family: var(--serif);
+                font-size: 16px;
+                line-height: 1.55;
+                color: var(--ink-2);
+                max-width: 440px;
+            }
+            .db-text p a {
+                color: var(--amber);
+                text-decoration: none;
+                border-bottom: 1px solid var(--amber);
+            }
+            .db-tags {
+                padding: 48px;
+                background: var(--paper-2);
+            }
+            .db-tags-label {
+                font-size: 10px;
+                letter-spacing: 0.22em;
+                text-transform: uppercase;
+                color: var(--ink-3);
+                margin-bottom: 24px;
+            }
+            .db-tag-list {
+                display: flex;
+                flex-wrap: wrap;
                 gap: 8px;
             }
-            .code-dot {
-                width: 10px;
-                height: 10px;
-                border-radius: 50%;
-                background: var(--surface-3);
+            .db-tag-item {
+                font-family: var(--mono);
+                font-size: 12px;
+                letter-spacing: 0.04em;
+                padding: 7px 12px;
+                border: 1px solid var(--rule);
+                color: var(--ink-2);
+                transition:
+                    color 0.2s,
+                    border-color 0.2s;
             }
-            .code-header span {
-                font-family: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
-                font-size: 0.72rem;
-                color: var(--text-muted);
-                margin-left: 8px;
+            .db-tag-item:hover {
+                color: var(--amber);
+                border-color: var(--amber);
+            }
+
+            /* API: inline spec table, full width */
+            .api-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 14px;
+            }
+            .api-table th,
+            .api-table td {
+                text-align: left;
+                padding: 18px 20px;
+                border-bottom: 1px solid var(--rule);
+                vertical-align: top;
+            }
+            .api-table tr:last-child td {
+                border-bottom: none;
+            }
+            .api-table th {
+                font-size: 10px;
+                letter-spacing: 0.2em;
+                text-transform: uppercase;
+                color: var(--ink-3);
+                font-weight: 400;
+                padding: 14px 20px;
+                border-top: 1px solid var(--rule);
+            }
+            .api-table td:first-child,
+            .api-table th:first-child {
+                padding-left: 0;
+            }
+            .api-table td:last-child,
+            .api-table th:last-child {
+                padding-right: 0;
+            }
+            .api-table tbody tr {
+                transition: background 0.15s;
+            }
+            .api-table tbody tr:hover {
+                background: var(--paper-2);
+            }
+            .api-table td:first-child {
+                font-family: var(--mono);
+                color: var(--ink);
+                white-space: nowrap;
+                width: 34%;
+            }
+            .api-table td:first-child .amber {
+                color: var(--amber);
+            }
+            .api-table td:nth-child(2) {
+                font-family: var(--mono);
+                color: var(--ink-2);
+                white-space: nowrap;
+                width: 20%;
+            }
+            .api-table td:last-child {
+                color: var(--ink-2);
+                font-family: var(--serif);
+                font-size: 15px;
+            }
+
+            /* CODE + BENCH side by side */
+            .code-bench {
+                display: grid;
+                grid-template-columns: 1.2fr 1fr;
+                gap: 0;
+                border: 1px solid var(--rule);
+            }
+            .code-shell {
+                border-right: 1px solid var(--rule);
+            }
+            .code-head {
+                padding: 16px 22px;
+                border-bottom: 1px solid var(--rule);
+                display: flex;
+                justify-content: space-between;
+                font-size: 10px;
+                letter-spacing: 0.2em;
+                text-transform: uppercase;
+                color: var(--ink-3);
+                background: var(--paper-3);
             }
             .code-body {
-                padding: 20px 24px;
-                font-family: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
-                font-size: 0.82rem;
+                padding: 26px 26px;
+                font-family: var(--mono);
+                font-size: 13px;
                 line-height: 1.9;
-                color: var(--text-dim);
+                color: var(--ink-2);
                 overflow-x: auto;
             }
             .code-body .kw {
-                color: var(--accent);
-            }
-            .code-body .fn {
-                color: #22d3ee;
-            }
-            .code-body .str {
-                color: var(--green);
-            }
-            .code-body .cm {
-                color: var(--text-muted);
-                font-style: italic;
-            }
-            .code-body .bool {
                 color: var(--amber);
             }
+            .code-body .fn {
+                color: var(--ink);
+            }
+            .code-body .str {
+                color: var(--amber-soft);
+            }
+            .code-body .cm {
+                color: var(--ink-3);
+                font-style: italic;
+            }
 
-            footer {
-                margin-top: 80px;
-                padding: 28px 0;
-                border-top: 1px solid var(--border);
+            .bench-stack {
                 display: flex;
-                align-items: center;
-                justify-content: space-between;
-                flex-wrap: wrap;
-                gap: 12px;
-                font-size: 0.78rem;
-                color: var(--text-muted);
+                flex-direction: column;
             }
-            footer a {
-                color: var(--text-dim);
-                text-decoration: underline;
-                transition: color 0.2s;
+            .bench-row {
+                padding: 28px 32px;
+                border-bottom: 1px solid var(--rule);
             }
-            footer a:hover {
-                color: var(--text);
+            .bench-row:last-child {
+                border-bottom: none;
+                flex: 1;
+            }
+            .bench-label {
+                font-size: 10px;
+                letter-spacing: 0.22em;
+                text-transform: uppercase;
+                color: var(--ink-3);
+                margin-bottom: 10px;
+            }
+            .bench-val {
+                font-family: var(--serif);
+                font-size: 44px;
+                line-height: 1;
+                letter-spacing: -0.02em;
+                color: var(--ink);
+                margin-bottom: 6px;
+            }
+            .bench-val .amber {
+                color: var(--amber);
+            }
+            .bench-sub {
+                font-size: 12px;
+                color: var(--ink-3);
+                font-family: var(--mono);
             }
 
-            @media (max-width: 600px) {
-                header {
+            /* FOOTER */
+            footer {
+                padding: 40px 32px 48px;
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 32px;
+                align-items: end;
+                border-top: 1px solid var(--rule);
+            }
+            footer .f-col {
+                font-size: 11px;
+                letter-spacing: 0.18em;
+                text-transform: uppercase;
+                color: var(--ink-3);
+            }
+            footer .f-col a {
+                color: var(--ink-2);
+                text-decoration: none;
+                display: block;
+                margin-top: 4px;
+            }
+            footer .f-col a:hover {
+                color: var(--amber);
+            }
+            footer .mark {
+                text-align: right;
+                font-family: var(--serif);
+                font-style: italic;
+                font-size: 40px;
+                letter-spacing: -0.02em;
+                color: var(--ink-4);
+                text-transform: none;
+                line-height: 1;
+            }
+
+            @media (max-width: 980px) {
+                .hero {
+                    grid-template-columns: 1fr;
+                    padding: 110px 24px 60px;
+                }
+                .hero-side {
+                    padding-left: 0;
+                    border-left: none;
                     padding-top: 32px;
+                    border-top: 1px solid var(--rule);
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 24px;
                 }
-                .tagline-row {
-                    flex-direction: column;
-                    align-items: flex-start;
+                .install-band {
+                    grid-template-columns: 1fr;
                 }
-                .ua-input {
-                    font-size: 0.85rem;
-                    padding: 14px 16px;
+                .install-band .label {
+                    border-right: none;
+                    border-bottom: 1px solid var(--rule);
                 }
-                .rules-grid {
+                .copy-btn {
+                    border-left: none;
+                    border-top: 1px solid var(--rule);
+                }
+                .block {
+                    padding: 72px 24px;
+                }
+                .rules-track {
                     grid-template-columns: repeat(2, 1fr);
                 }
+                .db-split {
+                    grid-template-columns: 1fr;
+                }
+                .db-text {
+                    border-right: none;
+                    border-bottom: 1px solid var(--rule);
+                    padding: 36px;
+                }
+                .db-tags {
+                    padding: 36px;
+                }
+                .code-bench {
+                    grid-template-columns: 1fr;
+                }
+                .code-shell {
+                    border-right: none;
+                    border-bottom: 1px solid var(--rule);
+                }
                 footer {
-                    flex-direction: column;
-                    align-items: flex-start;
+                    grid-template-columns: 1fr;
+                    gap: 20px;
+                }
+                footer .mark {
+                    text-align: left;
+                    font-size: 32px;
+                }
+                .rl-row,
+                .rl-sig {
+                    grid-template-columns: 1fr;
+                    gap: 6px;
                 }
             }
-            @media (max-width: 400px) {
-                .logo {
-                    font-size: 1.5rem;
-                }
-                .version {
-                    font-size: 0.65rem;
-                    padding: 2px 7px;
-                }
-                .install-bar {
-                    min-width: 0;
-                    width: 100%;
-                }
-                .rules-grid {
+            @media (max-width: 560px) {
+                .rules-track {
                     grid-template-columns: 1fr;
+                }
+                .topstrip {
+                    padding: 14px 20px;
+                }
+                .topstrip a {
+                    margin-left: 12px;
+                }
+                .block-head {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 10px;
+                }
+                .block-title {
+                    text-align: left;
+                }
+                .block-meta {
+                    text-align: left;
                 }
             }
         </style>
     </head>
     <body>
-        <div class="ambient"></div>
-        <div class="grain"></div>
+        <div class="topstrip">
+            <div class="mark">is<span class="dot">·</span>crawler</div>
+            <div>
+                <a href="https://pypi.org/project/is-crawler/" target="_blank" rel="noopener">PyPI</a>
+                <a href="https://github.com/tn3w/is-crawler" target="_blank" rel="noopener">GitHub</a>
+                <a href="#try">Demo</a>
+            </div>
+        </div>
 
-        <div class="container">
-            <header>
-                <div class="header-row">
-                    <div class="logo-group">
-                        <h1 class="logo">is<span>-</span>crawler</h1>
-                        <span class="version" id="version">v1.0.0</span>
-                    </div>
-                    <div class="header-right">
-                        <a
-                            class="gh-link"
-                            href="https://pypi.org/project/is-crawler/"
-                            target="_blank"
-                            rel="noopener"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                                <path
-                                    d="M12 0C5.6 0 6 2.7 6 2.7v2.8h6.2v.8H3.9S0 5.9 0 12.2s3.4 6.1 3.4 6.1h2V15s-.1-3.4 3.3-3.4h5.7s3.2.1 3.2-3.1V3.1S18.2 0 12 0zm-3.1 1.8c.6 0 1 .5 1 1s-.4 1-1 1-1-.4-1-1 .5-1 1-1z"
-                                />
-                                <path
-                                    d="M12 24c6.4 0 6-2.7 6-2.7v-2.8h-6.2v-.8h8.3s3.9.4 3.9-5.9-3.4-6.1-3.4-6.1h-2V9s.1 3.4-3.3 3.4H9.6s-3.2-.1-3.2 3.1v5.4S5.8 24 12 24zm3.1-1.8c-.6 0-1-.5-1-1s.4-1 1-1 1 .4 1 1-.5 1-1 1z"
-                                />
-                            </svg>
-                        </a>
-                        <a
-                            class="gh-link"
-                            href="https://github.com/tn3w/is-crawler"
-                            target="_blank"
-                            rel="noopener"
-                        >
-                            <svg viewBox="0 0 16 16">
-                                <path
-                                    d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
-                                />
-                            </svg>
-                            GitHub
-                        </a>
-                    </div>
+        <section class="hero">
+            <div class="hero-inner">
+                <div class="hero-eyebrow">Python · zero-dependency · v<span id="version">1.0.0</span></div>
+                <h1>
+                    Know a bot<br />
+                    when you <em>see</em><br />
+                    <span class="soft">one.</span>
+                </h1>
+                <p class="hero-lede">
+                    A small library that classifies user-agent strings. A single regex
+                    pass, a lazy-loaded database of 646 known crawlers, and no
+                    dependencies at all.
+                </p>
+            </div>
+            <aside class="hero-side">
+                <div class="side-block">
+                    <div class="key">Detection</div>
+                    <div class="val"><span class="amber">0.39</span>µs</div>
+                    <div class="sub">mixed corpus, cached</div>
                 </div>
-            </header>
-
-            <main>
-                <div class="tagline-row">
-                    <p class="tagline">
-                        Tiny, zero-dependency crawler detection for Python. One function call,
-                        regex-powered, blazing fast.
-                    </p>
-                    <div class="install-bar" id="installBar">
-                        <label for="installCmd" class="sr-only">Install command</label>
-                        <input
-                            class="install-cmd"
-                            value="pip install is-crawler"
-                            readonly
-                            id="installCmd"
-                        />
-                        <button class="copy-btn" id="copyBtn" aria-label="Copy install command">
-                            <svg
-                                class="clipboard"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            >
-                                <rect x="9" y="9" width="13" height="13" rx="2" />
-                                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-                            </svg>
-                            <svg
-                                class="check"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            >
-                                <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                        </button>
-                    </div>
+                <div class="side-block">
+                    <div class="key">Known crawlers</div>
+                    <div class="val">646</div>
+                    <div class="sub">lazy database</div>
                 </div>
+                <div class="side-block">
+                    <div class="key">Dependencies</div>
+                    <div class="val">0</div>
+                    <div class="sub">stdlib only</div>
+                </div>
+                <div class="side-block">
+                    <div class="key">License</div>
+                    <div class="val">Apache-2.0</div>
+                    <div class="sub">permissive</div>
+                </div>
+            </aside>
+            <div class="hero-foot">
+                <div>MMXXVI · TN3W</div>
+                <div class="scroll-cue">Install</div>
+            </div>
+        </section>
 
+        <div class="install-band" id="installBar">
+            <div class="label"><span class="no">I.</span> Install</div>
+            <div class="cmd-wrap">
+                <label for="installCmd" class="sr-only">Install command</label>
+                <input
+                    class="install-cmd"
+                    value="pip install is-crawler"
+                    readonly
+                    id="installCmd"
+                />
+            </div>
+            <button class="copy-btn" id="copyBtn" aria-label="Copy install command">
+                <span class="label-copy">Copy</span>
+            </button>
+        </div>
+
+        <section class="block" id="try">
+            <div class="block-head">
+                <div class="block-num">II. Probe</div>
+                <h2 class="block-title">Paste a user-agent.<br />Watch the signals <em>fire</em>.</h2>
+                <div class="block-meta">Live detection</div>
+            </div>
+            <div class="detector-wrap">
                 <div class="detector">
-                    <div class="detector-header">
-                        <span class="detector-title">User-Agent Detector</span>
-                        <div class="detector-header-right">
-                            <span class="detector-badge" id="badge"></span>
-                            <button
-                                class="test-own-btn"
-                                id="testOwnBtn"
-                                title="Test your browser's user-agent"
-                            >
-                                My UA
-                            </button>
-                            <button
-                                class="test-own-btn"
-                                id="testBotBtn"
-                                title="Test with a bot user-agent"
-                            >
-                                Bot UA
-                            </button>
+                    <div class="detector-top">
+                        <span class="verdict idle" id="badge">Idle</span>
+                        <div class="title">User-agent probe</div>
+                        <div class="detector-actions">
+                            <button class="chip" id="testOwnBtn">My UA</button>
+                            <button class="chip" id="testBotBtn">Bot UA</button>
                         </div>
                     </div>
-                    <div class="ua-input-wrap">
+                    <div class="ua-field">
                         <textarea
                             class="ua-input"
                             id="uaInput"
                             rows="2"
-                            placeholder="Paste a user-agent string to analyze..."
+                            placeholder="paste a user-agent string…"
                             spellcheck="false"
                         ></textarea>
                     </div>
                     <div class="results" id="results"></div>
                 </div>
+            </div>
+        </section>
 
-                <div class="section">
-                    <h2 class="section-title">How it works</h2>
-                    <p class="section-desc">
-                        Five layered regex checks run in sequence. If any signal fires, the
-                        user-agent is classified as a crawler.
-                    </p>
-                    <div class="rules-grid">
-                        <div class="rule-card">
-                            <div
-                                class="rule-icon"
-                                style="background: var(--accent-glow); color: var(--accent)"
-                            >
-                                1
-                            </div>
-                            <h3>Bot signals</h3>
-                            <p>
-                                Matches keywords like <em>bot</em>, <em>crawl</em>, <em>spider</em>,
-                                <em>scrape</em>, <em>headless</em>, URLs, and email patterns common
-                                in crawler identifiers.
-                            </p>
-                        </div>
-                        <div class="rule-card">
-                            <div
-                                class="rule-icon"
-                                style="background: var(--red-dim); color: var(--red)"
-                            >
-                                2
-                            </div>
-                            <h3>Missing browser signature</h3>
-                            <p>
-                                Real browsers always include engine tokens like <em>WebKit</em>,
-                                <em>Gecko</em>, or <em>Trident</em>. Absence is a strong crawler
-                                signal.
-                            </p>
-                        </div>
-                        <div class="rule-card">
-                            <div
-                                class="rule-icon"
-                                style="background: var(--amber-dim); color: var(--amber)"
-                            >
-                                3
-                            </div>
-                            <h3>Bare compatible</h3>
-                            <p>
-                                Detects <code>(compatible; ...)</code> strings without real
-                                OS/browser tokens, a classic bot pattern mimicking browsers.
-                            </p>
-                        </div>
-                        <div class="rule-card">
-                            <div class="rule-icon" style="background: #06b6d422; color: #22d3ee">
-                                4
-                            </div>
-                            <h3>Known tools</h3>
-                            <p>
-                                Identifies specific tools: <em>playwright</em>, <em>selenium</em>,
-                                <em>wget</em>, <em>lighthouse</em>, <em>sqlmap</em>, and more.
-                            </p>
-                        </div>
-                        <div class="rule-card">
-                            <div
-                                class="rule-icon"
-                                style="background: var(--green-dim); color: var(--green)"
-                            >
-                                5
-                            </div>
-                            <h3>URL in UA</h3>
-                            <p>
-                                An embedded <code>http://</code> or <code>https://</code> URL in the
-                                user-agent string, a near-universal bot convention.
-                            </p>
-                        </div>
+        <section class="block">
+            <div class="block-head">
+                <div class="block-num">III. Heuristics</div>
+                <h2 class="block-title">Five checks.<br />First <em>hit</em> wins.</h2>
+                <div class="block-meta">Short-circuit</div>
+            </div>
+            <div class="rules-track">
+                <div class="rule">
+                    <div class="rule-head">
+                        <div class="rule-letter">a</div>
+                        <div class="rule-index">01 / 05</div>
+                    </div>
+                    <div class="rule-name">Bot signals</div>
+                    <div class="rule-body">
+                        <em>bot</em>, <em>crawl</em>, <em>spider</em>, <em>scrape</em>,
+                        <em>headless</em>. URL and email patterns common in crawler
+                        identifiers.
                     </div>
                 </div>
+                <div class="rule">
+                    <div class="rule-head">
+                        <div class="rule-letter">b</div>
+                        <div class="rule-index">02 / 05</div>
+                    </div>
+                    <div class="rule-name">Missing browser</div>
+                    <div class="rule-body">
+                        Real browsers always carry <em>WebKit</em>, <em>Gecko</em>, or
+                        <em>Trident</em>. Absence is a strong signal.
+                    </div>
+                </div>
+                <div class="rule">
+                    <div class="rule-head">
+                        <div class="rule-letter">c</div>
+                        <div class="rule-index">03 / 05</div>
+                    </div>
+                    <div class="rule-name">Bare compatible</div>
+                    <div class="rule-body">
+                        <code>(compatible; …)</code> without real OS or browser tokens.
+                        A classic bot pattern mimicking browsers.
+                    </div>
+                </div>
+                <div class="rule">
+                    <div class="rule-head">
+                        <div class="rule-letter">d</div>
+                        <div class="rule-index">04 / 05</div>
+                    </div>
+                    <div class="rule-name">Known tooling</div>
+                    <div class="rule-body">
+                        <em>playwright</em>, <em>selenium</em>, <em>wget</em>,
+                        <em>lighthouse</em>, <em>sqlmap</em>, and other named stacks.
+                    </div>
+                </div>
+                <div class="rule">
+                    <div class="rule-head">
+                        <div class="rule-letter">e</div>
+                        <div class="rule-index">05 / 05</div>
+                    </div>
+                    <div class="rule-name">URL in UA</div>
+                    <div class="rule-body">
+                        An embedded <code>http://</code> or <code>https://</code> inside
+                        the user-agent. A near-universal bot convention.
+                    </div>
+                </div>
+            </div>
+        </section>
 
-                <div class="section">
-                    <h2 class="section-title">Crawler database</h2>
-                    <p class="section-desc">
-                        Pattern database loaded lazily on first call, built from
+        <section class="block">
+            <div class="block-head">
+                <div class="block-num">IV. Database</div>
+                <h2 class="block-title">Known <em>crawlers</em>,<br />lazily loaded.</h2>
+                <div class="block-meta">On first call</div>
+            </div>
+            <div class="db-split">
+                <div class="db-text">
+                    <div class="count">646</div>
+                    <div class="count-label">curated entries</div>
+                    <p>
+                        Built on
                         <a
                             href="https://github.com/monperrus/crawler-user-agents"
                             target="_blank"
                             rel="noopener"
                             >monperrus/crawler-user-agents</a
                         >
-                        with supplemental tags.
+                        with supplemental tags. Each entry carries a URL, a description,
+                        and one or more tags. The database parses only on the first call
+                        to <code style="color: var(--amber); font-family: var(--mono)"
+                            >crawler_info</code
+                        >.
                     </p>
-                    <div class="rules-grid">
-                        <div class="rule-card">
-                            <div
-                                class="rule-icon"
-                                style="background: var(--accent-glow); color: var(--accent)"
-                            >
-                                <svg
-                                    width="24"
-                                    height="24"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                >
-                                    <path
-                                        d="M5 12v6s0 3 7 3 7-3 7-3v-6"
-                                        stroke="currentColor"
-                                        stroke-width="1.5"
-                                    />
-                                    <path
-                                        d="M5 6v6s0 3 7 3 7-3 7-3V6"
-                                        stroke="currentColor"
-                                        stroke-width="1.5"
-                                    />
-                                    <path
-                                        d="M12 3c7 0 7 3 7 3s0 3-7 3-7-3-7-3 0-3 7-3Z"
-                                        stroke="currentColor"
-                                        stroke-width="1.5"
-                                    />
-                                </svg>
-                            </div>
-                            <h3>646 known crawlers</h3>
-                            <p>
-                                Regex patterns covering search engines, AI crawlers, monitoring
-                                tools, scrapers, and more.
-                            </p>
-                        </div>
-                        <div class="rule-card">
-                            <div
-                                class="rule-icon"
-                                style="background: var(--green-dim); color: var(--green)"
-                            >
-                                <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
-                                    <path d="M2 2a2 2 0 012-2h8a2 2 0 012 2v12l-6-3-6 3V2z" />
-                                </svg>
-                            </div>
-                            <h3>Rich metadata</h3>
-                            <p>
-                                Each entry includes a URL, description, and tags like
-                                <em>search-engine</em>, <em>ai-crawler</em>, or <em>seo</em>.
-                            </p>
-                        </div>
-                        <div class="rule-card">
-                            <div
-                                class="rule-icon"
-                                style="background: var(--amber-dim); color: var(--amber)"
-                            >
-                                <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
-                                    <path
-                                        d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 1a6 6 0 110 12A6 6 0 018 2zm.5 4.5a.5.5 0 00-1 0V8H6a.5.5 0 000 1h1.5v1.5a.5.5 0 001 0V9H10a.5.5 0 000-1H8.5V6.5z"
-                                    />
-                                </svg>
-                            </div>
-                            <h3>Lazy loading</h3>
-                            <p>
-                                Database is parsed only on the first call to
-                                <code>crawler_info</code> or <code>crawler_has_tag</code>, zero
-                                overhead otherwise.
-                            </p>
-                        </div>
+                </div>
+                <div class="db-tags">
+                    <div class="db-tags-label">Tag vocabulary</div>
+                    <div class="db-tag-list">
+                        <span class="db-tag-item">search-engine</span>
+                        <span class="db-tag-item">ai-crawler</span>
+                        <span class="db-tag-item">seo</span>
+                        <span class="db-tag-item">social-preview</span>
+                        <span class="db-tag-item">advertising</span>
+                        <span class="db-tag-item">archiver</span>
+                        <span class="db-tag-item">feed-reader</span>
+                        <span class="db-tag-item">monitoring</span>
+                        <span class="db-tag-item">scanner</span>
+                        <span class="db-tag-item">academic</span>
+                        <span class="db-tag-item">http-library</span>
+                        <span class="db-tag-item">browser-automation</span>
                     </div>
                 </div>
+            </div>
+        </section>
 
-                <div class="code-block">
-                    <div class="code-header">
-                        <div class="code-dot"></div>
-                        <div class="code-dot"></div>
-                        <div class="code-dot"></div>
+        <section class="block">
+            <div class="block-head">
+                <div class="block-num">V. Surface</div>
+                <h2 class="block-title">Seven <em>functions</em>.<br />That is all.</h2>
+                <div class="block-meta">API reference</div>
+            </div>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Function</th>
+                        <th>Returns</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="amber">is_crawler</span>(ua)</td>
+                        <td>bool</td>
+                        <td>Heuristic detection. Fast, no DB.</td>
+                    </tr>
+                    <tr>
+                        <td><span class="amber">crawler_signals</span>(ua)</td>
+                        <td>list[str]</td>
+                        <td>Which of the five rules matched.</td>
+                    </tr>
+                    <tr>
+                        <td><span class="amber">crawler_info</span>(ua)</td>
+                        <td>CrawlerInfo | None</td>
+                        <td>DB lookup: url, description, tags.</td>
+                    </tr>
+                    <tr>
+                        <td><span class="amber">crawler_has_tag</span>(ua, tag)</td>
+                        <td>bool</td>
+                        <td>Tag membership. Accepts str or list.</td>
+                    </tr>
+                    <tr>
+                        <td><span class="amber">crawler_name</span>(ua)</td>
+                        <td>str | None</td>
+                        <td>Product name extracted from UA.</td>
+                    </tr>
+                    <tr>
+                        <td><span class="amber">crawler_version</span>(ua)</td>
+                        <td>str | None</td>
+                        <td>Version extracted from UA.</td>
+                    </tr>
+                    <tr>
+                        <td><span class="amber">crawler_url</span>(ua)</td>
+                        <td>str | None</td>
+                        <td>URL embedded in UA, if any.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="block">
+            <div class="block-head">
+                <div class="block-num">VI. In practice</div>
+                <h2 class="block-title">Usage <em>&amp;</em> speed.</h2>
+                <div class="block-meta">Example · benchmark</div>
+            </div>
+            <div class="code-bench">
+                <div class="code-shell">
+                    <div class="code-head">
                         <span>example.py</span>
+                        <span>python 3.9+</span>
                     </div>
                     <div class="code-body">
                         <span class="kw">from</span> is_crawler <span class="kw">import</span>
-                        <span class="fn">is_crawler</span>, <span class="fn">crawler_info</span>,
-                        <span class="fn">crawler_has_tag</span> <br /><br />
+                        <span class="fn">is_crawler</span>,
+                        <span class="fn">crawler_info</span>,
+                        <span class="fn">crawler_has_tag</span><br /><br />
                         ua =
-                        <span class="str">"Googlebot/2.1 (+http://www.google.com/bot.html)"</span>
-                        <br /><br />
+                        <span class="str">"Googlebot/2.1 (+http://www.google.com/bot.html)"</span><br /><br />
                         <span class="fn">is_crawler</span>(ua)
-                        <br />
+                        <span class="cm"># True</span><br />
                         <span class="fn">crawler_has_tag</span>(ua,
                         <span class="str">"search-engine"</span>)
-                        <br />
-                        <span class="fn">crawler_has_tag</span>(ua, [<span class="str"
-                            >"ai-crawler"</span
-                        >, <span class="str">"seo"</span>]) <br /><br />
-                        info = <span class="fn">crawler_info</span>(ua)
-                        <br />
+                        <span class="cm"># True</span><br />
+                        <span class="fn">crawler_has_tag</span>(ua, [<span class="str">"ai-crawler"</span>,
+                        <span class="str">"seo"</span>])
+                        <span class="cm"># False</span><br /><br />
+                        info = <span class="fn">crawler_info</span>(ua)<br />
                         info.url
-                        <br />
+                        <span class="cm"># '…/bot.html'</span><br />
                         info.description
-                        <br />
+                        <span class="cm"># "Google's main crawler"</span><br />
                         info.tags
+                        <span class="cm"># ('search-engine',)</span>
                     </div>
                 </div>
+                <div class="bench-stack">
+                    <div class="bench-row">
+                        <div class="bench-label">is_crawler · mixed</div>
+                        <div class="bench-val"><span class="amber">4000</span>×</div>
+                        <div class="bench-sub">vs cua.is_crawler</div>
+                    </div>
+                    <div class="bench-row">
+                        <div class="bench-label">crawler_info</div>
+                        <div class="bench-val"><span class="amber">1400</span>×</div>
+                        <div class="bench-sub">0.53µs vs 743µs</div>
+                    </div>
+                    <div class="bench-row">
+                        <div class="bench-label">Cold start</div>
+                        <div class="bench-val"><span class="amber">0.55</span>ms</div>
+                        <div class="bench-sub">JSON parse, regex lazy</div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-                <footer>
-                    <span
-                        >Apache-2.0 &middot; Made by
-                        <a href="https://github.com/tn3w">TN3W</a></span
-                    >
-                    <a href="https://github.com/tn3w/is-crawler">github.com/tn3w/is-crawler</a>
-                </footer>
-            </main>
-        </div>
+        <footer>
+            <div class="f-col">
+                Apache-2.0
+                <a href="https://github.com/tn3w/is-crawler/blob/master/LICENSE" target="_blank" rel="noopener">LICENSE</a>
+            </div>
+            <div class="f-col">
+                By TN3W
+                <a href="https://github.com/tn3w" target="_blank" rel="noopener">github.com/tn3w</a>
+            </div>
+            <div class="mark">is-crawler</div>
+        </footer>
 
         <script>
             const patterns = {
                 botSignal: {
-                    regex: /bot\b|crawl|spider|scrape|fetch|scan\b|index|preview|slurp|archiv|headless|\+https?:\/\/|@[\w.-]+\.\w{2,}\b/i,
-                    label: 'Bot Signal',
-                    tag: 'tag-signal',
-                    desc: 'Matched a crawler keyword or URL/email pattern',
+                    regex: /bot\b|crawl|spider|scrape|fetch(?!\w*api)|scan\b|index(?:er|ing)|preview|slurp|archiv|headless|\+https?:\/\/|@[\w.-]+\.\w{2,}\b/i,
+                    label: 'Bot signal',
                 },
                 browserSign: {
                     regex: /mozilla\/|webkit|gecko|trident|presto|khtml|opera[\s/]|links\s|lynx\/|\((?:windows|macintosh|x11|linux)/i,
-                    label: 'Browser Signature',
-                    tag: 'tag-browser',
-                    desc: 'No browser engine token found',
+                    label: 'Browser signature',
                 },
                 bareCompat: {
                     regex: /\(compatible;(?![^)]*(?:windows|mac|linux|msie|konqueror))[^)]*\)/i,
-                    label: 'Bare Compatible',
-                    tag: 'tag-compat',
-                    desc: 'Suspicious (compatible; ...) without real OS/browser',
+                    label: 'Bare compatible',
                 },
                 knownTool: {
                     regex: /lighthouse|playwright|selenium|wget[\s/]|nikto|sqlmap|nmap\b|pingdom|httrack|google[\s-](?:favicon|ads|safety|extended)|\bby\s+\S+\.(?:com|org|net)\b|^[\w.-]+\.(?:com|net|org|io|ai)[/\s]|;\s*\w+-agent[);]/i,
-                    label: 'Known Tool',
-                    tag: 'tag-tool',
-                    desc: 'Matched a known automation tool or agent pattern',
+                    label: 'Known tool',
                 },
                 urlInUA: {
                     regex: /(?:^|[+;]|\s-\s)https?:\/\/[^\s);,]+/,
                     label: 'URL in UA',
-                    tag: 'tag-url',
-                    desc: 'A URL was embedded in the user-agent string',
                 },
             };
             const compatibleName = /\(compatible;\s*([A-Za-z][\w.-]*)(?:\/[\w.-]+)?/i;
@@ -1175,25 +1299,14 @@
             const findNames = /([A-Z][\w.-]*(?: [A-Z][\w.-]*)*)(?:\/[\w.-]+)?/g;
             const tokenVersion = /\/([\w.-]+)/;
             const KNOWN_VERSION_TOKENS = new Set([
-                'Mozilla',
-                'AppleWebKit',
-                'Gecko',
-                'Chrome',
-                'Chromium',
-                'Safari',
-                'Version',
-                'Firefox',
-                'Ubuntu',
-                'Mobile',
+                'Mozilla', 'AppleWebKit', 'Gecko', 'Chrome', 'Chromium',
+                'Safari', 'Version', 'Firefox', 'Ubuntu', 'Mobile',
             ]);
             const stripComments = /\([^)]*\)/g;
             const stripBrowserBits =
                 /\b(?:Mozilla\/\S+|AppleWebKit\/\S+|KHTML,?|like|Gecko|Chrome\/\S+|Chromium\/\S+|Safari\/\S+|Version\/\S+|Firefox\/\S+|Ubuntu|Mobile)\b/g;
 
             let crawlerDb = [];
-
-            localStorage.removeItem('crawler-db-csv');
-
             const DB_URL =
                 'https://raw.githubusercontent.com/tn3w/is-crawler/refs/heads/master/is_crawler/crawler-user-agents.json';
             const DB_CACHE_KEY = 'crawler-db-json';
@@ -1224,7 +1337,21 @@
                     .catch(() => {});
             }
 
+            function isCrawlerFast(ua) {
+                const positiveRe = new RegExp(
+                    patterns.botSignal.regex.source + '|' +
+                    patterns.knownTool.regex.source + '|' +
+                    patterns.urlInUA.regex.source,
+                    'i'
+                );
+                if (positiveRe.test(ua)) return true;
+                if (!patterns.browserSign.regex.test(ua)) return true;
+                const compatMatch = /\(compatible;[^)]*\)/i.exec(ua);
+                return !!(compatMatch && !/windows|mac|linux|msie|konqueror/i.test(compatMatch[0]));
+            }
+
             function crawlerInfoFromDB(ua) {
+                if (!isCrawlerFast(ua)) return null;
                 for (const entry of crawlerDb) {
                     try {
                         if (entry.regex.test(ua)) return entry;
@@ -1238,7 +1365,11 @@
             copyBtn.addEventListener('click', () => {
                 navigator.clipboard.writeText(installCmd.value).then(() => {
                     copyBtn.classList.add('copied');
-                    setTimeout(() => copyBtn.classList.remove('copied'), 1800);
+                    copyBtn.querySelector('.label-copy').textContent = 'Copied';
+                    setTimeout(() => {
+                        copyBtn.classList.remove('copied');
+                        copyBtn.querySelector('.label-copy').textContent = 'Copy';
+                    }, 1800);
                 });
             });
 
@@ -1251,31 +1382,28 @@
                 uaInput.value = navigator.userAgent;
                 uaInput.dispatchEvent(new Event('input'));
             });
-
             document.getElementById('testBotBtn').addEventListener('click', () => {
                 uaInput.value =
                     'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)';
                 uaInput.dispatchEvent(new Event('input'));
             });
-
             uaInput.addEventListener('input', () => {
                 clearTimeout(debounce);
-                debounce = setTimeout(analyze, 200);
+                debounce = setTimeout(analyze, 180);
             });
-
-            function highlightMatch(ua, match) {
-                const idx = match.index;
-                const len = match[0].length;
-                const before = escHtml(ua.slice(Math.max(0, idx - 20), idx));
-                const mid = escHtml(match[0]);
-                const after = escHtml(ua.slice(idx + len, idx + len + 20));
-                const ellipsisBefore = idx > 20 ? '&hellip;' : '';
-                const ellipsisAfter = idx + len + 20 < ua.length ? '&hellip;' : '';
-                return `${ellipsisBefore}${before}<span class="match-highlight">${mid}</span>${after}${ellipsisAfter}`;
-            }
 
             function escHtml(s) {
                 return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            }
+            function highlightMatch(ua, match) {
+                const idx = match.index;
+                const len = match[0].length;
+                const before = escHtml(ua.slice(Math.max(0, idx - 22), idx));
+                const mid = escHtml(match[0]);
+                const after = escHtml(ua.slice(idx + len, idx + len + 22));
+                const eb = idx > 22 ? '…' : '';
+                const ea = idx + len + 22 < ua.length ? '…' : '';
+                return `${eb}${before}<span class="rl-hl">${mid}</span>${after}${ea}`;
             }
 
             function crawlerVersion(ua) {
@@ -1300,23 +1428,22 @@
             function crawlerName(ua) {
                 const compatible = ua.match(compatibleName);
                 if (compatible) return compatible[1];
-
                 if (!ua.startsWith('Mozilla/5.0')) {
                     const prefix = ua.match(prefixName);
                     if (prefix) return prefix[1];
                     const first = ua.trim().split(/\s+/, 1)[0];
                     return first ? first.split('/', 1)[0] : null;
                 }
-
                 const cleaned = ua.replace(stripComments, ' ').replace(stripBrowserBits, ' ');
-                const names = [...cleaned.matchAll(findNames)].map((match) => match[1]);
+                const names = [...cleaned.matchAll(findNames)].map((m) => m[1]);
                 return names.length ? names[names.length - 1] : null;
             }
 
             function analyze() {
                 const ua = uaInput.value.trim();
                 if (!ua) {
-                    badge.className = 'detector-badge';
+                    badge.textContent = 'Idle';
+                    badge.className = 'verdict idle';
                     resultsEl.className = 'results';
                     resultsEl.innerHTML = '';
                     return;
@@ -1334,97 +1461,89 @@
                     isCrawler = true;
                     matches.push({ ...patterns.botSignal, match: botMatch });
                 }
-
                 const browserMatch = patterns.browserSign.regex.exec(ua);
                 if (!browserMatch) {
                     isCrawler = true;
-                    matches.push({
-                        label: 'No Browser Signature',
-                        tag: 'tag-browser',
-                        desc: 'No browser engine token found - real browsers always include one',
-                        noBrowser: true,
-                    });
+                    matches.push({ label: 'No browser signature', noBrowser: true });
                 }
-
-                const compatMatch = patterns.bareCompat.regex.exec(ua);
+                const compatRaw = /\(compatible;[^)]*\)/i.exec(ua);
+                const compatMatch =
+                    compatRaw && !/windows|mac|linux|msie|konqueror/i.test(compatRaw[0])
+                        ? compatRaw
+                        : null;
                 if (compatMatch) {
                     isCrawler = true;
                     matches.push({ ...patterns.bareCompat, match: compatMatch });
                 }
-
                 const toolMatch = patterns.knownTool.regex.exec(ua);
                 if (toolMatch) {
                     isCrawler = true;
                     matches.push({ ...patterns.knownTool, match: toolMatch });
                 }
-
                 const urlMatch = patterns.urlInUA.regex.exec(ua);
                 if (urlMatch) {
                     isCrawler = true;
                     matches.push({ ...patterns.urlInUA, match: urlMatch });
                 }
 
-                badge.textContent = isCrawler ? 'CRAWLER' : 'HUMAN';
-                badge.className = `detector-badge visible ${isCrawler ? 'crawler' : 'human'}`;
+                badge.textContent = isCrawler ? 'Crawler' : 'Human';
+                badge.className = `verdict ${isCrawler ? 'crawler' : 'human'}`;
 
-                const hasSignals = matches.length > 0;
-                const urlFound = urlMatch ? urlMatch[0].match(/https?:\/\/[^\s);,]+/)?.[0] : null;
+                const urlFound = urlMatch
+                    ? urlMatch[0].match(/https?:\/\/[^\s);,]+/)?.[0]
+                    : null;
 
-                let html = `<div class="rl">`;
-
-                html += `<div class="rl-header">`;
-                html += `<span class="rl-verdict ${isCrawler ? 'rl-crawler' : 'rl-human'}">${isCrawler ? 'CRAWLER' : 'HUMAN'}</span>`;
-                if (!isCrawler) {
-                    html += `<span class="rl-clean">All checks passed, real browser.</span>`;
-                } else if (name) {
-                    html += `<div class="rl-identity">`;
-                    html += `<span class="rl-name">${escHtml(name)}</span>`;
-                    if (version) html += `<span class="rl-version">v${escHtml(version)}</span>`;
-                    if (urlFound) html += `<span class="rl-ua-url">${escHtml(urlFound)}</span>`;
+                let html = '';
+                if (isCrawler && name) {
+                    html += `<div class="rl-row">`;
+                    html += `<div class="rl-row-label">Identity</div>`;
+                    html += `<div class="rl-row-value"><span class="amber">${escHtml(name)}</span>`;
+                    if (version) html += ` <span class="dim">v${escHtml(version)}</span>`;
+                    if (urlFound) html += ` <span class="url">· ${escHtml(urlFound)}</span>`;
+                    html += `</div></div>`;
+                } else if (!isCrawler) {
+                    html += `<div class="rl-row">`;
+                    html += `<div class="rl-row-label">Verdict</div>`;
+                    html += `<div class="rl-row-value">All checks passed. Browser signature present.</div>`;
                     html += `</div>`;
                 }
-                html += `</div>`;
 
-                if (hasSignals) {
-                    html += `<div class="rl-section">`;
-                    html += `<div class="rl-section-label">Signals</div>`;
+                if (matches.length) {
+                    html += `<div class="rl-row">`;
+                    html += `<div class="rl-row-label">Signals</div>`;
+                    html += `<div class="rl-row-value"><div class="rl-signals">`;
                     matches.forEach((m) => {
-                        html += `<div class="rl-signal">`;
-                        html += `<span class="match-tag ${m.tag}">${m.label}</span>`;
+                        html += `<div class="rl-sig">`;
+                        html += `<div class="rl-sig-name">${m.label}</div>`;
                         if (m.noBrowser) {
-                            html += `<span class="rl-snippet"><span class="match-no-browser">missing</span> mozilla/, webkit, gecko&hellip;</span>`;
+                            html += `<div class="rl-sig-snippet"><span class="rl-missing">missing</span> mozilla/, webkit, gecko…</div>`;
                         } else if (m.match) {
-                            html += `<span class="rl-snippet">${highlightMatch(ua, m.match)}</span>`;
+                            html += `<div class="rl-sig-snippet">${highlightMatch(ua, m.match)}</div>`;
                         }
                         html += `</div>`;
                     });
-                    html += `</div>`;
+                    html += `</div></div></div>`;
                 }
 
                 if (dbInfo) {
-                    html += `<div class="rl-section">`;
-                    html += `<div class="rl-section-label">Database</div>`;
-                    html += `<div class="rl-db-body">`;
+                    html += `<div class="rl-row">`;
+                    html += `<div class="rl-row-label">Database</div>`;
+                    html += `<div class="rl-row-value">`;
                     if (dbInfo.description) {
-                        html += `<p class="rl-desc">${escHtml(dbInfo.description)}</p>`;
+                        html += `<div class="rl-desc">${escHtml(dbInfo.description)}</div>`;
                     }
-                    html += `<div class="rl-db-meta">`;
                     if (dbInfo.url) {
-                        html += `<a class="rl-db-url" href="${escHtml(dbInfo.url)}" target="_blank" rel="noopener">${escHtml(dbInfo.url)}</a>`;
+                        html += `<div style="margin-top:8px"><a href="${escHtml(dbInfo.url)}" target="_blank" rel="noopener" style="color:var(--amber);text-decoration:none;font-size:12px">${escHtml(dbInfo.url)}</a></div>`;
                     }
                     if (dbInfo.tags.length) {
-                        html += `<div class="rl-tags">`;
+                        html += `<div class="rl-tags" style="margin-top:12px">`;
                         dbInfo.tags.forEach((tag) => {
-                            html += `<span class="match-tag tag-db">${escHtml(tag)}</span>`;
+                            html += `<span class="rl-tag">${escHtml(tag)}</span>`;
                         });
                         html += `</div>`;
                     }
-                    html += `</div>`;
-                    html += `</div>`;
-                    html += `</div>`;
+                    html += `</div></div>`;
                 }
-
-                html += `</div>`;
 
                 resultsEl.className = 'results visible';
                 resultsEl.innerHTML = html;
