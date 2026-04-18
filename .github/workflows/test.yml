@@ -2,11 +2,26 @@ name: Tests
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - master
   pull_request:
+  push:
+    branches-ignore:
+      - master
 
 jobs:
   test:
-    uses: ./.github/workflows/_test.yml
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
+
+      - name: Install and test
+        run: |
+          pip install -e ".[dev]"
+          pytest
