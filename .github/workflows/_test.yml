@@ -19,5 +19,6 @@ jobs:
 
       - name: Install and test
         run: |
+          pip install --upgrade pip setuptools
           pip install -e ".[dev]"
           pytest
