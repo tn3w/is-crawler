@@ -32,7 +32,7 @@ jobs:
       - name: Inject version
         run: |
           VERSION=$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
-          sed -i "s|>v1.0.0<|>v${VERSION}<|g" docs/index.html
+          sed -i "s|>1.0.0<|>v${VERSION}<|g" docs/index.html
 
       - run: npx html-minifier-terser --collapse-whitespace --remove-comments --minify-css true --minify-js true -o docs/index.html docs/index.html && npx html-minifier-terser --collapse-whitespace --remove-comments --minify-css true --minify-js true -o docs/404.html docs/404.html
 
