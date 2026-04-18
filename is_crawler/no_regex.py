@@ -314,45 +314,42 @@ def _name_non_mozilla(ua: str) -> str | None:
 _SKIP_TOKENS = _BROWSER_TOKENS | {"KHTML", "like"}
 
 
-def _token_is_name(base: str) -> bool:
-    return (
-        bool(base)
-        and _is_name_start(base[0])
-        and base not in _SKIP_TOKENS
-        and all(c in _NAME_CHARS for c in base)
-    )
+def _strip_parens(ua: str) -> str:
+    open_i = ua.find("(")
+    if open_i == -1:
+        return ua
+
+    parts = []
+    start = 0
+    while open_i != -1:
+        parts.append(ua[start:open_i])
+        close_i = ua.find(")", open_i + 1)
+        start = close_i + 1 if close_i != -1 else len(ua)
+        open_i = ua.find("(", start)
+    parts.append(ua[start:])
+    return " ".join(parts)
 
 
-def _advance_paren_depth(token: str, depth: int) -> int:
-    depth += token.count("(") - token.count(")")
-    return 0 if depth < 0 else depth
-
-
-def _token_base(token: str) -> str:
-    return token.split("/", 1)[0].rstrip(",")
+def _token_name(token: str) -> str | None:
+    slash = token.find("/")
+    base = token[:slash] if slash != -1 else token.rstrip(",")
+    if not base or not ("A" <= base[0] <= "Z") or base in _SKIP_TOKENS:
+        return None
+    return base
 
 
 def _scan_mozilla_name(ua: str) -> str | None:
     last: str | None = None
-    prev_name: str | None = None
-    depth = 0
+    prev: str | None = None
 
-    for token in ua.split(" "):
-        has_paren = "(" in token or ")" in token
-
-        if depth > 0 or has_paren:
-            if has_paren:
-                depth = _advance_paren_depth(token, depth)
-            prev_name = None
+    for token in _strip_parens(ua).split():
+        base = _token_name(token)
+        if base is None:
+            prev = None
             continue
 
-        base = _token_base(token)
-        if not _token_is_name(base):
-            prev_name = None
-            continue
-
-        last = f"{prev_name} {base}" if prev_name else base
-        prev_name = last
+        last = f"{prev} {base}" if prev else base
+        prev = last
 
     return last
 

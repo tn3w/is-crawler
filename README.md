@@ -116,12 +116,12 @@ API is a strict subset of the regex version (no `crawler_info`/`crawler_has_tag`
 
 Measured against the regex version (Python 3.14, Linux x86_64):
 
-|                   | regex (cold) | no_regex (cold) | speedup     |
-| ----------------- | ------------ | --------------- | ----------- |
-| `is_crawler`      | 19.4 µs      | 4.9 µs          | **3.9×**    |
-| `crawler_url`     | 1.8 µs       | 0.3 µs          | **5.6×**    |
-| `crawler_version` | 2.3 µs       | 1.5 µs          | **1.5×**    |
-| `crawler_name`    | 1.7 µs       | 2.3 µs          | **0.73×** - |
+|                   | regex (cold) | no_regex (cold) | speedup  |
+| ----------------- | ------------ | --------------- | -------- |
+| `is_crawler`      | 18.7 µs      | 4.9 µs          | **3.8×** |
+| `crawler_url`     | 1.8 µs       | 0.3 µs          | **5.8×** |
+| `crawler_version` | 2.2 µs       | 1.5 µs          | **1.5×** |
+| `crawler_name`    | 1.7 µs       | 1.5 µs          | **1.1×** |
 
 Cold = cache cleared each iter. `crawler_name` is slower because the regex version leverages compiled `re.sub` calls (C-level) to strip comments and browser tokens; char-by-char Python can't match that. The other three win on pure `str.find` being faster than regex compilation + backtracking. Reproduce with `python benchmarks/bench_no_regex.py`.
 
