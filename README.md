@@ -41,13 +41,6 @@ info.description  # "Google's main web crawling bot for search indexing"
 info.tags         # ('search-engine',)
 ```
 
-The module is also callable directly, no named import required:
-
-```python
-import is_crawler
-is_crawler("Googlebot/2.1 (+http://www.google.com/bot.html)")  # True
-```
-
 ### API reference
 
 | Function                   | Returns               | Description                                              |
