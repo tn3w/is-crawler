@@ -5,10 +5,11 @@ import re
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from functools import lru_cache
+from importlib.metadata import version
 from pathlib import Path
 from typing import NamedTuple
 
-__version__ = "1.3.4.1"
+__version__ = version("is-crawler")
 __all__ = [
     "is_crawler",
     "crawler_name",
