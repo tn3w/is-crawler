@@ -49,10 +49,9 @@
                 --amber: #e8a54a;
                 --amber-soft: #f0c878;
                 --red: #e87a5a;
-                --mono:
-                    ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
-                --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua',
-                    Georgia, serif;
+                --mono: ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+                --serif:
+                    'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
             }
             html {
                 scroll-behavior: smooth;
@@ -90,11 +89,7 @@
                 letter-spacing: 0.18em;
                 text-transform: uppercase;
                 color: var(--ink-3);
-                background: linear-gradient(
-                    to bottom,
-                    rgba(10, 10, 10, 0.92),
-                    rgba(10, 10, 10, 0)
-                );
+                background: linear-gradient(to bottom, rgba(10, 10, 10, 0.92), rgba(10, 10, 10, 0));
                 backdrop-filter: blur(6px);
             }
             .topstrip a {
@@ -246,8 +241,13 @@
                 animation: bob 1.8s ease-in-out infinite;
             }
             @keyframes bob {
-                0%, 100% { transform: translateY(0); }
-                50% { transform: translateY(4px); }
+                0%,
+                100% {
+                    transform: translateY(0);
+                }
+                50% {
+                    transform: translateY(4px);
+                }
             }
 
             /* install band: single full-width strip */
@@ -943,24 +943,29 @@
         <div class="topstrip">
             <div class="mark">is<span class="dot">·</span>crawler</div>
             <div>
-                <a href="https://pypi.org/project/is-crawler/" target="_blank" rel="noopener">PyPI</a>
-                <a href="https://github.com/tn3w/is-crawler" target="_blank" rel="noopener">GitHub</a>
+                <a href="https://pypi.org/project/is-crawler/" target="_blank" rel="noopener"
+                    >PyPI</a
+                >
+                <a href="https://github.com/tn3w/is-crawler" target="_blank" rel="noopener"
+                    >GitHub</a
+                >
                 <a href="#try">Demo</a>
             </div>
         </div>
 
         <section class="hero">
             <div class="hero-inner">
-                <div class="hero-eyebrow">Python · zero-dependency · v<span id="version">1.0.0</span></div>
+                <div class="hero-eyebrow">
+                    Python · zero-dependency · v<span id="version">1.0.0</span>
+                </div>
                 <h1>
                     Know a bot<br />
                     when you <em>see</em><br />
                     <span class="soft">one.</span>
                 </h1>
                 <p class="hero-lede">
-                    A small library that classifies user-agent strings. A single regex
-                    pass, a lazy-loaded database of 646 known crawlers, and no
-                    dependencies at all.
+                    A small library that classifies user-agent strings. A single regex pass, a
+                    lazy-loaded database of 646 known crawlers, and no dependencies at all.
                 </p>
             </div>
             <aside class="hero-side">
@@ -1010,7 +1015,9 @@
         <section class="block" id="try">
             <div class="block-head">
                 <div class="block-num">II. Probe</div>
-                <h2 class="block-title">Paste a user-agent.<br />Watch the signals <em>fire</em>.</h2>
+                <h2 class="block-title">
+                    Paste a user-agent.<br />Watch the signals <em>fire</em>.
+                </h2>
                 <div class="block-meta">Live detection</div>
             </div>
             <div class="detector-wrap">
@@ -1052,8 +1059,7 @@
                     <div class="rule-name">Bot signals</div>
                     <div class="rule-body">
                         <em>bot</em>, <em>crawl</em>, <em>spider</em>, <em>scrape</em>,
-                        <em>headless</em>. URL and email patterns common in crawler
-                        identifiers.
+                        <em>headless</em>. URL and email patterns common in crawler identifiers.
                     </div>
                 </div>
                 <div class="rule">
@@ -1074,8 +1080,8 @@
                     </div>
                     <div class="rule-name">Bare compatible</div>
                     <div class="rule-body">
-                        <code>(compatible; …)</code> without real OS or browser tokens.
-                        A classic bot pattern mimicking browsers.
+                        <code>(compatible; …)</code> without real OS or browser tokens. A classic
+                        bot pattern mimicking browsers.
                     </div>
                 </div>
                 <div class="rule">
@@ -1085,8 +1091,8 @@
                     </div>
                     <div class="rule-name">Known tooling</div>
                     <div class="rule-body">
-                        <em>playwright</em>, <em>selenium</em>, <em>wget</em>,
-                        <em>lighthouse</em>, <em>sqlmap</em>, and other named stacks.
+                        <em>playwright</em>, <em>selenium</em>, <em>wget</em>, <em>lighthouse</em>,
+                        <em>sqlmap</em>, and other named stacks.
                     </div>
                 </div>
                 <div class="rule">
@@ -1096,8 +1102,8 @@
                     </div>
                     <div class="rule-name">URL in UA</div>
                     <div class="rule-body">
-                        An embedded <code>http://</code> or <code>https://</code> inside
-                        the user-agent. A near-universal bot convention.
+                        An embedded <code>http://</code> or <code>https://</code> inside the
+                        user-agent. A near-universal bot convention.
                     </div>
                 </div>
             </div>
@@ -1121,9 +1127,9 @@
                             rel="noopener"
                             >monperrus/crawler-user-agents</a
                         >
-                        with supplemental tags. Each entry carries a URL, a description,
-                        and one or more tags. The database parses only on the first call
-                        to <code style="color: var(--amber); font-family: var(--mono)"
+                        with supplemental tags. Each entry carries a URL, a description, and one or
+                        more tags. The database parses only on the first call to
+                        <code style="color: var(--amber); font-family: var(--mono)"
                             >crawler_info</code
                         >.
                     </p>
@@ -1216,19 +1222,19 @@
                     </div>
                     <div class="code-body">
                         <span class="kw">from</span> is_crawler <span class="kw">import</span>
-                        <span class="fn">is_crawler</span>,
-                        <span class="fn">crawler_info</span>,
+                        <span class="fn">is_crawler</span>, <span class="fn">crawler_info</span>,
                         <span class="fn">crawler_has_tag</span><br /><br />
                         ua =
-                        <span class="str">"Googlebot/2.1 (+http://www.google.com/bot.html)"</span><br /><br />
-                        <span class="fn">is_crawler</span>(ua)
-                        <span class="cm"># True</span><br />
+                        <span class="str">"Googlebot/2.1 (+http://www.google.com/bot.html)"</span
+                        ><br /><br />
+                        <span class="fn">is_crawler</span>(ua) <span class="cm"># True</span><br />
                         <span class="fn">crawler_has_tag</span>(ua,
-                        <span class="str">"search-engine"</span>)
-                        <span class="cm"># True</span><br />
-                        <span class="fn">crawler_has_tag</span>(ua, [<span class="str">"ai-crawler"</span>,
-                        <span class="str">"seo"</span>])
-                        <span class="cm"># False</span><br /><br />
+                        <span class="str">"search-engine"</span>) <span class="cm"># True</span
+                        ><br />
+                        <span class="fn">crawler_has_tag</span>(ua, [<span class="str"
+                            >"ai-crawler"</span
+                        >, <span class="str">"seo"</span>]) <span class="cm"># False</span
+                        ><br /><br />
                         info = <span class="fn">crawler_info</span>(ua)<br />
                         info.url
                         <span class="cm"># '…/bot.html'</span><br />
@@ -1261,7 +1267,12 @@
         <footer>
             <div class="f-col">
                 Apache-2.0
-                <a href="https://github.com/tn3w/is-crawler/blob/master/LICENSE" target="_blank" rel="noopener">LICENSE</a>
+                <a
+                    href="https://github.com/tn3w/is-crawler/blob/master/LICENSE"
+                    target="_blank"
+                    rel="noopener"
+                    >LICENSE</a
+                >
             </div>
             <div class="f-col">
                 By TN3W
@@ -1299,8 +1310,16 @@
             const findNames = /([A-Z][\w.-]*(?: [A-Z][\w.-]*)*)(?:\/[\w.-]+)?/g;
             const tokenVersion = /\/([\w.-]+)/;
             const KNOWN_VERSION_TOKENS = new Set([
-                'Mozilla', 'AppleWebKit', 'Gecko', 'Chrome', 'Chromium',
-                'Safari', 'Version', 'Firefox', 'Ubuntu', 'Mobile',
+                'Mozilla',
+                'AppleWebKit',
+                'Gecko',
+                'Chrome',
+                'Chromium',
+                'Safari',
+                'Version',
+                'Firefox',
+                'Ubuntu',
+                'Mobile',
             ]);
             const stripComments = /\([^)]*\)/g;
             const stripBrowserBits =
@@ -1339,9 +1358,11 @@
 
             function isCrawlerFast(ua) {
                 const positiveRe = new RegExp(
-                    patterns.botSignal.regex.source + '|' +
-                    patterns.knownTool.regex.source + '|' +
-                    patterns.urlInUA.regex.source,
+                    patterns.botSignal.regex.source +
+                        '|' +
+                        patterns.knownTool.regex.source +
+                        '|' +
+                        patterns.urlInUA.regex.source,
                     'i'
                 );
                 if (positiveRe.test(ua)) return true;
@@ -1489,9 +1510,7 @@
                 badge.textContent = isCrawler ? 'Crawler' : 'Human';
                 badge.className = `verdict ${isCrawler ? 'crawler' : 'human'}`;
 
-                const urlFound = urlMatch
-                    ? urlMatch[0].match(/https?:\/\/[^\s);,]+/)?.[0]
-                    : null;
+                const urlFound = urlMatch ? urlMatch[0].match(/https?:\/\/[^\s);,]+/)?.[0] : null;
 
                 let html = '';
                 if (isCrawler && name) {

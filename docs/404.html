@@ -25,10 +25,9 @@
                 --paper-2: #131313;
                 --rule: #222222;
                 --amber: #e8a54a;
-                --mono:
-                    ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
-                --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua',
-                    Georgia, serif;
+                --mono: ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+                --serif:
+                    'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
             }
             html,
             body {
@@ -137,8 +136,7 @@
                 border: 1px solid var(--rule);
                 text-decoration: none;
                 color: var(--ink-2);
-                transition:
-                    all 0.2s;
+                transition: all 0.2s;
             }
             .btn:hover {
                 color: var(--amber);
@@ -230,8 +228,13 @@
                 color: var(--amber);
             }
             @keyframes pulse {
-                0%, 100% { opacity: 0.3; }
-                50% { opacity: 1; }
+                0%,
+                100% {
+                    opacity: 0.3;
+                }
+                50% {
+                    opacity: 1;
+                }
             }
 
             footer {
@@ -288,12 +291,10 @@
             <div class="stage">
                 <div class="huge">4<span class="zero">0</span>4</div>
                 <span class="cut-line"></span>
-                <p class="lede">
-                    A path that <em>isn't</em>.
-                </p>
+                <p class="lede">A path that <em>isn't</em>.</p>
                 <p class="sub">
-                    Whatever you were looking for has moved, never existed, or was only
-                    a rumour. If you are a bot, we probably already knew that.
+                    Whatever you were looking for has moved, never existed, or was only a rumour. If
+                    you are a bot, we probably already knew that.
                 </p>
                 <div class="actions">
                     <a href="./" class="btn btn-primary">Back to docs</a>
@@ -332,7 +333,10 @@
         </main>
 
         <footer>
-            <div>Apache-2.0 · <a href="https://github.com/tn3w" target="_blank" rel="noopener">TN3W</a></div>
+            <div>
+                Apache-2.0 ·
+                <a href="https://github.com/tn3w" target="_blank" rel="noopener">TN3W</a>
+            </div>
             <div class="mark">is-crawler</div>
         </footer>
 

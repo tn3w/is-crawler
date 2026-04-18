@@ -96,6 +96,35 @@ def gate():
 
 **Caching**: 32k-entry LRU cache on every public function. Repeat UAs hit in ~40 ns.
 
+## Regex-free alternative
+
+`is_crawler.no_regex`, same API, implemented with `str.find` + char checks. Zero `re` imports. Useful when embedding in sandboxes that restrict `re`, when auditing for ReDoS, or when regex engine startup is a concern.
+
+```python
+from is_crawler.no_regex import (
+    is_crawler, crawler_signals,
+    crawler_name, crawler_version, crawler_url,
+)
+
+is_crawler("Googlebot/2.1 (+http://www.google.com/bot.html)")  # True
+crawler_name("Googlebot/2.1 (+http://www.google.com/bot.html)")  # 'Googlebot'
+```
+
+API is a strict subset of the regex version (no `crawler_info`/`crawler_has_tag` those require DB pattern matching). All five functions carry the same 32k-entry LRU cache. Verified against the full fixture corpus (17,043 UAs, 0 mismatches).
+
+### no_regex benchmark
+
+Measured against the regex version (Python 3.14, Linux x86_64):
+
+|                   | regex (cold) | no_regex (cold) | speedup     |
+| ----------------- | ------------ | --------------- | ----------- |
+| `is_crawler`      | 19.4 µs      | 4.9 µs          | **3.9×**    |
+| `crawler_url`     | 1.8 µs       | 0.3 µs          | **5.6×**    |
+| `crawler_version` | 2.3 µs       | 1.5 µs          | **1.5×**    |
+| `crawler_name`    | 1.7 µs       | 2.3 µs          | **0.73×** - |
+
+Cold = cache cleared each iter. `crawler_name` is slower because the regex version leverages compiled `re.sub` calls (C-level) to strip comments and browser tokens; char-by-char Python can't match that. The other three win on pure `str.find` being faster than regex compilation + backtracking. Reproduce with `python benchmarks/bench_no_regex.py`.
+
 ## Benchmarks
 
 Measured on Python 3.14, Linux x86_64. Fixture corpus: **1 231 crawler UAs** and **15 812 browser UAs**.
