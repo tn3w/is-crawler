@@ -24,13 +24,17 @@ pip install is-crawler
 ## Usage
 
 ```python
-from is_crawler import is_crawler, crawler_info, crawler_has_tag
+from is_crawler import (
+    is_crawler, crawler_signals, crawler_info,
+    crawler_has_tag, crawler_name, crawler_version, crawler_url,
+)
 
 ua = "Googlebot/2.1 (+http://www.google.com/bot.html)"
 
 is_crawler(ua)                              # True
-crawler_has_tag(ua, "search-engine")        # True
-crawler_has_tag(ua, ["ai-crawler", "seo"])  # False
+
+crawler_signals(ua)
+# ['bot_signal', 'url_in_ua']
 
 info = crawler_info(ua)
 # CrawlerInfo(url='http://www.google.com/bot.html',
@@ -39,6 +43,13 @@ info = crawler_info(ua)
 info.url          # 'http://www.google.com/bot.html'
 info.description  # "Google's main web crawling bot for search indexing"
 info.tags         # ('search-engine',)
+
+crawler_has_tag(ua, "search-engine")        # True
+crawler_has_tag(ua, ["ai-crawler", "seo"])  # False
+
+crawler_name(ua)     # 'Googlebot'
+crawler_version(ua)  # '2.1'
+crawler_url(ua)      # 'http://www.google.com/bot.html'
 ```
 
 ### API reference
