@@ -207,13 +207,15 @@ Python 3.14, Linux x86_64. Corpus: 1,231 crawler UAs, 15,812 browser UAs. `cua` 
 
 ### Cold-cache (per-call, no LRU hits)
 
-| Function          | is_crawler | cua      | speedup  |
-| ----------------- | ---------- | -------- | -------- |
-| `is_crawler`      | 4.67 µs    | 157.5 µs | **34×**  |
-| `crawler_info`    | 2.07 µs    | 733.4 µs | **354×** |
-| `crawler_name`    | 1.36 µs    | -        | -        |
-| `crawler_version` | 1.37 µs    | -        | -        |
-| `crawler_url`     | 0.29 µs    | -        | -        |
+| Function          | Test Case | is_crawler | cua       | speedup  |
+| ----------------- | --------- | ---------- | --------- | -------- |
+| `is_crawler`      | crawlers  | 1.94 µs    | 64.35 µs  | **33×**  |
+| `is_crawler`      | browsers  | 1.85 µs    | 183.76 µs | **99×**  |
+| `is_crawler`      | mixed     | 1.85 µs    | 176.94 µs | **96×**  |
+| `crawler_info`    | -         | 2.07 µs    | 733.4 µs  | **354×** |
+| `crawler_name`    | -         | 1.36 µs    | -         | -        |
+| `crawler_version` | -         | 1.37 µs    | -         | -        |
+| `crawler_url`     | -         | 0.29 µs    | -         | -        |
 
 ### Cold-start
 

@@ -96,6 +96,34 @@ _NAME_CHARS = frozenset(
 )
 _SKIP_TOKENS = _BROWSER_TOKENS | {"KHTML", "like"}
 
+_SUSPICIOUS_LOW = (
+    "bot",
+    "crawl",
+    "spider",
+    "scan",
+    "fetch",
+    "wget",
+    "scrape",
+    "preview",
+    "slurp",
+    "archiv",
+    "headless",
+    "indexer",
+    "indexing",
+    "lighthouse",
+    "playwright",
+    "selenium",
+    "nikto",
+    "sqlmap",
+    "pingdom",
+    "httrack",
+    "nmap",
+    "google-",
+    "google ",
+    "by ",
+    "-agent",
+)
+
 
 def _word_char(c: str) -> bool:
     return c.isalnum() or c == "_"
@@ -149,12 +177,12 @@ def _bot_signal(ua: str) -> bool:
         return True
     if _find_word(low, "bot") or _find_word(low, "scan"):
         return True
-    if _fetch_not_api(low):
+    if "fetch" in low and _fetch_not_api(low):
         return True
     if "+http://" in ua or "+https://" in ua:
         return True
 
-    return _email_like(ua)
+    return "@" in ua and _email_like(ua)
 
 
 def _token_after(s: str, start: int, stops: str = " ();,") -> tuple[int, str]:
@@ -206,12 +234,19 @@ def _known_tool(ua: str) -> bool:
 
     if any(t in low for t in _TOOLS):
         return True
-    if _find_word(low, "wget") or _find_word(low, "nmap"):
+    if ("wget" in low and _find_word(low, "wget")) or (
+        "nmap" in low and _find_word(low, "nmap")
+    ):
         return True
-    if any(f"google{sep}{suf}" in low for sep in " -" for suf in _GOOGLE_SUFFIXES):
+    if "google" in low and any(
+        f"google{sep}{suf}" in low for sep in " -" for suf in _GOOGLE_SUFFIXES
+    ):
         return True
-
-    return _has_by_domain(low) or _leading_domain(ua) or _semicolon_agent(low)
+    if "by " in low and _has_by_domain(low):
+        return True
+    if _leading_domain(ua):
+        return True
+    return "-agent" in low and _semicolon_agent(low)
 
 
 def _url_in_ua(ua: str) -> bool:
@@ -250,6 +285,42 @@ def _bare_compat(ua: str) -> bool:
 
 @lru_cache(maxsize=_CACHE)
 def is_crawler(user_agent: str) -> bool:
+    low = user_agent.lower()
+
+    suspicious = (
+        "bot" in low
+        or "crawl" in low
+        or "spider" in low
+        or "scan" in low
+        or "fetch" in low
+        or "wget" in low
+        or "scrape" in low
+        or "preview" in low
+        or "slurp" in low
+        or "archiv" in low
+        or "headless" in low
+        or "index" in low
+        or "lighthouse" in low
+        or "playwright" in low
+        or "selenium" in low
+        or "nikto" in low
+        or "sqlmap" in low
+        or "pingdom" in low
+        or "httrack" in low
+        or "nmap" in low
+        or "google" in low
+        or "by " in low
+        or "-agent" in low
+        or "@" in user_agent
+        or "http://" in user_agent
+        or "https://" in user_agent
+    )
+
+    if not suspicious:
+        if not user_agent.startswith("Mozilla/") and _leading_domain(user_agent):
+            return True
+        return not _browser(user_agent) or _bare_compat(user_agent)
+
     if _bot_signal(user_agent) or _known_tool(user_agent) or _url_in_ua(user_agent):
         return True
     return not _browser(user_agent) or _bare_compat(user_agent)
