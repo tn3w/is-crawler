@@ -121,6 +121,15 @@ def gate():
         log_crawler(ua)
 ```
 
+### CLI
+
+```bash
+python -m is_crawler "Googlebot/2.1 (+http://www.google.com/bot.html)"
+tail -f access.log | awk -F'"' '{print $6}' | python -m is_crawler
+```
+
+One JSON object per UA (arg or stdin line) with `is_crawler`, `name`, `version`, `url`, `signals`, `info`.
+
 ### Caching
 
 Every public function has a 32k-entry LRU cache. Repeat UAs hit in ~40 ns.
