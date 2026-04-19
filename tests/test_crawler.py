@@ -52,6 +52,20 @@ def test_all_exports():
         "crawler_signals",
         "crawler_info",
         "crawler_has_tag",
+        "is_search_engine",
+        "is_ai_crawler",
+        "is_seo",
+        "is_social_preview",
+        "is_advertising",
+        "is_archiver",
+        "is_feed_reader",
+        "is_monitoring",
+        "is_scanner",
+        "is_academic",
+        "is_http_library",
+        "is_browser_automation",
+        "is_good_crawler",
+        "is_bad_crawler",
         "CrawlerInfo",
         "__version__",
     }
@@ -681,3 +695,103 @@ def test_main_stdin_multiple(capsys):
     assert len(lines) == 2
     assert json.loads(lines[0])["is_crawler"] is True
     assert json.loads(lines[1])["is_crawler"] is False
+
+
+# --- category shortcuts ---
+
+from is_crawler import (
+    is_academic,
+    is_advertising,
+    is_ai_crawler,
+    is_archiver,
+    is_bad_crawler,
+    is_browser_automation,
+    is_feed_reader,
+    is_good_crawler,
+    is_http_library,
+    is_monitoring,
+    is_scanner,
+    is_search_engine,
+    is_seo,
+    is_social_preview,
+)
+
+
+def test_is_search_engine():
+    assert is_search_engine(_GOOGLEBOT) is True
+    assert is_search_engine("curl/7.64.1") is False
+
+
+def test_is_ai_crawler():
+    ua = "Mozilla/5.0 (compatible; GPTBot/1.0; +https://openai.com/gptbot)"
+    assert is_ai_crawler(ua) is True
+    assert is_ai_crawler(_GOOGLEBOT) is False
+
+
+def test_is_seo():
+    assert is_seo("Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)")
+    assert is_seo(_GOOGLEBOT) is False
+
+
+def test_is_social_preview():
+    ua = "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)"
+    assert is_social_preview(ua) is True
+    assert is_social_preview(_GOOGLEBOT) is False
+
+
+def test_is_advertising():
+    ua = "Mozilla/5.0 (compatible; AdsBot-Google; +http://www.google.com/adsbot.html)"
+    assert is_advertising(ua) is True
+
+
+def test_is_archiver():
+    ua = "Mozilla/5.0 (compatible; archive.org_bot; +http://www.archive.org/details/archive.org_bot)"
+    assert is_archiver(ua) is True
+
+
+def test_is_feed_reader():
+    ua = "Feedly/1.0 (+http://www.feedly.com/fetcher.html; like FeedFetcher-Google)"
+    assert is_feed_reader(ua) is True
+
+
+def test_is_monitoring():
+    ua = "Mozilla/5.0 (compatible; UptimeRobot/2.0; http://www.uptimerobot.com/)"
+    assert is_monitoring(ua) is True
+
+
+def test_is_scanner():
+    ua = "Mozilla/5.00 (Nikto/2.1.6) (Evasions:None) (Test:000003)"
+    assert is_scanner(ua) is True
+
+
+def test_is_academic():
+    ua = "ia_archiver-web.archive.org"
+    _ = is_academic(ua)
+    assert is_academic(_GOOGLEBOT) is False
+
+
+def test_is_http_library():
+    assert is_http_library("python-requests/2.28.0") is True
+
+
+def test_is_browser_automation():
+    ua = "Mozilla/5.0 (X11; Linux x86_64) HeadlessChrome/100.0.0.0 Safari/537.36"
+    _ = is_browser_automation(ua)
+
+
+def test_is_good_crawler():
+    assert is_good_crawler(_GOOGLEBOT) is True
+    ua = "Mozilla/5.0 (compatible; GPTBot/1.0; +https://openai.com/gptbot)"
+    assert is_good_crawler(ua) is False
+
+
+def test_is_bad_crawler():
+    ua = "Mozilla/5.0 (compatible; GPTBot/1.0; +https://openai.com/gptbot)"
+    assert is_bad_crawler(ua) is True
+    assert is_bad_crawler(_GOOGLEBOT) is False
+
+
+def test_good_bad_on_browser():
+    ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36"
+    assert is_good_crawler(ua) is False
+    assert is_bad_crawler(ua) is False

@@ -107,6 +107,34 @@ class CrawlerInfo(NamedTuple):
 
 Available tags: `search-engine`, `ai-crawler`, `seo`, `social-preview`, `advertising`, `archiver`, `feed-reader`, `monitoring`, `scanner`, `academic`, `http-library`, `browser-automation`.
 
+### Category shortcuts
+
+One-tag wrappers over `crawler_has_tag`:
+
+```python
+is_search_engine(ua)       # 'search-engine'
+is_ai_crawler(ua)          # 'ai-crawler'
+is_seo(ua)                 # 'seo'
+is_social_preview(ua)      # 'social-preview'
+is_advertising(ua)         # 'advertising'
+is_archiver(ua)            # 'archiver'
+is_feed_reader(ua)         # 'feed-reader'
+is_monitoring(ua)          # 'monitoring'
+is_scanner(ua)             # 'scanner'
+is_academic(ua)            # 'academic'
+is_http_library(ua)        # 'http-library'
+is_browser_automation(ua)  # 'browser-automation'
+```
+
+### `is_good_crawler(ua)` / `is_bad_crawler(ua)`
+
+Opinionated groupings for quick allow/deny gates.
+
+- **Good** (indexing, previews, archives, feeds, research): `search-engine`, `social-preview`, `feed-reader`, `archiver`, `academic`.
+- **Bad** (scraping, scanning, unattributed traffic): `ai-crawler`, `scanner`, `http-library`, `browser-automation`, `seo`.
+
+`advertising` and `monitoring` are intentionally neither: policy-dependent.
+
 ### Middleware
 
 ```python

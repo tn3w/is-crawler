@@ -18,6 +18,20 @@ __all__ = [
     "crawler_signals",
     "crawler_info",
     "crawler_has_tag",
+    "is_search_engine",
+    "is_ai_crawler",
+    "is_seo",
+    "is_social_preview",
+    "is_advertising",
+    "is_archiver",
+    "is_feed_reader",
+    "is_monitoring",
+    "is_scanner",
+    "is_academic",
+    "is_http_library",
+    "is_browser_automation",
+    "is_good_crawler",
+    "is_bad_crawler",
     "CrawlerInfo",
     "__version__",
 ]
@@ -317,6 +331,70 @@ def crawler_has_tag(user_agent: str, tags: str | Iterable[str]) -> bool:
 
     wanted = {tags} if isinstance(tags, str) else set(tags)
     return bool(wanted & set(info.tags))
+
+
+_GOOD_TAGS = frozenset(
+    {"search-engine", "social-preview", "feed-reader", "archiver", "academic"}
+)
+_BAD_TAGS = frozenset(
+    {"ai-crawler", "scanner", "http-library", "browser-automation", "seo"}
+)
+
+
+def is_search_engine(user_agent: str) -> bool:
+    return crawler_has_tag(user_agent, "search-engine")
+
+
+def is_ai_crawler(user_agent: str) -> bool:
+    return crawler_has_tag(user_agent, "ai-crawler")
+
+
+def is_seo(user_agent: str) -> bool:
+    return crawler_has_tag(user_agent, "seo")
+
+
+def is_social_preview(user_agent: str) -> bool:
+    return crawler_has_tag(user_agent, "social-preview")
+
+
+def is_advertising(user_agent: str) -> bool:
+    return crawler_has_tag(user_agent, "advertising")
+
+
+def is_archiver(user_agent: str) -> bool:
+    return crawler_has_tag(user_agent, "archiver")
+
+
+def is_feed_reader(user_agent: str) -> bool:
+    return crawler_has_tag(user_agent, "feed-reader")
+
+
+def is_monitoring(user_agent: str) -> bool:
+    return crawler_has_tag(user_agent, "monitoring")
+
+
+def is_scanner(user_agent: str) -> bool:
+    return crawler_has_tag(user_agent, "scanner")
+
+
+def is_academic(user_agent: str) -> bool:
+    return crawler_has_tag(user_agent, "academic")
+
+
+def is_http_library(user_agent: str) -> bool:
+    return crawler_has_tag(user_agent, "http-library")
+
+
+def is_browser_automation(user_agent: str) -> bool:
+    return crawler_has_tag(user_agent, "browser-automation")
+
+
+def is_good_crawler(user_agent: str) -> bool:
+    return crawler_has_tag(user_agent, _GOOD_TAGS)
+
+
+def is_bad_crawler(user_agent: str) -> bool:
+    return crawler_has_tag(user_agent, _BAD_TAGS)
 
 
 def _name_chars_end(s: str, start: int) -> int:
