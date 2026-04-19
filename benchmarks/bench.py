@@ -1,5 +1,5 @@
 """
-Benchmarks for is_crawler vs crawler-user-agents (PyPI).
+Benchmarks for is_crawler.
 
 Run:
     python benchmarks/bench.py
@@ -16,6 +16,7 @@ from statistics import mean, stdev
 from typing import Callable
 
 import is_crawler as _ic
+from is_crawler import _bare_compat, _bot_signal, _browser, _known_tool, _url_in_ua
 
 FIXTURES = Path(__file__).parent.parent / "tests" / "fixtures"
 CRAWLERS = [
@@ -52,6 +53,19 @@ def _timeit(
     return mean(times), stdev(times) if len(times) > 1 else 0.0
 
 
+def _timeit_cold(fn: Callable, args: list, iterations: int = 5) -> tuple[float, float]:
+    cache_clear = getattr(fn, "cache_clear", None)
+    times = []
+    for _ in range(iterations):
+        if cache_clear:
+            cache_clear()
+        t0 = time.perf_counter()
+        for a in args:
+            fn(a)
+        times.append((time.perf_counter() - t0) / len(args))
+    return mean(times), stdev(times) if len(times) > 1 else 0.0
+
+
 def _fmt(m: float, sd: float) -> str:
     us, sd_us = m * 1e6, sd * 1e6
     return f"{us:7.2f} µs ± {sd_us:.2f}"
@@ -67,20 +81,22 @@ def _cold_time(fn: Callable, iterations: int = 10) -> tuple[float, float]:
 
 
 def bench_cold_start(with_cua: bool = False):
-    import crawleruseragents
-
-    print("\n── Cold-start (JSON parse + regex compile) ──")
+    print("\n── Cold-start (JSON parse + chunk build) ──")
 
     def _reload_and_init():
-        mod = importlib.reload(_ic)
-        mod._chunks = None
-        mod.crawler_info.cache_clear()
-        mod._load_chunks()
+        importlib.reload(_ic)
+        import is_crawler as _fresh
+
+        _fresh._chunks = None  # type: ignore[attr-defined]
+        _fresh.crawler_info.cache_clear()
+        _fresh._load_chunks()  # type: ignore[attr-defined]
 
     m, sd = _cold_time(_reload_and_init)
     print(f"  is_crawler        : {m * 1000:7.2f} ms ± {sd * 1000:.2f}")
 
     if with_cua:
+        import crawleruseragents
+
         m, sd = _cold_time(lambda: importlib.reload(crawleruseragents))
         print(f"  crawleruseragents : {m * 1000:7.2f} ms ± {sd * 1000:.2f}")
 
@@ -107,9 +123,80 @@ def bench_hot():
         ("crawler_has_tag(ai)    ", lambda ua: cht(ua, "ai-crawler"), ALL_UAS),
     ]
 
-    print("\n── Hot-path per-call [is_crawler] ──")
+    print("\n── Hot-path (warm cache) ──")
     for name, fn, args in rows:
         m, sd = _timeit(fn, args)
+        print(f"  {name}: {_fmt(m, sd)}")
+
+
+def bench_cold_cache(with_cua: bool = False):
+    ic = _ic.is_crawler
+    ci = _ic.crawler_info
+    cn = _ic.crawler_name
+    cv = _ic.crawler_version
+    cu = _ic.crawler_url
+
+    rows: list[tuple[str, Callable, list]] = [
+        ("is_crawler  (crawlers)", ic, CRAWLERS),
+        ("is_crawler  (browsers)", ic, BROWSERS),
+        ("is_crawler  (mixed)   ", ic, ALL_UAS),
+        ("crawler_info           ", ci, ALL_UAS),
+        ("crawler_name           ", cn, ALL_UAS),
+        ("crawler_version        ", cv, ALL_UAS),
+        ("crawler_url            ", cu, ALL_UAS),
+    ]
+
+    cua_rows: list[tuple[str, Callable, list]] = []
+    if with_cua:
+        import crawleruseragents
+
+        def _cua_info(ua: str):
+            indices = crawleruseragents.matching_crawlers(ua)
+            return (
+                crawleruseragents.CRAWLER_USER_AGENTS_DATA[indices[0]]
+                if indices
+                else None
+            )
+
+        cua_rows = [
+            ("cua.is_crawler (crawlers)  ", crawleruseragents.is_crawler, CRAWLERS),
+            ("cua.is_crawler (browsers)  ", crawleruseragents.is_crawler, BROWSERS),
+            ("cua.is_crawler (mixed)     ", crawleruseragents.is_crawler, ALL_UAS),
+            ("cua.crawler_info (mixed)   ", _cua_info, ALL_UAS),
+        ]
+
+    print("\n── Cold-cache (per-call, no lru hits) ──")
+    for name, fn, args in rows:
+        m, sd = _timeit_cold(fn, args)
+        print(f"  {name}: {_fmt(m, sd)}")
+
+    if cua_rows:
+        print("\n── Cold-cache [crawleruseragents] ──")
+        for name, fn, args in cua_rows:
+            m, sd = _timeit_cold(fn, args)
+            print(f"  {name}: {_fmt(m, sd)}")
+
+
+def bench_internals():
+    rows: list[tuple[str, Callable]] = [
+        ("_bot_signal (crawlers) ", lambda ua: _bot_signal(ua)),
+        ("_bot_signal (browsers) ", lambda ua: _bot_signal(ua)),
+        ("_known_tool (mixed)    ", lambda ua: _known_tool(ua)),
+        ("_url_in_ua  (mixed)    ", lambda ua: _url_in_ua(ua)),
+        ("_browser    (mixed)    ", lambda ua: _browser(ua)),
+        ("_bare_compat (mixed)   ", lambda ua: _bare_compat(ua)),
+    ]
+    datasets = [CRAWLERS, BROWSERS, ALL_UAS, ALL_UAS, ALL_UAS, ALL_UAS]
+
+    print("\n── Internal helpers (no cache) ──")
+    for (name, fn), args in zip(rows, datasets):
+        times = []
+        for _ in range(5):
+            t0 = time.perf_counter()
+            for ua in args:
+                fn(ua)
+            times.append((time.perf_counter() - t0) / len(args))
+        m, sd = mean(times), stdev(times)
         print(f"  {name}: {_fmt(m, sd)}")
 
 
@@ -134,7 +221,7 @@ def bench_cua():
         ("cua.crawler_info equiv (mixed)   ", _cua_info, ALL_UAS),
     ]
 
-    print("\n── Hot-path per-call [crawleruseragents] ──")
+    print("\n── Hot-path [crawleruseragents] ──")
     for name, fn, args in rows:
         m, sd = _timeit(fn, args)
         print(f"  {name}: {_fmt(m, sd)}")
@@ -212,6 +299,8 @@ if __name__ == "__main__":
     print(f"crawlers={len(CRAWLERS)}  browsers={len(BROWSERS)}")
     bench_cold_start(with_cua=args.with_cua)
     bench_hot()
+    bench_cold_cache(with_cua=args.with_cua)
+    bench_internals()
     if args.with_cua:
         bench_cua()
         bench_accuracy()

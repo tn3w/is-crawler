@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-import re
+import re as _re
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from functools import lru_cache
@@ -25,61 +25,40 @@ __all__ = [
 _CACHE = 32768
 _CHUNK = 48
 
-
-class CrawlerInfo(NamedTuple):
-    url: str
-    description: str
-    tags: tuple[str, ...]
-
-
-_BOT_SIGNAL = (
-    r"bot\b|crawl|spider|scrape|fetch(?!\w*api)"
-    r"|scan\b|index(?:er|ing)|preview|slurp|archiv|headless"
-    r"|\+https?://|@[\w.-]+\.\w{2,}\b"
+_BOT_KEYWORDS = (
+    "crawl",
+    "spider",
+    "scrape",
+    "preview",
+    "slurp",
+    "archiv",
+    "headless",
+    "indexer",
+    "indexing",
 )
-_KNOWN_TOOL = (
-    r"lighthouse|playwright|selenium|wget[\s/]"
-    r"|nikto|sqlmap|nmap\b|pingdom|httrack"
-    r"|google[\s-](?:favicon|ads|safety|extended)"
-    r"|\bby\s+\S+\.(?:com|org|net)\b"
-    r"|^[\w.-]+\.(?:com|net|org|io|ai)[/\s]"
-    r"|;\s*\w+-agent[);]"
+_TOOLS = (
+    "lighthouse",
+    "playwright",
+    "selenium",
+    "nikto",
+    "sqlmap",
+    "pingdom",
+    "httrack",
 )
-_URL_IN_UA = r"(?:^|[+;]|\s-\s)https?://[^\s);,]+"
-_BROWSER = (
-    r"mozilla/|webkit|gecko|trident|presto|khtml"
-    r"|opera[\s/]|links\s|lynx/|\((?:windows|macintosh|x11|linux)"
+_GOOGLE_SUFFIXES = ("favicon", "ads", "safety", "extended")
+_DOMAIN_TLDS = frozenset(("com", "net", "org", "io", "ai"))
+_BROWSER_LITERALS = (
+    "mozilla/",
+    "webkit",
+    "gecko",
+    "trident",
+    "presto",
+    "khtml",
+    "links ",
+    "lynx/",
 )
-
-_I = re.IGNORECASE
-_search_bot_signal = re.compile(_BOT_SIGNAL, _I).search
-_search_known_tool = re.compile(_KNOWN_TOOL, _I).search
-_search_url = re.compile(_URL_IN_UA).search
-_search_browser = re.compile(_BROWSER, _I).search
-_search_positive = re.compile(f"{_BOT_SIGNAL}|{_KNOWN_TOOL}|{_URL_IN_UA}", _I).search
-
-_search_compat = re.compile(r"(?i)\(compatible;[^)]*\)").search
-_reject_compat = re.compile(r"(?i)windows|mac|linux|msie|konqueror").search
-_extract_url = re.compile(r"https?://[^\s);,]+").search
-
-_search_compat_name = re.compile(
-    r"(?i)\(compatible;\s*([A-Za-z][\w.-]*)(?:/[\w.-]+)?"
-).search
-_search_compat_version = re.compile(
-    r"(?i)\(compatible;\s*[A-Za-z][\w.-]*/([\w.-]+)"
-).search
-_search_prefix_name = re.compile(
-    r"^([A-Z][\w.-]*(?: [A-Z][\w.-]*)*)(?:/[\w.-]+)?(?:\s|$| - )"
-).search
-_find_name = re.compile(r"([A-Z][\w.-]*(?: [A-Z][\w.-]*)*)(?:/[\w.-]+)?").findall
-_search_token_version = re.compile(r"/([\w.-]+)").search
-_sub_comments = re.compile(r"\([^)]*\)").sub
-_sub_browser_bits = re.compile(
-    r"\b(?:Mozilla/\S+|AppleWebKit/\S+|KHTML,?|like|Gecko"
-    r"|Chrome/\S+|Chromium/\S+|Safari/\S+|Version/\S+"
-    r"|Firefox/\S+|Ubuntu|Mobile)\b"
-).sub
-
+_OS_TOKENS = ("windows", "macintosh", "x11", "linux")
+_COMPAT_REJECT = ("windows", "mac", "linux", "msie", "konqueror")
 _BROWSER_TOKENS = frozenset(
     {
         "Mozilla",
@@ -94,52 +73,206 @@ _BROWSER_TOKENS = frozenset(
         "Mobile",
     }
 )
-
-
-def _bare_compat(user_agent: str) -> bool:
-    match = _search_compat(user_agent)
-    return bool(match and not _reject_compat(match.group(0)))
-
-
-_CHECKS = (
-    ("bot_signal", lambda ua: bool(_search_bot_signal(ua))),
-    ("no_browser_signature", lambda ua: not _search_browser(ua)),
-    ("bare_compatible", _bare_compat),
-    ("known_tool", lambda ua: bool(_search_known_tool(ua))),
-    ("url_in_ua", lambda ua: bool(_search_url(ua))),
+_URL_STOPS = frozenset(" );,")
+_NAME_CHARS = frozenset(
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.-"
 )
+_SKIP_TOKENS = _BROWSER_TOKENS | {"KHTML", "like"}
 
 
-@lru_cache(maxsize=_CACHE)
-def crawler_signals(user_agent: str) -> list[str]:
-    return [name for name, check in _CHECKS if check(user_agent)]
+def _word_char(c: str) -> bool:
+    return c.isalnum() or c == "_"
+
+
+def _word_ends(s: str, end: int) -> bool:
+    return end >= len(s) or not _word_char(s[end])
+
+
+def _find_word(s: str, word: str) -> bool:
+    i = 0
+    while (i := s.find(word, i)) != -1:
+        if _word_ends(s, i + len(word)):
+            return True
+        i += 1
+    return False
+
+
+def _fetch_not_api(s: str) -> bool:
+    i = 0
+    while (i := s.find("fetch", i)) != -1:
+        j = i + 5
+        while j < len(s) and _word_char(s[j]):
+            j += 1
+        if "api" not in s[i + 5 : j]:
+            return True
+        i += 1
+    return False
+
+
+def _email_like(ua: str) -> bool:
+    i = 0
+    while (i := ua.find("@", i)) != -1:
+        j = i + 1
+        while j < len(ua) and (ua[j].isalnum() or ua[j] in "_.-"):
+            j += 1
+
+        token = ua[i + 1 : j]
+        if "." in token and i > 0:
+            tld = token.rsplit(".", 1)[1]
+            if len(tld) >= 2 and tld.isalpha():
+                return True
+        i += 1
+    return False
+
+
+def _bot_signal(ua: str) -> bool:
+    low = ua.lower()
+
+    if any(k in low for k in _BOT_KEYWORDS):
+        return True
+    if _find_word(low, "bot") or _find_word(low, "scan"):
+        return True
+    if _fetch_not_api(low):
+        return True
+    if "+http://" in ua or "+https://" in ua:
+        return True
+
+    return _email_like(ua)
+
+
+def _token_after(s: str, start: int, stops: str = " ();,") -> tuple[int, str]:
+    j = start
+    while j < len(s) and s[j] not in stops:
+        j += 1
+    return j, s[start:j]
+
+
+def _domain_tld(token: str) -> bool:
+    return "." in token and token.rsplit(".", 1)[1].lower() in _DOMAIN_TLDS
+
+
+def _has_by_domain(low: str) -> bool:
+    i = 0
+    while (i := low.find("by ", i)) != -1:
+        if i == 0 or not low[i - 1].isalnum():
+            _, token = _token_after(low, i + 3)
+            if _domain_tld(token):
+                return True
+        i += 1
+    return False
+
+
+def _leading_domain(ua: str) -> bool:
+    end, token = _token_after(ua, 0, "/ ")
+    return end < len(ua) and _domain_tld(token) and ua[end] in "/ "
+
+
+def _semicolon_agent(low: str) -> bool:
+    i = 0
+    while (i := low.find(";", i)) != -1:
+        j = i + 1
+        while j < len(low) and low[j] == " ":
+            j += 1
+
+        k = j
+        while k < len(low) and (low[k].isalnum() or low[k] == "-"):
+            k += 1
+
+        if low[j:k].endswith("-agent") and k < len(low) and low[k] in ");":
+            return True
+        i += 1
+    return False
+
+
+def _known_tool(ua: str) -> bool:
+    low = ua.lower()
+
+    if any(t in low for t in _TOOLS):
+        return True
+    if _find_word(low, "wget") or _find_word(low, "nmap"):
+        return True
+    if any(f"google{sep}{suf}" in low for sep in " -" for suf in _GOOGLE_SUFFIXES):
+        return True
+
+    return _has_by_domain(low) or _leading_domain(ua) or _semicolon_agent(low)
+
+
+def _url_in_ua(ua: str) -> bool:
+    for marker in ("http://", "https://"):
+        i = 0
+        while (i := ua.find(marker, i)) != -1:
+            if i == 0 or ua[i - 1] in "+;" or (i >= 3 and ua[i - 3 : i] == " - "):
+                return True
+            i += 1
+    return False
+
+
+def _browser(ua: str) -> bool:
+    low = ua.lower()
+
+    if any(b in low for b in _BROWSER_LITERALS):
+        return True
+    if _find_word(low, "opera"):
+        return True
+
+    return any(f"({t}" in low for t in _OS_TOKENS)
+
+
+def _bare_compat(ua: str) -> bool:
+    low = ua.lower()
+    i = 0
+    while (i := low.find("(compatible;", i)) != -1:
+        close = low.find(")", i)
+        if close == -1:
+            return False
+        if not any(r in low[i : close + 1] for r in _COMPAT_REJECT):
+            return True
+        i = close
+    return False
 
 
 @lru_cache(maxsize=_CACHE)
 def is_crawler(user_agent: str) -> bool:
-    if _search_positive(user_agent):
+    if _bot_signal(user_agent) or _known_tool(user_agent) or _url_in_ua(user_agent):
         return True
-    if not _search_browser(user_agent):
-        return True
-    return _bare_compat(user_agent)
+    return not _browser(user_agent) or _bare_compat(user_agent)
+
+
+@lru_cache(maxsize=_CACHE)
+def crawler_signals(user_agent: str) -> list[str]:
+    checks = [
+        ("bot_signal", _bot_signal(user_agent)),
+        ("no_browser_signature", not _browser(user_agent)),
+        ("bare_compatible", _bare_compat(user_agent)),
+        ("known_tool", _known_tool(user_agent)),
+        ("url_in_ua", _url_in_ua(user_agent)),
+    ]
+    return [name for name, ok in checks if ok]
+
+
+class CrawlerInfo(NamedTuple):
+    url: str
+    description: str
+    tags: tuple[str, ...]
 
 
 @dataclass
 class _Chunk:
     rows: list
-    _combined: re.Pattern | None = field(default=None, init=False, repr=False)
+    _combined: _re.Pattern | None = field(default=None, init=False, repr=False)
     _entries: list | None = field(default=None, init=False, repr=False)
 
     def match(self, user_agent: str) -> CrawlerInfo | None:
         if self._combined is None:
-            self._combined = re.compile("|".join(f"(?:{p})" for p, *_ in self.rows))
+            self._combined = _re.compile("|".join(f"(?:{p})" for p, *_ in self.rows))
 
         if not self._combined.search(user_agent):
             return None
 
         if self._entries is None:
             self._entries = [
-                (re.compile(p), CrawlerInfo(u, d, tuple(t))) for p, u, d, t in self.rows
+                (_re.compile(p), CrawlerInfo(u, d, tuple(t)))
+                for p, u, d, t in self.rows
             ]
 
         for pattern, info in self._entries:
@@ -186,50 +319,207 @@ def crawler_has_tag(user_agent: str, tags: str | Iterable[str]) -> bool:
     return bool(wanted & set(info.tags))
 
 
-def _name_non_mozilla(user_agent: str) -> str | None:
-    match = _search_prefix_name(user_agent)
-    if match:
-        return match.group(1)
+def _name_chars_end(s: str, start: int) -> int:
+    j = start
+    while j < len(s) and s[j] in _NAME_CHARS:
+        j += 1
+    return j
 
-    parts = user_agent.split()
-    return parts[0].split("/", 1)[0] if parts else None
+
+def _strip_version(token: str) -> str:
+    return token.split("/", 1)[0]
+
+
+@lru_cache(maxsize=_CACHE)
+def crawler_url(user_agent: str) -> str | None:
+    for marker in ("http://", "https://"):
+        i = 0
+        while (i := user_agent.find(marker, i)) != -1:
+            prefix_ok = (
+                i == 0
+                or user_agent[i - 1] in "+;"
+                or (i >= 3 and user_agent[i - 3 : i] == " - ")
+            )
+            if prefix_ok:
+                j = i
+                while j < len(user_agent) and user_agent[j] not in _URL_STOPS:
+                    j += 1
+                return user_agent[i:j]
+            i += 1
+    return None
+
+
+def _compat_name(ua: str) -> str | None:
+    low = ua.lower()
+    i = low.find("(compatible;")
+    if i == -1:
+        return None
+
+    j = i + len("(compatible;")
+    while j < len(ua) and ua[j] == " ":
+        j += 1
+
+    if j >= len(ua) or not ua[j].isalpha():
+        return None
+
+    end = _name_chars_end(ua, j)
+    return _strip_version(ua[j:end])
+
+
+def _is_name_start(c: str) -> bool:
+    return "A" <= c <= "Z"
+
+
+def _grab_name_sequence(ua: str, start: int) -> tuple[int, str]:
+    end = _name_chars_end(ua, start)
+    name = ua[start:end]
+
+    while end + 1 < len(ua) and ua[end] == " " and _is_name_start(ua[end + 1]):
+        next_end = _name_chars_end(ua, end + 1)
+        name += " " + ua[end + 1 : next_end]
+        end = next_end
+
+    return end, _strip_version(name)
+
+
+def _prefix_name(ua: str) -> str | None:
+    if not ua or not _is_name_start(ua[0]):
+        return None
+
+    end, name = _grab_name_sequence(ua, 0)
+    if end >= len(ua):
+        return name
+
+    after = ua[end]
+    if after == "/":
+        tail_end = _name_chars_end(ua, end + 1)
+        end = tail_end
+        if end >= len(ua):
+            return name
+        after = ua[end]
+
+    if after == " " and ua[end:].startswith(" - "):
+        return name
+    if after in " \t":
+        return name
+    return None
+
+
+def _name_non_mozilla(ua: str) -> str | None:
+    name = _prefix_name(ua)
+    if name:
+        return name
+
+    parts = ua.split()
+    return _strip_version(parts[0]) if parts else None
+
+
+def _strip_parens(ua: str) -> str:
+    open_i = ua.find("(")
+    if open_i == -1:
+        return ua
+
+    parts = []
+    start = 0
+    while open_i != -1:
+        parts.append(ua[start:open_i])
+        close_i = ua.find(")", open_i + 1)
+        start = close_i + 1 if close_i != -1 else len(ua)
+        open_i = ua.find("(", start)
+    parts.append(ua[start:])
+    return " ".join(parts)
+
+
+def _token_name(token: str) -> str | None:
+    slash = token.find("/")
+    base = token[:slash] if slash != -1 else token.rstrip(",")
+    if not base or not ("A" <= base[0] <= "Z") or base in _SKIP_TOKENS:
+        return None
+    return base
+
+
+def _scan_mozilla_name(ua: str) -> str | None:
+    last: str | None = None
+    prev: str | None = None
+
+    for token in _strip_parens(ua).split():
+        base = _token_name(token)
+        if base is None:
+            prev = None
+            continue
+
+        last = f"{prev} {base}" if prev else base
+        prev = last
+
+    return last
 
 
 @lru_cache(maxsize=_CACHE)
 def crawler_name(user_agent: str) -> str | None:
-    match = _search_compat_name(user_agent)
-    if match:
-        return match.group(1)
+    compat = _compat_name(user_agent)
+    if compat:
+        return compat
 
     if not user_agent.startswith("Mozilla/5.0"):
         return _name_non_mozilla(user_agent)
 
-    cleaned = _sub_browser_bits(" ", _sub_comments(" ", user_agent))
-    names = _find_name(cleaned)
-    return names[-1] if names else None
+    return _scan_mozilla_name(user_agent)
 
 
-def _version_non_mozilla(user_agent: str) -> str | None:
-    parts = (user_agent.split() or [""])[0].split("/", 1)
-    return parts[1] if len(parts) > 1 else None
+def _version_from_compat(ua: str) -> str | None:
+    low = ua.lower()
+    i = low.find("(compatible;")
+    if i == -1:
+        return None
+
+    j = i + len("(compatible;")
+    while j < len(ua) and ua[j] == " ":
+        j += 1
+
+    if j >= len(ua) or not ua[j].isalpha():
+        return None
+
+    end = _name_chars_end(ua, j)
+    if end >= len(ua) or ua[end] != "/":
+        return None
+
+    ver_end = _name_chars_end(ua, end + 1)
+    return ua[end + 1 : ver_end] or None
 
 
-def _version_mozilla(user_agent: str) -> str | None:
-    match = _search_compat_version(user_agent)
-    if match:
-        return match.group(1)
+def _version_mozilla(ua: str) -> str | None:
+    compat = _version_from_compat(ua)
+    if compat:
+        return compat
 
-    for token in user_agent.replace("(", " ").replace(")", " ").split():
+    cleaned = ua.replace("(", " ").replace(")", " ")
+    for token in cleaned.split():
         if "://" in token:
             continue
-        name = token.split("/", 1)[0]
-        if name in _BROWSER_TOKENS:
-            continue
-        match = _search_token_version(token[len(name) :])
-        if match:
-            return match.group(1)
 
+        slash = token.find("/")
+        if slash == -1:
+            continue
+
+        base = token[:slash]
+        if base in _BROWSER_TOKENS:
+            continue
+
+        ver_end = _name_chars_end(token, slash + 1)
+        ver = token[slash + 1 : ver_end]
+        if ver:
+            return ver
     return None
+
+
+def _version_non_mozilla(ua: str) -> str | None:
+    parts = ua.split()
+    if not parts:
+        return None
+
+    first = parts[0]
+    slash = first.find("/")
+    return first[slash + 1 :] if slash != -1 else None
 
 
 @lru_cache(maxsize=_CACHE)
@@ -237,12 +527,3 @@ def crawler_version(user_agent: str) -> str | None:
     if not user_agent.startswith("Mozilla/5.0"):
         return _version_non_mozilla(user_agent)
     return _version_mozilla(user_agent)
-
-
-@lru_cache(maxsize=_CACHE)
-def crawler_url(user_agent: str) -> str | None:
-    if not _search_url(user_agent):
-        return None
-
-    match = _extract_url(user_agent)
-    return match.group(0) if match else None

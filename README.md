@@ -2,18 +2,21 @@
 
 # is-crawler
 
-Tiny, zero-dependency Python library that detects bots and crawlers from user-agent strings. Fast, lightweight, and ready to drop into any web app or API.
+Fast, regex-free crawler detection from user agents. Zero deps, ReDoS-safe heuristics, ~40× faster than alternatives.
 
 [![PyPI](https://img.shields.io/pypi/v/is-crawler?style=flat-square)](https://pypi.org/project/is-crawler/)
 [![Python](https://img.shields.io/pypi/pyversions/is-crawler?style=flat-square)](https://pypi.org/project/is-crawler/)
 [![License](https://img.shields.io/github/license/tn3w/is-crawler?style=flat-square)](https://github.com/tn3w/is-crawler/blob/main/LICENSE)
-[![Issues](https://img.shields.io/github/issues/tn3w/is-crawler?style=flat-square)](https://github.com/tn3w/is-crawler/issues)
 [![Stars](https://img.shields.io/github/stars/tn3w/is-crawler?style=flat-square)](https://github.com/tn3w/is-crawler/stargazers)
 [![Downloads](https://img.shields.io/pypi/dm/is-crawler?style=flat-square)](https://pypi.org/project/is-crawler/)
 
 **Docs & live demo:** [is-crawler.tn3w.dev](https://is-crawler.tn3w.dev)
 
 </div>
+
+## Why regex-free?
+
+Regex is a frequent source of ReDoS vulnerabilities, one un-anchored `.*` or nested quantifier against a hostile UA can spike CPU to seconds. Crawler detection runs on every request, so a catastrophic pattern is a denial-of-service primitive. `is-crawler` implements all heuristics with `str.find` + char scans. No regex engine, no backtracking, no ReDoS surface. `crawler_info` uses `re` only to match against curated DB patterns ([monperrus/crawler-user-agents](https://github.com/monperrus/crawler-user-agents)) which are simple literals (e.g. `Googlebot\/`, `bingbot`, `AdsBot-Google([^-]|$)`, `[wW]get`), no nested quantifiers, no catastrophic backtracking paths.
 
 ## Install
 
@@ -25,50 +28,86 @@ pip install is-crawler
 
 ```python
 from is_crawler import (
-    is_crawler, crawler_signals, crawler_info,
-    crawler_has_tag, crawler_name, crawler_version, crawler_url,
+    is_crawler, crawler_signals, crawler_info, crawler_has_tag,
+    crawler_name, crawler_version, crawler_url, CrawlerInfo,
 )
 
 ua = "Googlebot/2.1 (+http://www.google.com/bot.html)"
 
 is_crawler(ua)                              # True
+crawler_signals(ua)                         # ['bot_signal', 'no_browser_signature', 'url_in_ua']
+crawler_name(ua)                            # 'Googlebot'
+crawler_version(ua)                         # '2.1'
+crawler_url(ua)                             # 'http://www.google.com/bot.html'
 
-crawler_signals(ua)
-# ['bot_signal', 'url_in_ua']
-
-info = crawler_info(ua)
-# CrawlerInfo(url='http://www.google.com/bot.html',
-#             description="Google's main web crawling bot...",
-#             tags=('search-engine',))
-info.url          # 'http://www.google.com/bot.html'
-info.description  # "Google's main web crawling bot for search indexing"
-info.tags         # ('search-engine',)
+info = crawler_info(ua)                     # CrawlerInfo(...)
+if info is not None:
+    info.url                                # 'http://www.google.com/bot.html'
+    info.description                        # "Google's main web crawling bot..."
+    info.tags                               # ('search-engine',)
 
 crawler_has_tag(ua, "search-engine")        # True
 crawler_has_tag(ua, ["ai-crawler", "seo"])  # False
-
-crawler_name(ua)     # 'Googlebot'
-crawler_version(ua)  # '2.1'
-crawler_url(ua)      # 'http://www.google.com/bot.html'
 ```
 
-### API reference
+## API
 
-| Function                   | Returns               | Description                                              |
-| -------------------------- | --------------------- | -------------------------------------------------------- |
-| `is_crawler(ua)`           | `bool`                | Heuristic detection: fast, no DB                         |
-| `crawler_signals(ua)`      | `list[str]`           | Which heuristic rules matched                            |
-| `crawler_info(ua)`         | `CrawlerInfo \| None` | url, description, tags: DB lookup for 646 known crawlers |
-| `crawler_has_tag(ua, tag)` | `bool`                | `tag` can be `str` or `list[str]` (matches any)          |
-| `crawler_name(ua)`         | `str \| None`         | Product name extracted from the UA string                |
-| `crawler_version(ua)`      | `str \| None`         | Version extracted from the UA string                     |
-| `crawler_url(ua)`          | `str \| None`         | URL embedded in the UA string                            |
+### `is_crawler(ua: str) -> bool`
 
-`crawler_signals` returns a subset of: `bot_signal`, `no_browser_signature`, `bare_compatible`, `known_tool`, `url_in_ua`.
+Heuristic detection. Returns `True` if the UA is a crawler. No DB lookup, no regex.
 
-`crawler_info` tags: `search-engine`, `ai-crawler`, `seo`, `social-preview`, `advertising`, `archiver`, `feed-reader`, `monitoring`, `scanner`, `academic`, `http-library`, `browser-automation`.
+Three short-circuit rules:
 
-### Middleware example
+1. **Positive signal**: bot keywords (`bot`, `crawl`, `spider`, `scrape`, `headless`, `slurp`, `archiv`, `preview`, ...), known tools (`playwright`, `selenium`, `wget`, `lighthouse`, `sqlmap`, `nikto`, `nmap`, `httrack`, `pingdom`, `google-safety`, ...), or a URL/email embedded in the UA.
+2. **No browser signature**: missing `Mozilla/`, `WebKit`, `Gecko`, `Trident`, `Presto`, `KHTML`, `Links`, `Lynx`, `Opera`, or an OS token like `(Windows`, `(Linux`, `(X11`, `(Macintosh`.
+3. **Bare `(compatible; ...)`**: classic bot block without OS/browser tokens inside.
+
+### `crawler_signals(ua: str) -> list[str]`
+
+Which individual rules fired. Subset of: `bot_signal`, `no_browser_signature`, `bare_compatible`, `known_tool`, `url_in_ua`. Useful for diagnostics and logging. `is_crawler` does not call this.
+
+### `crawler_name(ua: str) -> str | None`
+
+Product name extracted from the UA.
+
+- `Googlebot/2.1 ...` → `'Googlebot'`
+- `Mozilla/5.0 (compatible; bingbot/2.0; ...)` → `'bingbot'`
+- `Mozilla/5.0 ... Speedy Spider (...)` → `'Speedy Spider'`
+- Chrome/Firefox/Safari → `None`
+
+### `crawler_version(ua: str) -> str | None`
+
+Version token extracted from the UA. Returns `None` if no non-browser version is detectable.
+
+- `curl/7.64.1` → `'7.64.1'`
+- `Mozilla/5.0 (compatible; Miniflux/2.0.10; ...)` → `'2.0.10'`
+- `Googlebot/2.1 ...` → `'2.1'`
+
+### `crawler_url(ua: str) -> str | None`
+
+URL embedded in the UA (after `+`, `;`, or `-`).
+
+- `Googlebot/2.1 (+http://www.google.com/bot.html)` → `'http://www.google.com/bot.html'`
+- UA with no embedded URL → `None`
+
+### `crawler_info(ua: str) -> CrawlerInfo | None`
+
+DB lookup against 646 known crawler patterns. Returns `None` for browsers (short-circuits via `is_crawler`).
+
+```python
+class CrawlerInfo(NamedTuple):
+    url: str                # crawler's info/docs URL (may be '')
+    description: str        # human-readable description
+    tags: tuple[str, ...]   # classification tags, e.g. ('search-engine',)
+```
+
+### `crawler_has_tag(ua: str, tags: str | Iterable[str]) -> bool`
+
+`True` if the crawler has any of the given tags. `tags` accepts a single string or a list.
+
+Available tags: `search-engine`, `ai-crawler`, `seo`, `social-preview`, `advertising`, `archiver`, `feed-reader`, `monitoring`, `scanner`, `academic`, `http-library`, `browser-automation`.
+
+### Middleware
 
 ```python
 from is_crawler import is_crawler, crawler_has_tag
@@ -77,94 +116,49 @@ from is_crawler import is_crawler, crawler_has_tag
 def gate():
     ua = request.headers.get("User-Agent", "")
     if crawler_has_tag(ua, "ai-crawler"):
-        abort(403)        # block AI scrapers
+        abort(403)
     if is_crawler(ua):
-        log_crawler(ua)   # track other bots without blocking
+        log_crawler(ua)
 ```
 
-## How it works
+### Caching
 
-**`is_crawler`**: three-step short-circuit, no DB lookup.
-
-1. **Positive signal**: one fused regex combining bot keywords (`bot`, `crawl`, `spider`, `scrape`, `headless`, ...), known tools (`playwright`, `selenium`, `wget`, `lighthouse`, `sqlmap`, ...), and URL-in-UA patterns. One hit → crawler.
-2. **No browser signature**: missing `WebKit`/`Gecko`/`Trident`/etc. → crawler.
-3. **Bare `(compatible; ...)`**: classic bot block without OS tokens → crawler.
-
-**`crawler_signals`**: exposes which of the five individual checks fired (bot_signal, no_browser_signature, bare_compatible, known_tool, url_in_ua). Useful for diagnostics; `is_crawler` does not call it.
-
-**`crawler_info` / `crawler_has_tag`**: gated by `is_crawler` so browser UAs skip the DB entirely. On a crawler hit, patterns (from [monperrus/crawler-user-agents](https://github.com/monperrus/crawler-user-agents) plus supplemental tags) are sharded into 48-entry chunks; each chunk's combined filter and its per-pattern regexes compile lazily on first match. Returns url, description, and tags.
-
-**Caching**: 32k-entry LRU cache on every public function. Repeat UAs hit in ~40 ns.
-
-## Regex-free alternative
-
-`is_crawler.no_regex`, same API, implemented with `str.find` + char checks. Zero `re` imports. Useful when embedding in sandboxes that restrict `re`, when auditing for ReDoS, or when regex engine startup is a concern.
-
-```python
-from is_crawler.no_regex import (
-    is_crawler, crawler_signals,
-    crawler_name, crawler_version, crawler_url,
-)
-
-is_crawler("Googlebot/2.1 (+http://www.google.com/bot.html)")  # True
-crawler_name("Googlebot/2.1 (+http://www.google.com/bot.html)")  # 'Googlebot'
-```
-
-API is a strict subset of the regex version (no `crawler_info`/`crawler_has_tag` those require DB pattern matching). All five functions carry the same 32k-entry LRU cache. Verified against the full fixture corpus (17,043 UAs, 0 mismatches).
-
-### no_regex benchmark
-
-Measured against the regex version (Python 3.14, Linux x86_64):
-
-|                   | regex (cold) | no_regex (cold) | speedup  |
-| ----------------- | ------------ | --------------- | -------- |
-| `is_crawler`      | 18.7 µs      | 4.9 µs          | **3.8×** |
-| `crawler_url`     | 1.8 µs       | 0.3 µs          | **5.8×** |
-| `crawler_version` | 2.2 µs       | 1.5 µs          | **1.5×** |
-| `crawler_name`    | 1.7 µs       | 1.5 µs          | **1.1×** |
-
-Cold = cache cleared each iter. `crawler_name` is slower because the regex version leverages compiled `re.sub` calls (C-level) to strip comments and browser tokens; char-by-char Python can't match that. The other three win on pure `str.find` being faster than regex compilation + backtracking. Reproduce with `python benchmarks/bench_no_regex.py`.
+Every public function has a 32k-entry LRU cache. Repeat UAs hit in ~40 ns.
 
 ## Benchmarks
 
-Measured on Python 3.14, Linux x86_64. Fixture corpus: **1 231 crawler UAs** and **15 812 browser UAs**.
-`cua` is the [`crawler-user-agents`](https://pypi.org/project/crawler-user-agents/) PyPI package (v1.42, no caching).
+Python 3.14, Linux x86_64. Corpus: 1,231 crawler UAs, 15,812 browser UAs. `cua` = [`crawler-user-agents`](https://pypi.org/project/crawler-user-agents/) v1.44.
 
-### `is_crawler`: heuristic detection (no DB)
+### Hot-path (warm cache)
 
-| Corpus        | is_crawler | `cua.is_crawler` | speedup |
-| ------------- | ---------- | ---------------- | ------- |
-| crawlers only | 0.39 µs    | 61.7 µs          | 158×    |
-| browsers only | 3.76 µs    | 182.7 µs         | 49×     |
-| mixed         | 0.04 µs    | 167.7 µs         | 4000×   |
+| Function             | is_crawler | cua      | speedup   |
+| -------------------- | ---------- | -------- | --------- |
+| `is_crawler` (mixed) | 0.05 µs    | 158.9 µs | **3000×** |
+| `crawler_info`       | 0.60 µs    | 732.0 µs | **1220×** |
+| `crawler_signals`    | 1.13 µs    | -        | -         |
+| `crawler_name`       | 0.33 µs    | -        | -         |
+| `crawler_version`    | 0.32 µs    | -        | -         |
+| `crawler_url`        | 0.09 µs    | -        | -         |
+| `crawler_has_tag`    | 0.10 µs    | -        | -         |
 
-Crawler UAs hit a single combined positive regex; browser UAs fall through to a browser-signature check. A 32k-entry LRU cache drives mixed-corpus calls to near-zero amortized cost.
+### Cold-cache (per-call, no LRU hits)
 
-### `crawler_info` / `crawler_has_tag`: DB pattern lookup
-
-|                   | is_crawler | `cua` equivalent | speedup |
-| ----------------- | ---------- | ---------------- | ------- |
-| `crawler_info`    | 0.53 µs    | 743.0 µs         | 1400×   |
-| `crawler_has_tag` | 0.14 µs    | -                | -       |
-
-Browser UAs short-circuit via `is_crawler` before touching the DB. Matching walks 48-entry combined chunks to locate the winning pattern in ~1/25 of the full-scan work. `crawler_has_tag` delegates to cached `crawler_info`; cost is independent of tag cardinality.
+| Function          | is_crawler | cua      | speedup  |
+| ----------------- | ---------- | -------- | -------- |
+| `is_crawler`      | 4.67 µs    | 157.5 µs | **34×**  |
+| `crawler_info`    | 2.07 µs    | 733.4 µs | **354×** |
+| `crawler_name`    | 1.36 µs    | -        | -        |
+| `crawler_version` | 1.37 µs    | -        | -        |
+| `crawler_url`     | 0.29 µs    | -        | -        |
 
 ### Cold-start
 
-| Module              | Cold-start | Notes                         |
-| ------------------- | ---------- | ----------------------------- |
-| `is_crawler`        | 0.55 ms    | JSON parse; regexes stay lazy |
-| `crawleruseragents` | 0.89 ms    | JSON parse                    |
+| Module              | Cold-start |
+| ------------------- | ---------- |
+| `is_crawler`        | 1.29 ms    |
+| `crawleruseragents` | 0.80 ms    |
 
-DB patterns compile lazily per 48-entry chunk on first match, import and `_ensure_db` stay cheap.
-
-### Single-UA uncached benchmark
-
-|                      | is_crawler | `cua.is_crawler` | speedup |
-| -------------------- | ---------- | ---------------- | ------- |
-| `Googlebot` uncached | 1.710 µs   | 70.419 µs        | 41×     |
-
-Direct apples-to-apples check on one crawler UA. Same `Googlebot/2.1 (+http://www.google.com/bot.html)` over 1,000 runs. `is_crawler` clears caches before each call; `cua` reloads `crawleruseragents` before each call.
+DB patterns compile lazily per 48-entry chunk on first match.
 
 ## Formatting
 

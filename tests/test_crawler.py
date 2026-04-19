@@ -2,7 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from is_crawler.no_regex import (
+from is_crawler import (
+    __version__,
     _bare_compat,
     _bot_signal,
     _browser,
@@ -17,12 +18,44 @@ from is_crawler.no_regex import (
     _url_in_ua,
     _word_char,
     _word_ends,
+    crawler_has_tag,
+    crawler_info,
     crawler_name,
     crawler_signals,
     crawler_url,
     crawler_version,
     is_crawler,
 )
+
+_FIXTURES = Path(__file__).parent / "fixtures"
+
+
+def _load(name: str) -> list[str]:
+    return [l.strip() for l in (_FIXTURES / name).read_text().splitlines() if l.strip()]
+
+
+# --- module ---
+
+
+def test_version():
+    assert isinstance(__version__, str)
+
+
+def test_all_exports():
+    import is_crawler as mod
+
+    assert set(mod.__all__) == {
+        "is_crawler",
+        "crawler_name",
+        "crawler_version",
+        "crawler_url",
+        "crawler_signals",
+        "crawler_info",
+        "crawler_has_tag",
+        "CrawlerInfo",
+        "__version__",
+    }
+
 
 # --- primitives ---
 
@@ -62,7 +95,7 @@ def test_token_after_stops_at_delimiter():
     assert token == "foo" and end == 3
 
 
-# --- bot_signal ---
+# --- _bot_signal ---
 
 
 @pytest.mark.parametrize(
@@ -91,7 +124,7 @@ def test_bot_signal_false():
     assert not _bot_signal("Mozilla/5.0 (Windows NT 10.0) Chrome/120")
 
 
-# --- known_tool ---
+# --- _known_tool ---
 
 
 @pytest.mark.parametrize(
@@ -159,7 +192,7 @@ def test_semicolon_agent_no_match():
     assert not _semicolon_agent("; foobar)")
 
 
-# --- url_in_ua ---
+# --- _url_in_ua ---
 
 
 @pytest.mark.parametrize(
@@ -184,7 +217,7 @@ def test_url_in_ua_https_leading():
     assert _url_in_ua("https://example.com")
 
 
-# --- browser ---
+# --- _browser ---
 
 
 @pytest.mark.parametrize(
@@ -213,7 +246,7 @@ def test_browser_false():
     assert not _browser("curl/7.68.0")
 
 
-# --- bare_compat ---
+# --- _bare_compat ---
 
 
 @pytest.mark.parametrize(
@@ -247,11 +280,42 @@ def test_bare_compat_false(ua):
     "ua",
     [
         "Googlebot/2.1 (+http://www.google.com/bot.html)",
+        "Mozilla/5.0 (compatible; bingbot/2.0)",
+        "Apache-HttpClient/4.5 (crawling service)",
+        "MySpider/1.0",
+        "web-scraper/0.3",
+        "DataFetcher/1.0",
+        "PortScanner/2.0",
+        "site-indexer v3",
+        "LinkPreview/1.0",
+        "Slurp/3.0",
+        "archive.org_bot/1.0",
+        "HeadlessChrome/90.0",
+        "SomeBot (+https://example.com)",
+        "checker (+http://example.com/info)",
+        "agent@crawler.example.com",
         "curl/7.68.0",
         "python-requests/2.28.0",
+        "Java/1.8.0_292",
         "",
-        "Mozilla/5.0 (compatible; AhrefsBot/7.0)",
-        "Lighthouse",
+        "Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)",
+        "Mozilla/5.0 (compatible; SemrushBot/7; +http://www.semrush.com/bot.html)",
+        "Mozilla/5.0 (X11; Linux x86_64) Lighthouse",
+        "Mozilla/5.0 (Windows NT 10.0) Playwright/1.40",
+        "Mozilla/5.0 (Windows NT 10.0) Selenium/4.0",
+        "Wget/1.21",
+        "Nikto/2.1.6",
+        "sqlmap/1.7",
+        "Nmap Scripting Engine",
+        "Pingdom.com_bot_version_1.4",
+        "HTTrack/3.49",
+        "Mozilla/5.0 (Windows NT 10.0) Google-Safety/1.0",
+        "Mozilla/5.0 (Windows NT 10.0) Google Favicon",
+        "Mozilla/5.0 (Windows NT 10.0) Google Ads Bot",
+        "Mozilla/5.0 (Windows NT 10.0) Google-Extended",
+        "Mozilla/5.0 (Windows NT 10.0) by example.com crawl",
+        "example.com/crawler",
+        "Mozilla/5.0 (Windows NT 10.0; test-agent) Gecko/20100101",
     ],
 )
 def test_is_crawler_true(ua):
@@ -262,10 +326,12 @@ def test_is_crawler_true(ua):
     "ua",
     [
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
         "Mozilla/5.0 (X11; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0",
-        "Mozilla/4.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)",
         "Opera/9.80 (Windows NT 6.1) Presto/2.12.388 Version/12.18",
+        "Links (2.28; Linux x86_64; GNU C)",
         "Lynx/2.8.9rel.1 libwww-FM/2.14",
+        "Mozilla/4.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)",
     ],
 )
 def test_is_crawler_false(ua):
@@ -297,11 +363,7 @@ def test_signals_url_in_ua():
     assert "url_in_ua" in crawler_signals("Feed - http://example.com")
 
 
-_FIXTURES = Path(__file__).parent / "fixtures"
-
-
-def _load(name: str) -> list[str]:
-    return [l.strip() for l in (_FIXTURES / name).read_text().splitlines() if l.strip()]
+# --- crawler_name ---
 
 
 @pytest.mark.parametrize(
@@ -374,262 +436,11 @@ def test_crawler_name_prefix_bare_eof():
     assert crawler_name("BotName") == "BotName"
 
 
-@pytest.mark.parametrize(
-    ("ua", "expected"),
-    [
-        ("curl/7.64.1", "7.64.1"),
-        (
-            "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.3478.1649 "
-            "Mobile Safari/537.36; Bytespider",
-            None,
-        ),
-        ("Mozilla/5.0 (compatible; Miniflux/2.0.10; +https://miniflux.net)", "2.0.10"),
-        (
-            "Mozilla/5.0 (compatibl$; Miniflux/2.0.x-dev; +https://miniflux.app)",
-            "2.0.x-dev",
-        ),
-        ("Googlebot/2.1 (+http://www.google.com/bot.html)", "2.1"),
-        (
-            "Mozilla/5.0 (compatible; heritrix/3.1.1 +http://places.tomtom.com/crawlerinfo)",
-            "3.1.1",
-        ),
-        (
-            "Mozilla/5.0 (compatible; Daum/4.1; +http://cs.daum.net/faq/15/4118.html)",
-            "4.1",
-        ),
-        ("Mozilla/5.0 (compatible; AndersPinkBot/1.0; +http://anderspink.com)", "1.0"),
-        ("Mozilla/5.0 (compatible; WPScan; +https://wpscan.com/scanner)", None),
-    ],
-)
-def test_crawler_version_expected(ua, expected):
-    assert crawler_version(ua) == expected
-
-
-def test_crawler_version_non_mozilla_no_slash():
-    assert crawler_version("curl") is None
-
-
-def test_crawler_version_empty():
-    assert crawler_version("") is None
-
-
-def test_crawler_version_compat_no_alpha_start_falls_through():
-    assert crawler_version("Mozilla/5.0 (compatible; 1bad/2.0)") == "2.0"
-
-
 def test_crawler_name_prefix_odd_trailing_char_falls_back():
     assert crawler_name("BotName!x") == "BotName!x"
 
 
-def test_crawler_version_mozilla_trailing_slash():
-    assert crawler_version("Mozilla/5.0 FooBot/") is None
-
-
-def test_crawler_url_plus_http():
-    assert (
-        crawler_url("Googlebot/2.1 (+http://www.google.com/bot.html)")
-        == "http://www.google.com/bot.html"
-    )
-
-
-def test_crawler_url_space_dash():
-    assert (
-        crawler_url("Feed - http://www.example.com/site/0")
-        == "http://www.example.com/site/0"
-    )
-
-
-def test_crawler_url_https_leading():
-    assert crawler_url("https://example.com/bot") == "https://example.com/bot"
-
-
-def test_crawler_url_none_when_embedded():
-    assert (
-        crawler_url("Mozilla/5.0 (Windows NT 10.0; Win64) Chrome/120.0 Safari/537.36")
-        is None
-    )
-
-
-def test_crawler_url_none_when_mid_word():
-    assert crawler_url("see http://example.com for info") is None
-
-
-@pytest.mark.parametrize("ua", _load("crawler_user_agents.txt"))
-def test_fixture_crawler_detected(ua):
-    assert is_crawler(ua) is True
-
-
-@pytest.mark.parametrize("ua", _load("browser_user_agents.txt"))
-def test_fixture_browser_not_detected(ua):
-    assert is_crawler(ua) is False
-
-
-# --- parity with regex-based tests from test_is_crawler.py ---
-
-
-@pytest.mark.parametrize(
-    "ua",
-    [
-        "Googlebot/2.1 (+http://www.google.com/bot.html)",
-        "Mozilla/5.0 (compatible; bingbot/2.0)",
-        "Apache-HttpClient/4.5 (crawling service)",
-        "MySpider/1.0",
-        "web-scraper/0.3",
-        "DataFetcher/1.0",
-        "PortScanner/2.0",
-        "site-indexer v3",
-        "LinkPreview/1.0",
-        "Slurp/3.0",
-        "archive.org_bot/1.0",
-        "HeadlessChrome/90.0",
-        "SomeBot (+https://example.com)",
-        "checker (+http://example.com/info)",
-        "agent@crawler.example.com",
-    ],
-)
-def test_parity_bot_signal_detected(ua):
-    assert is_crawler(ua) is True
-
-
-@pytest.mark.parametrize(
-    "ua",
-    [
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
-        "Mozilla/5.0 (X11; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0",
-        "Opera/9.80 (Windows NT 6.1) Presto/2.12.388 Version/12.18",
-        "Links (2.28; Linux x86_64; GNU C)",
-        "Lynx/2.8.9rel.1 libwww-FM/2.14",
-    ],
-)
-def test_parity_real_browser_not_crawler(ua):
-    assert is_crawler(ua) is False
-
-
-@pytest.mark.parametrize(
-    "ua",
-    [
-        "curl/7.68.0",
-        "python-requests/2.28.0",
-        "Java/1.8.0_292",
-        "",
-    ],
-)
-def test_parity_no_browser_sign_is_crawler(ua):
-    assert is_crawler(ua) is True
-
-
-@pytest.mark.parametrize(
-    "ua",
-    [
-        "Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)",
-        "Mozilla/5.0 (compatible; SemrushBot/7; +http://www.semrush.com/bot.html)",
-    ],
-)
-def test_parity_bare_compat_is_crawler(ua):
-    assert is_crawler(ua) is True
-
-
-def test_parity_compat_with_os_not_bare():
-    assert (
-        is_crawler("Mozilla/4.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)")
-        is False
-    )
-
-
-@pytest.mark.parametrize(
-    "ua",
-    [
-        "Mozilla/5.0 (X11; Linux x86_64) Lighthouse",
-        "Mozilla/5.0 (Windows NT 10.0) Playwright/1.40",
-        "Mozilla/5.0 (Windows NT 10.0) Selenium/4.0",
-        "Wget/1.21",
-        "Nikto/2.1.6",
-        "sqlmap/1.7",
-        "Nmap Scripting Engine",
-        "Pingdom.com_bot_version_1.4",
-        "HTTrack/3.49",
-        "Mozilla/5.0 (Windows NT 10.0) Google-Safety/1.0",
-        "Mozilla/5.0 (Windows NT 10.0) Google Favicon",
-        "Mozilla/5.0 (Windows NT 10.0) Google Ads Bot",
-        "Mozilla/5.0 (Windows NT 10.0) Google-Extended",
-        "Mozilla/5.0 (Windows NT 10.0) by example.com crawl",
-        "example.com/crawler",
-        "Mozilla/5.0 (Windows NT 10.0; test-agent) Gecko/20100101",
-    ],
-)
-def test_parity_known_tool_is_crawler(ua):
-    assert is_crawler(ua) is True
-
-
-def test_parity_signals_returns_matched_names():
-    assert "bot_signal" in crawler_signals("Googlebot/2.1")
-    assert "no_browser_signature" in crawler_signals("Googlebot/2.1")
-    assert (
-        crawler_signals(
-            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-            "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        )
-        == []
-    )
-    assert "known_tool" in crawler_signals("Lighthouse")
-    assert "bare_compatible" in crawler_signals("Mozilla/5.0 (compatible; MyBot/1.0)")
-
-
-@pytest.mark.parametrize(
-    ("ua", "expected"),
-    [
-        ("AdsBot-Google (+http://www.google.com/adsbot.html)", "AdsBot-Google"),
-        ("Caliperbot/1.0 (+http://www.conductor.com/caliperbot)", "Caliperbot"),
-        ("AdsBot-Google-Mobile-Apps", "AdsBot-Google-Mobile-Apps"),
-        ("Mozilla/5.0 (compatible; BitSightBot/1.0)", "BitSightBot"),
-        (
-            "Mozilla/5.0 (compatible; YandexVideoParser/1.0; +http://yandex.com/bots)",
-            "YandexVideoParser",
-        ),
-        (
-            "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) Speedy Spider "
-            "(http://www.entireweb.com/about/search_tech/speedy_spider/)",
-            "Speedy Spider",
-        ),
-        (
-            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Ubuntu Chromium/59.0.3071.109 Chrome/59.0.3071.109 Safari/537.36 "
-            "PingdomPageSpeed/1.0 (pingbot/2.0; +http://www.pingdom.com/)",
-            "PingdomPageSpeed",
-        ),
-        (
-            "NewsBlur Feed Fetcher - 1 subscriber - "
-            "http://www.newsblur.com/site/0000000/webpage (Mozilla/5.0 "
-            "(Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 "
-            "(KHTML, like Gecko) Version/14.0.1 Safari/605.1.15)",
-            "NewsBlur Feed Fetcher",
-        ),
-    ],
-)
-def test_parity_crawler_name(ua, expected):
-    assert crawler_name(ua) == expected
-
-
-def test_parity_crawler_url():
-    assert (
-        crawler_url("Googlebot/2.1 (+http://www.google.com/bot.html)")
-        == "http://www.google.com/bot.html"
-    )
-    assert (
-        crawler_url(
-            "NewsBlur Feed Fetcher - 1 subscriber - " "http://www.newsblur.com/site/0"
-        )
-        == "http://www.newsblur.com/site/0"
-    )
-    assert (
-        crawler_url(
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "Chrome/120.0.0.0 Safari/537.36"
-        )
-        is None
-    )
+# --- crawler_version ---
 
 
 @pytest.mark.parametrize(
@@ -666,5 +477,130 @@ def test_parity_crawler_url():
         ),
     ],
 )
-def test_parity_crawler_version(ua, expected):
+def test_crawler_version_expected(ua, expected):
     assert crawler_version(ua) == expected
+
+
+def test_crawler_version_non_mozilla_no_slash():
+    assert crawler_version("curl") is None
+
+
+def test_crawler_version_empty():
+    assert crawler_version("") is None
+
+
+def test_crawler_version_compat_no_alpha_start_falls_through():
+    assert crawler_version("Mozilla/5.0 (compatible; 1bad/2.0)") == "2.0"
+
+
+def test_crawler_version_mozilla_trailing_slash():
+    assert crawler_version("Mozilla/5.0 FooBot/") is None
+
+
+# --- crawler_url ---
+
+
+def test_crawler_url_plus_http():
+    assert (
+        crawler_url("Googlebot/2.1 (+http://www.google.com/bot.html)")
+        == "http://www.google.com/bot.html"
+    )
+
+
+def test_crawler_url_space_dash():
+    assert (
+        crawler_url(
+            "NewsBlur Feed Fetcher - 1 subscriber - http://www.newsblur.com/site/0"
+        )
+        == "http://www.newsblur.com/site/0"
+    )
+
+
+def test_crawler_url_https_leading():
+    assert crawler_url("https://example.com/bot") == "https://example.com/bot"
+
+
+def test_crawler_url_none_when_embedded():
+    assert (
+        crawler_url("Mozilla/5.0 (Windows NT 10.0; Win64) Chrome/120.0 Safari/537.36")
+        is None
+    )
+
+
+def test_crawler_url_none_when_mid_word():
+    assert crawler_url("see http://example.com for info") is None
+
+
+# --- crawler_info ---
+
+
+_GOOGLEBOT = "Googlebot/2.1 (+http://www.google.com/bot.html)"
+_BINGBOT = "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)"
+_LINKEDINBOT = "LinkedInBot/1.0 (compatible; Mozilla/5.0; Jakarta Commons-HttpClient/3.1 +http://www.linkedin.com)"
+
+
+def test_crawler_info_returns_none_for_browser():
+    ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36"
+    assert crawler_info(ua) is None
+
+
+def test_crawler_info_googlebot():
+    info = crawler_info(_GOOGLEBOT)
+    assert info is not None
+    assert info.url == "http://www.google.com/bot.html"
+    assert info.description == "Google's main web crawling bot for search indexing"
+    assert info.tags == ("search-engine",)
+
+
+def test_crawler_info_bingbot():
+    info = crawler_info(_BINGBOT)
+    assert info is not None
+    assert info.url == "http://www.bing.com/bingbot.htm"
+    assert info.description == "Microsoft's web crawling bot for Bing search indexing"
+    assert info.tags == ("search-engine",)
+
+
+def test_crawler_info_linkedinbot():
+    info = crawler_info(_LINKEDINBOT)
+    assert info is not None
+    assert info.url == ""
+    assert (
+        info.description
+        == "LinkedIn's bot for crawling professional content and profiles"
+    )
+    assert info.tags == ("social-preview",)
+
+
+# --- crawler_has_tag ---
+
+
+def test_crawler_has_tag_single_string():
+    assert crawler_has_tag(_GOOGLEBOT, "search-engine") is True
+    assert crawler_has_tag(_GOOGLEBOT, "ai-crawler") is False
+
+
+def test_crawler_has_tag_list():
+    assert crawler_has_tag(_GOOGLEBOT, ["search-engine", "ai-crawler"]) is True
+    assert crawler_has_tag(_GOOGLEBOT, ["ai-crawler", "scanner"]) is False
+
+
+def test_crawler_has_tag_returns_false_for_browser():
+    ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36"
+    assert crawler_has_tag(ua, "search-engine") is False
+
+
+def test_crawler_has_tag_dedup_multi_tag():
+    assert crawler_has_tag("tagoobot/1.0", ["ai-crawler", "search-engine"]) is True
+
+
+# --- fixtures ---
+
+
+@pytest.mark.parametrize("ua", _load("crawler_user_agents.txt"))
+def test_fixture_crawler_detected(ua):
+    assert is_crawler(ua) is True
+
+
+@pytest.mark.parametrize("ua", _load("browser_user_agents.txt"))
+def test_fixture_browser_not_detected(ua):
+    assert is_crawler(ua) is False
