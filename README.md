@@ -2,7 +2,7 @@
 
 # is-crawler
 
-Fast, regex-free crawler detection from user agents. Zero deps, ReDoS-safe heuristics, ~40× faster than alternatives.
+Fast, regex-free crawler detection from user agents. Zero deps, ReDoS-safe heuristics, ~100× faster than alternatives.
 
 [![PyPI](https://img.shields.io/pypi/v/is-crawler?style=flat-square)](https://pypi.org/project/is-crawler/)
 [![Python](https://img.shields.io/pypi/pyversions/is-crawler?style=flat-square)](https://pypi.org/project/is-crawler/)
