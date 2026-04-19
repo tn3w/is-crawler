@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 from is_crawler import (
+    CrawlerInfo,
     __version__,
     _bare_compat,
     _bot_signal,
@@ -13,11 +14,13 @@ from is_crawler import (
     _has_by_domain,
     _known_tool,
     _leading_domain,
+    _robots_name,
     _semicolon_agent,
     _token_after,
     _url_in_ua,
     _word_char,
     _word_ends,
+    build_robots_txt,
     crawler_has_tag,
     crawler_info,
     crawler_name,
@@ -25,6 +28,8 @@ from is_crawler import (
     crawler_url,
     crawler_version,
     is_crawler,
+    iter_crawlers,
+    robots_agents_for_tags,
 )
 
 _FIXTURES = Path(__file__).parent / "fixtures"
@@ -66,6 +71,9 @@ def test_all_exports():
         "is_browser_automation",
         "is_good_crawler",
         "is_bad_crawler",
+        "iter_crawlers",
+        "robots_agents_for_tags",
+        "build_robots_txt",
         "CrawlerInfo",
         "__version__",
     }
@@ -795,3 +803,86 @@ def test_good_bad_on_browser():
     ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36"
     assert is_good_crawler(ua) is False
     assert is_bad_crawler(ua) is False
+
+
+# --- robots.txt helpers ---
+
+
+def test_robots_name_plain():
+    assert _robots_name("Googlebot\\/") == "Googlebot"
+
+
+def test_robots_name_escaped():
+    assert _robots_name("AdsBot-Google([^-]|$)") == "AdsBot-Google"
+
+
+def test_robots_name_charclass():
+    assert _robots_name("[wW]get") == "wget"
+
+
+def test_robots_name_escaped_dot():
+    assert _robots_name("grub\\.org") == "grub.org"
+
+
+def test_robots_name_escaped_parens():
+    assert _robots_name("Mediapartners \\(Googlebot\\)") == "Mediapartners"
+
+
+def test_robots_name_trailing_space():
+    assert _robots_name("webmon ") == "webmon"
+
+
+def test_robots_name_anchored():
+    assert _robots_name("^curl") == "curl"
+
+
+def test_robots_name_drops_urls():
+    assert _robots_name("https://example.com/bot") is None
+
+
+def test_robots_name_empty():
+    assert _robots_name("(compatible)") is None
+
+
+def test_iter_crawlers():
+    items = list(iter_crawlers())
+    assert len(items) > 500
+    info, name = items[0]
+    assert isinstance(info, CrawlerInfo)
+    assert name
+
+
+def test_robots_agents_single_tag():
+    agents = robots_agents_for_tags("search-engine")
+    assert "Googlebot" in agents
+    assert "bingbot" in agents
+    assert agents == sorted(agents)
+
+
+def test_robots_agents_multi_tag():
+    agents = robots_agents_for_tags(["ai-crawler", "scanner"])
+    assert "GPTBot" in agents
+    assert "Nikto" in agents
+
+
+def test_build_robots_txt_disallow():
+    out = build_robots_txt(disallow="ai-crawler")
+    assert "User-agent: GPTBot" in out
+    assert "Disallow: /" in out
+    assert out.endswith("\n")
+
+
+def test_build_robots_txt_allow_path():
+    out = build_robots_txt(allow="search-engine", path="/public")
+    assert "User-agent: Googlebot" in out
+    assert "Allow: /public" in out
+
+
+def test_build_robots_txt_both():
+    out = build_robots_txt(disallow="scanner", allow="search-engine")
+    assert "Disallow: /" in out
+    assert "Allow: /" in out
+
+
+def test_build_robots_txt_empty():
+    assert build_robots_txt() == ""

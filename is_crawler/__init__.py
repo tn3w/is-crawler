@@ -32,6 +32,9 @@ __all__ = [
     "is_browser_automation",
     "is_good_crawler",
     "is_bad_crawler",
+    "iter_crawlers",
+    "robots_agents_for_tags",
+    "build_robots_txt",
     "CrawlerInfo",
     "__version__",
 ]
@@ -395,6 +398,54 @@ def is_good_crawler(user_agent: str) -> bool:
 
 def is_bad_crawler(user_agent: str) -> bool:
     return crawler_has_tag(user_agent, _BAD_TAGS)
+
+
+_ROBOTS_CHARCLASS = _re.compile(r"\[([^\]]+)\]")
+_ROBOTS_ESCAPE = _re.compile(r"\\(.)")
+_ROBOTS_META = _re.compile(r"[(|$?*+]")
+
+
+def _robots_name(pattern: str) -> str | None:
+    name = _ROBOTS_CHARCLASS.sub(lambda m: m.group(1)[0], pattern)
+    name = _ROBOTS_ESCAPE.sub(r"\1", name).lstrip("^")
+    name = _ROBOTS_META.split(name)[0].strip("/-. \t")
+    if not name or "://" in name or "/" in name:
+        return None
+    return name
+
+
+def iter_crawlers() -> Iterable[tuple[CrawlerInfo, str]]:
+    for chunk in _load_chunks():
+        for pattern, url, description, tags in chunk.rows:
+            name = _robots_name(pattern)
+            if name:
+                yield CrawlerInfo(url, description, tuple(tags)), name
+
+
+def robots_agents_for_tags(tags: str | Iterable[str]) -> list[str]:
+    wanted = {tags} if isinstance(tags, str) else set(tags)
+    seen: set[str] = set()
+    for info, name in iter_crawlers():
+        if wanted & set(info.tags) and name not in seen:
+            seen.add(name)
+    return sorted(seen)
+
+
+def build_robots_txt(
+    disallow: str | Iterable[str] = (),
+    allow: str | Iterable[str] = (),
+    path: str = "/",
+) -> str:
+    disallow_tags = {disallow} if isinstance(disallow, str) else set(disallow)
+    allow_tags = {allow} if isinstance(allow, str) else set(allow)
+
+    blocks = []
+    for agent in robots_agents_for_tags(disallow_tags) if disallow_tags else []:
+        blocks.append(f"User-agent: {agent}\nDisallow: {path}")
+    for agent in robots_agents_for_tags(allow_tags) if allow_tags else []:
+        blocks.append(f"User-agent: {agent}\nAllow: {path}")
+
+    return "\n\n".join(blocks) + "\n" if blocks else ""
 
 
 def _name_chars_end(s: str, start: int) -> int:

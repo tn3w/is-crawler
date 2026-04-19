@@ -149,6 +149,33 @@ def gate():
         log_crawler(ua)
 ```
 
+### `robots.txt` helpers
+
+Generate directives from DB tags. Names extracted from DB patterns (slash/URL-only entries skipped).
+
+```python
+from is_crawler import build_robots_txt, robots_agents_for_tags, iter_crawlers
+
+robots_agents_for_tags("ai-crawler")
+# ['AI2Bot', 'Applebot-Extended', 'Bytespider', 'CCBot', 'ChatGPT-User', 'Claude-Web', 'GPTBot', ...]
+
+print(build_robots_txt(disallow=["ai-crawler", "scanner"]))
+# User-agent: GPTBot
+# Disallow: /
+#
+# User-agent: Nikto
+# Disallow: /
+# ...
+
+build_robots_txt(allow="search-engine", path="/public")
+# User-agent: Googlebot
+# Allow: /public
+# ...
+
+for info, name in iter_crawlers():      # (CrawlerInfo, robots-name) per DB entry
+    ...
+```
+
 ### CLI
 
 ```bash
