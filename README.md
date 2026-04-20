@@ -91,7 +91,7 @@ URL embedded in the UA (after `+`, `;`, or `-`).
 
 ### `crawler_info(ua: str) -> CrawlerInfo | None`
 
-DB lookup against 646 known crawler patterns. Returns `None` for browsers (short-circuits via `is_crawler`).
+DB lookup against 1200 known crawler patterns. Returns `None` for browsers (short-circuits via `is_crawler`).
 
 ```python
 class CrawlerInfo(NamedTuple):

@@ -6,7 +6,7 @@ on:
     - cron: '0 4 * * 1'
   push:
     paths:
-      - 'tools/crawler-user-agents-flags.json'
+      - 'tools/extra-crawler-user-agents.json'
       - 'tools/build_db.py'
   workflow_dispatch:
 
