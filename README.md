@@ -11,8 +11,6 @@ Fast, regex-free crawler detection from user agents. Zero deps, ReDoS-safe heuri
 [![Downloads](https://img.shields.io/pypi/dm/is-crawler?style=flat-square)](https://pypi.org/project/is-crawler/)
 [![Buy Me a Coffee](https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow?style=flat-square)](https://www.buymeacoffee.com/tn3w)
 
-**Docs & live demo:** [is-crawler.tn3w.dev](https://is-crawler.tn3w.dev)
-
 </div>
 
 ## Why regex-free?

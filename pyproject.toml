@@ -1,6 +1,6 @@
 [project]
 name = "is-crawler"
-version = "1.4.7"
+version = "1.4.8"
 description = "Fast, regex-free crawler detection from user agents. Zero deps, ReDoS-safe heuristics, ~100× faster than alternatives."
 readme = "README.md"
 authors = [
@@ -34,7 +34,7 @@ dev = ["pytest", "pytest-cov"]
 is-crawler = "is_crawler.__main__:main"
 
 [project.urls]
-Homepage = "https://is-crawler.tn3w.dev"
+Homepage = "https://github.com/tn3w/is-crawler"
 Repository = "https://github.com/tn3w/is-crawler.git"
 Issues = "https://github.com/tn3w/is-crawler/issues"
 Funding = "https://www.buymeacoffee.com/tn3w"
