@@ -192,7 +192,7 @@ reverse_dns("8.8.8.8")                                       # 'dns.google'
 forward_confirmed_rdns("66.249.66.1", (".googlebot.com",))   # hostname or None
 ```
 
-Built-in suffixes: Googlebot/AdsBot/Google-\*, Bingbot/MSNBot, Applebot, DuckDuckBot, YandexBot, Baiduspider, FacebookBot, PetalBot, Qwantbot, Yeti. Crawler name taken from `crawler_name(ua)`.
+Built-in suffixes: Googlebot, Bingbot, Applebot, DuckDuckBot, YandexBot, Baiduspider, FacebookBot, and 80+ more. Crawler name taken from `crawler_name(ua)`.
 
 ### CLI
 
