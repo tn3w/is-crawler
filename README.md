@@ -9,6 +9,7 @@ Fast, regex-free crawler detection from user agents. Zero deps, ReDoS-safe heuri
 [![License](https://img.shields.io/github/license/tn3w/is-crawler?style=flat-square)](https://github.com/tn3w/is-crawler/blob/main/LICENSE)
 [![Stars](https://img.shields.io/github/stars/tn3w/is-crawler?style=flat-square)](https://github.com/tn3w/is-crawler/stargazers)
 [![Downloads](https://img.shields.io/pypi/dm/is-crawler?style=flat-square)](https://pypi.org/project/is-crawler/)
+[![Buy Me a Coffee](https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow?style=flat-square)](https://www.buymeacoffee.com/tn3w)
 
 **Docs & live demo:** [is-crawler.tn3w.dev](https://is-crawler.tn3w.dev)
 
@@ -233,6 +234,18 @@ pip install black isort
 isort . && black .
 npx prtfm
 ```
+
+## Contributing
+
+Bug reports, feature requests, and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
+
+## Security
+
+Report vulnerabilities via [GitHub private security advisory](https://github.com/tn3w/is-crawler/security), **do not open a public issue**. See [SECURITY.md](SECURITY.md).
+
+## Code of Conduct
+
+See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
 ## License
 
