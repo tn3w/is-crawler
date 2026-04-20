@@ -14,7 +14,12 @@ Contributions welcome — bug reports, feature requests, and pull requests all a
 
 1. Fork the repo and create a branch from `master`
 2. Follow the existing code style (max 90 chars/line, no comments, early returns)
-3. Format before submitting: `isort . && black .`
+3. Format before submitting:
+    ```bash
+    pip install black isort
+    isort . && black .
+    npx prtfm
+    ```
 4. Describe what changed and why in the PR description
 
 ## Crawler DB

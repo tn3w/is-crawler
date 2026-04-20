@@ -2,7 +2,7 @@
 
 # is-crawler
 
-Fast, regex-free crawler detection from user agents. Zero deps, ReDoS-safe heuristics, ~100× faster than alternatives.
+Fast, regex-free crawler detection from user agents. Zero deps, ReDoS-safe heuristics, ~100× faster than alternatives. Includes FCrDNS IP verification for 100+ known crawlers.
 
 [![PyPI](https://img.shields.io/pypi/v/is-crawler?style=flat-square)](https://pypi.org/project/is-crawler/)
 [![Python](https://img.shields.io/pypi/pyversions/is-crawler?style=flat-square)](https://pypi.org/project/is-crawler/)
@@ -176,6 +176,23 @@ build_robots_txt(allow="search-engine", path="/public")
 for info, name in iter_crawlers():      # (CrawlerInfo, robots-name) per DB entry
     ...
 ```
+
+### IP verification (`is_crawler.ip`)
+
+Forward-confirmed reverse DNS (FCrDNS). rDNS → suffix check → forward lookup → IP match. Catches UA spoofing. `socket` only, no deps.
+
+```python
+from is_crawler.ip import verify_crawler_ip, forward_confirmed_rdns, reverse_dns
+
+verify_crawler_ip("Googlebot/2.1 (+http://www.google.com/bot.html)", "66.249.66.1")
+# True → rDNS ends in .googlebot.com AND forward lookup returns same IP
+
+verify_crawler_ip("Googlebot/2.1", "8.8.8.8")               # False (spoof)
+reverse_dns("8.8.8.8")                                       # 'dns.google'
+forward_confirmed_rdns("66.249.66.1", (".googlebot.com",))   # hostname or None
+```
+
+Built-in suffixes: Googlebot/AdsBot/Google-\*, Bingbot/MSNBot, Applebot, DuckDuckBot, YandexBot, Baiduspider, FacebookBot, PetalBot, Qwantbot, Yeti. Crawler name taken from `crawler_name(ua)`.
 
 ### CLI
 
