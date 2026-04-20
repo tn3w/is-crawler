@@ -490,7 +490,7 @@ def iter_crawlers() -> Iterable[tuple[CrawlerInfo, str]]:
         for pattern, url, description, tags in chunk.rows:
             name = _robots_name(pattern)
             if name:
-                yield CrawlerInfo(url, description, tuple(tags)), name
+                yield CrawlerInfo(url, description, tuple(tags or ())), name
 
 
 def robots_agents_for_tags(tags: str | Iterable[str]) -> list[str]:
