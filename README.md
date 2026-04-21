@@ -30,14 +30,17 @@ from is_crawler import (
     is_crawler, crawler_signals, crawler_info, crawler_has_tag,
     crawler_name, crawler_version, crawler_url, CrawlerInfo,
 )
+from is_crawler.ip import verify_crawler_ip
 
 ua = "Googlebot/2.1 (+http://www.google.com/bot.html)"
+ip = "66.249.66.1"
 
 is_crawler(ua)                              # True
 crawler_signals(ua)                         # ['bot_signal', 'no_browser_signature', 'url_in_ua']
 crawler_name(ua)                            # 'Googlebot'
 crawler_version(ua)                         # '2.1'
 crawler_url(ua)                             # 'http://www.google.com/bot.html'
+verify_crawler_ip(ua, ip)                   # True - FCrDNS validation
 
 info = crawler_info(ua)                     # CrawlerInfo(...)
 if info is not None:
@@ -137,16 +140,35 @@ Opinionated groupings for quick allow/deny gates.
 ### Middleware
 
 ```python
-from is_crawler import is_crawler, crawler_has_tag
+from is_crawler.contrib import WSGICrawlerMiddleware
 
-@app.before_request
-def gate():
-    ua = request.headers.get("User-Agent", "")
-    if crawler_has_tag(ua, "ai-crawler"):
-        abort(403)
-    if is_crawler(ua):
-        log_crawler(ua)
+app = WSGICrawlerMiddleware(app)
+
+# Flask
+request.environ["is_crawler"].is_crawler
+
+# Django
+request.META["is_crawler"].name
 ```
+
+```python
+from is_crawler.contrib import ASGICrawlerMiddleware
+
+app = ASGICrawlerMiddleware(app, block=True, block_tags="ai-crawler")
+
+# FastAPI / Starlette
+request.scope["is_crawler"].is_crawler
+request.state.crawler.verified
+```
+
+Both middlewares are zero-dep. They attach `CrawlerMiddlewareResult` with
+`user_agent`, `ip`, `is_crawler`, `name`, and `verified`.
+
+- `WSGICrawlerMiddleware`: Flask, Django, any WSGI app
+- `ASGICrawlerMiddleware`: FastAPI, Starlette, any ASGI app
+
+Optional flags: `block=True`, `block_tags=...`, `verify_ip=True`,
+`trust_forwarded=True`.
 
 ### `robots.txt` helpers
 
