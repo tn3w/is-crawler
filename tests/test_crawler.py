@@ -674,6 +674,13 @@ def test_iter_inputs_stdin():
     assert items == ["BotA", "BotB", "BotC"]
 
 
+def test_iter_inputs_stdin_crlf_and_whitespace():
+    fake_stdin = io.StringIO("BotA\r\n  \r\n BotB \r\n")
+    with patch("sys.stdin", fake_stdin):
+        items = list(_iter_inputs(["prog"]))
+    assert items == ["BotA", "BotB"]
+
+
 def test_main_argv(capsys):
     with patch("sys.argv", ["prog", _GOOGLEBOT]):
         result = main()
@@ -703,6 +710,16 @@ def test_main_stdin_multiple(capsys):
     assert len(lines) == 2
     assert json.loads(lines[0])["is_crawler"] is True
     assert json.loads(lines[1])["is_crawler"] is False
+
+
+def test_main_stdin_crlf(capsys):
+    fake_stdin = io.StringIO(_GOOGLEBOT + "\r\n")
+    with patch("sys.argv", ["prog"]), patch("sys.stdin", fake_stdin):
+        result = main()
+    assert result == 0
+    out = capsys.readouterr().out
+    data = json.loads(out.strip())
+    assert data["name"] == "Googlebot"
 
 
 # --- category shortcuts ---

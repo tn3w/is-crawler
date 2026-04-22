@@ -32,7 +32,7 @@ def _iter_inputs(argv: list[str]):
         return
 
     for line in sys.stdin:
-        line = line.rstrip("\n")
+        line = line.strip()
         if line:
             yield line
 
