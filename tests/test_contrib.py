@@ -6,9 +6,9 @@ from is_crawler.contrib import (
     CrawlerMiddlewareResult,
     WSGICrawlerMiddleware,
     _first_forwarded_ip,
-    _should_block,
     _scope_header,
     _scope_ip,
+    _should_block,
     _to_tags,
     _wsgi_ip,
 )

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ipaddress
 import json
 import socket
 from functools import lru_cache
@@ -43,10 +44,21 @@ def _domains_for(name: str) -> tuple[str, ...] | None:
     return mapping.get(base)
 
 
+def _normalized_ip(ip: str) -> str | None:
+    try:
+        return str(ipaddress.ip_address(ip.strip()))
+    except ValueError:
+        return None
+
+
 @lru_cache(maxsize=_CACHE)
 def reverse_dns(ip: str) -> str | None:
+    normalized_ip = _normalized_ip(ip)
+    if normalized_ip is None:
+        return None
+
     try:
-        host, _, _ = socket.gethostbyaddr(ip)
+        host, _, _ = socket.gethostbyaddr(normalized_ip)
     except (OSError, socket.herror):
         return None
     return host.lower().rstrip(".")
@@ -62,14 +74,18 @@ def _forward_ips(host: str) -> frozenset[str]:
 
 
 def forward_confirmed_rdns(ip: str, suffixes: tuple[str, ...]) -> str | None:
-    host = reverse_dns(ip)
+    normalized_ip = _normalized_ip(ip)
+    if normalized_ip is None:
+        return None
+
+    host = reverse_dns(normalized_ip)
     if not host:
         return None
 
     if not any(host == s.lstrip(".") or host.endswith(s) for s in suffixes):
         return None
 
-    return host if ip in _forward_ips(host) else None
+    return host if normalized_ip in _forward_ips(host) else None
 
 
 def verify_crawler_ip(user_agent: str, ip: str) -> bool:
@@ -77,8 +93,12 @@ def verify_crawler_ip(user_agent: str, ip: str) -> bool:
     if not name:
         return False
 
+    normalized_ip = _normalized_ip(ip)
+    if normalized_ip is None:
+        return False
+
     suffixes = _domains_for(name)
     if not suffixes:
         return False
 
-    return forward_confirmed_rdns(ip, suffixes) is not None
+    return forward_confirmed_rdns(normalized_ip, suffixes) is not None

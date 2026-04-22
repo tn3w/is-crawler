@@ -134,6 +134,19 @@ def test_reverse_dns_herror_returns_none():
         assert reverse_dns("0.0.0.1") is None
 
 
+def test_reverse_dns_invalid_ip_returns_none_without_lookup():
+    reverse_dns.cache_clear()
+    with patch("socket.gethostbyaddr") as lookup:
+        assert reverse_dns("not-an-ip") is None
+    lookup.assert_not_called()
+
+
+def test_reverse_dns_strips_ip_whitespace():
+    with patch("socket.gethostbyaddr", return_value=("host.googlebot.com", [], [])):
+        reverse_dns.cache_clear()
+        assert reverse_dns(" 1.2.3.4 \n") == "host.googlebot.com"
+
+
 # --- _forward_ips ---
 
 
@@ -237,6 +250,14 @@ def test_forward_confirmed_rdns_exact_suffix_match():
     ):
         result = forward_confirmed_rdns("5.5.5.5", (".googlebot.com",))
     assert result == "googlebot.com"
+
+
+def test_forward_confirmed_rdns_invalid_ip_returns_none_without_lookup():
+    reverse_dns.cache_clear()
+    with patch("socket.gethostbyaddr") as lookup:
+        result = forward_confirmed_rdns("not-an-ip", (".googlebot.com",))
+    assert result is None
+    lookup.assert_not_called()
 
 
 # --- verify_crawler_ip ---
@@ -380,6 +401,31 @@ def test_verify_crawler_ip_empty_ua():
 
 def test_verify_crawler_ip_unknown_crawler_no_rdns_mapping():
     assert verify_crawler_ip("UnknownSpecialCrawler/1.0", "1.2.3.4") is False
+
+
+def test_verify_crawler_ip_invalid_ip_returns_false_without_lookup():
+    reverse_dns.cache_clear()
+    with patch("socket.gethostbyaddr") as lookup:
+        assert verify_crawler_ip(_GOOGLEBOT_UA, "not-an-ip") is False
+    lookup.assert_not_called()
+
+
+def test_verify_crawler_ip_accepts_ip_whitespace():
+    reverse_dns.cache_clear()
+    _forward_ips.cache_clear()
+    with (
+        patch(
+            "socket.gethostbyaddr",
+            return_value=("crawl-66-249-66-1.googlebot.com", [], ["66.249.66.1"]),
+        ),
+        patch(
+            "socket.getaddrinfo",
+            return_value=[
+                (socket.AF_INET, socket.SOCK_STREAM, 0, "", ("66.249.66.1", 0)),
+            ],
+        ),
+    ):
+        assert verify_crawler_ip(_GOOGLEBOT_UA, " 66.249.66.1 ") is True
 
 
 def test_verify_crawler_ip_duckduckbot():
