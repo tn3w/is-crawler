@@ -73,6 +73,11 @@ def _wsgi_ip(environ: dict[str, Any], trust_forwarded: bool) -> str | None:
         ip = _first_forwarded_ip(environ.get("HTTP_X_FORWARDED_FOR"))
         if ip:
             return ip
+
+        ip = _first_forwarded_ip(environ.get("HTTP_X_REAL_IP"))
+        if ip:
+            return ip
+
     return _first_forwarded_ip(environ.get("REMOTE_ADDR"))
 
 
@@ -88,6 +93,10 @@ def _scope_header(scope: dict[str, Any], name: bytes) -> str:
 def _scope_ip(scope: dict[str, Any], trust_forwarded: bool) -> str | None:
     if trust_forwarded:
         ip = _first_forwarded_ip(_scope_header(scope, b"x-forwarded-for"))
+        if ip:
+            return ip
+
+        ip = _first_forwarded_ip(_scope_header(scope, b"x-real-ip"))
         if ip:
             return ip
 

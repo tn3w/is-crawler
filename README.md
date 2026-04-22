@@ -171,7 +171,7 @@ Optional flags: `block=True`, `block_tags=...`, `verify_ip=True`,
 `trust_forwarded=True`.
 
 With `trust_forwarded=True`, middleware uses the first IP from
-`X-Forwarded-For` before the direct client address.
+`X-Forwarded-For`, then `X-Real-IP`, before the direct client address.
 
 ### `robots.txt` helpers
 

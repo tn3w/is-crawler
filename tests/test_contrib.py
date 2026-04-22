@@ -37,6 +37,14 @@ def test_wsgi_ip_prefers_forwarded_when_trusted():
     assert _wsgi_ip(environ, True) == "1.2.3.4"
 
 
+def test_wsgi_ip_falls_back_to_x_real_ip_when_trusted():
+    environ = {
+        "HTTP_X_REAL_IP": "1.2.3.4",
+        "REMOTE_ADDR": "9.9.9.9",
+    }
+    assert _wsgi_ip(environ, True) == "1.2.3.4"
+
+
 def test_wsgi_ip_falls_back_to_remote_addr():
     assert _wsgi_ip({"REMOTE_ADDR": "9.9.9.9"}, False) == "9.9.9.9"
 
@@ -63,6 +71,16 @@ def test_scope_ip_forwarded_client_and_none():
         "client": ("9.9.9.9", 1234),
     }
     assert _scope_ip(forwarded, True) == "1.2.3.4"
+    assert (
+        _scope_ip(
+            {
+                "headers": [(b"x-real-ip", b"1.2.3.4")],
+                "client": ("9.9.9.9", 1234),
+            },
+            True,
+        )
+        == "1.2.3.4"
+    )
     assert _scope_ip({"client": ("9.9.9.9", 1234)}, False) == "9.9.9.9"
     assert _scope_ip({}, False) is None
 
@@ -131,6 +149,26 @@ def test_wsgi_middleware_verify_ip_skips_blank_remote_addr():
         )
 
     verify.assert_not_called()
+
+
+def test_wsgi_middleware_uses_x_real_ip_for_verification():
+    middleware = WSGICrawlerMiddleware(
+        lambda environ, start_response: [b"ok"],
+        verify_ip=True,
+        trust_forwarded=True,
+    )
+
+    with patch("is_crawler.contrib.verify_crawler_ip", return_value=True) as verify:
+        middleware(
+            {
+                "HTTP_USER_AGENT": _BOT,
+                "HTTP_X_REAL_IP": "66.249.66.1",
+                "REMOTE_ADDR": "10.0.0.1",
+            },
+            lambda status, headers: None,
+        )
+
+    verify.assert_called_once_with(_BOT, "66.249.66.1")
 
 
 def test_wsgi_middleware_blocks_matching_tags():
@@ -236,6 +274,44 @@ def test_asgi_middleware_reads_mixed_case_headers():
                     "headers": [
                         (b"User-Agent", _BOT.encode()),
                         (b"X-Forwarded-For", b"66.249.66.1, 10.0.0.1"),
+                    ],
+                    "client": ("10.0.0.1", 1234),
+                },
+                receive,
+                send,
+            )
+        )
+
+    verify.assert_called_once_with(_BOT, "66.249.66.1")
+    assert sent[-1] == {"type": "http.response.body", "body": b"ok"}
+    assert seen["scope"]["is_crawler"].ip == "66.249.66.1"
+
+
+def test_asgi_middleware_uses_x_real_ip():
+    sent = []
+    seen = {}
+
+    async def app(scope, receive, send):
+        seen["scope"] = scope
+        await send({"type": "http.response.start", "status": 200, "headers": []})
+        await send({"type": "http.response.body", "body": b"ok"})
+
+    middleware = ASGICrawlerMiddleware(app, trust_forwarded=True, verify_ip=True)
+
+    async def receive():
+        return {"type": "http.request"}
+
+    async def send(message):
+        sent.append(message)
+
+    with patch("is_crawler.contrib.verify_crawler_ip", return_value=True) as verify:
+        asyncio.run(
+            middleware(
+                {
+                    "type": "http",
+                    "headers": [
+                        (b"user-agent", _BOT.encode()),
+                        (b"x-real-ip", b"66.249.66.1"),
                     ],
                     "client": ("10.0.0.1", 1234),
                 },
