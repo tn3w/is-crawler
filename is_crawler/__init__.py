@@ -509,11 +509,16 @@ def build_robots_txt(
 ) -> str:
     disallow_tags = {disallow} if isinstance(disallow, str) else set(disallow)
     allow_tags = {allow} if isinstance(allow, str) else set(allow)
+    disallow_agents = robots_agents_for_tags(disallow_tags) if disallow_tags else []
+    allow_agents = robots_agents_for_tags(allow_tags) if allow_tags else []
+    blocked = set(disallow_agents)
 
     blocks = []
-    for agent in robots_agents_for_tags(disallow_tags) if disallow_tags else []:
+    for agent in disallow_agents:
         blocks.append(f"User-agent: {agent}\nDisallow: {path}")
-    for agent in robots_agents_for_tags(allow_tags) if allow_tags else []:
+    for agent in allow_agents:
+        if agent in blocked:
+            continue
         blocks.append(f"User-agent: {agent}\nAllow: {path}")
 
     return "\n\n".join(blocks) + "\n" if blocks else ""

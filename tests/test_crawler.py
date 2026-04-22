@@ -901,5 +901,15 @@ def test_build_robots_txt_both():
     assert "Allow: /" in out
 
 
+def test_build_robots_txt_disallow_precedence_on_overlap():
+    out = build_robots_txt(
+        disallow=["ai-crawler", "scanner"],
+        allow=["ai-crawler", "search-engine"],
+    )
+    assert out.count("User-agent: GPTBot\n") == 1
+    assert "User-agent: GPTBot\nDisallow: /\n" in out
+    assert "User-agent: GPTBot\nAllow: /\n" not in out
+
+
 def test_build_robots_txt_empty():
     assert build_robots_txt() == ""
