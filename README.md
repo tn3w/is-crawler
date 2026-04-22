@@ -170,6 +170,9 @@ Both middlewares are zero-dep. They attach `CrawlerMiddlewareResult` with
 Optional flags: `block=True`, `block_tags=...`, `verify_ip=True`,
 `trust_forwarded=True`.
 
+With `trust_forwarded=True`, middleware uses the first IP from
+`X-Forwarded-For` before the direct client address.
+
 ### `robots.txt` helpers
 
 Generate directives from DB tags. Names extracted from DB patterns (slash/URL-only entries skipped).

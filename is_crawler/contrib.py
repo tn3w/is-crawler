@@ -78,8 +78,9 @@ def _wsgi_ip(environ: dict[str, Any], trust_forwarded: bool) -> str | None:
 
 def _scope_header(scope: dict[str, Any], name: bytes) -> str:
     headers = scope.get("headers") or ()
+    target = name.lower()
     for key, value in headers:
-        if key == name:
+        if key.lower() == target:
             return value.decode("latin1")
     return ""
 

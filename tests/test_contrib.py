@@ -47,6 +47,11 @@ def test_scope_header_match_and_miss():
     assert _scope_header(scope, b"x-forwarded-for") == ""
 
 
+def test_scope_header_case_insensitive():
+    scope = {"headers": [(b"User-Agent", b"Googlebot/2.1")]}
+    assert _scope_header(scope, b"user-agent") == "Googlebot/2.1"
+
+
 def test_scope_ip_forwarded_client_and_none():
     forwarded = {
         "headers": [(b"x-forwarded-for", b"1.2.3.4, 5.6.7.8")],
@@ -181,6 +186,44 @@ def test_asgi_middleware_passes_through_and_sets_state():
     assert sent[-1] == {"type": "http.response.body", "body": b"ok"}
     assert seen["scope"]["is_crawler"].verified is True
     assert seen["scope"]["state"]["crawler"].name == "Googlebot"
+
+
+def test_asgi_middleware_reads_mixed_case_headers():
+    sent = []
+    seen = {}
+
+    async def app(scope, receive, send):
+        seen["scope"] = scope
+        await send({"type": "http.response.start", "status": 200, "headers": []})
+        await send({"type": "http.response.body", "body": b"ok"})
+
+    middleware = ASGICrawlerMiddleware(app, trust_forwarded=True, verify_ip=True)
+
+    async def receive():
+        return {"type": "http.request"}
+
+    async def send(message):
+        sent.append(message)
+
+    with patch("is_crawler.contrib.verify_crawler_ip", return_value=True) as verify:
+        asyncio.run(
+            middleware(
+                {
+                    "type": "http",
+                    "headers": [
+                        (b"User-Agent", _BOT.encode()),
+                        (b"X-Forwarded-For", b"66.249.66.1, 10.0.0.1"),
+                    ],
+                    "client": ("10.0.0.1", 1234),
+                },
+                receive,
+                send,
+            )
+        )
+
+    verify.assert_called_once_with(_BOT, "66.249.66.1")
+    assert sent[-1] == {"type": "http.response.body", "body": b"ok"}
+    assert seen["scope"]["is_crawler"].ip == "66.249.66.1"
 
 
 def test_asgi_middleware_block_and_custom_keys():
