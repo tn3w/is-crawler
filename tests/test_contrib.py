@@ -41,6 +41,11 @@ def test_wsgi_ip_falls_back_to_remote_addr():
     assert _wsgi_ip({"REMOTE_ADDR": "9.9.9.9"}, False) == "9.9.9.9"
 
 
+def test_wsgi_ip_normalizes_remote_addr():
+    assert _wsgi_ip({"REMOTE_ADDR": " 9.9.9.9 "}, False) == "9.9.9.9"
+    assert _wsgi_ip({"REMOTE_ADDR": "   "}, False) is None
+
+
 def test_scope_header_match_and_miss():
     scope = {"headers": [(b"user-agent", b"Googlebot/2.1")]}
     assert _scope_header(scope, b"user-agent") == "Googlebot/2.1"
@@ -106,6 +111,24 @@ def test_wsgi_middleware_verify_ip_without_ip_skips_lookup():
 
     with patch("is_crawler.contrib.verify_crawler_ip") as verify:
         middleware({"HTTP_USER_AGENT": _BOT}, lambda status, headers: None)
+
+    verify.assert_not_called()
+
+
+def test_wsgi_middleware_verify_ip_skips_blank_remote_addr():
+    middleware = WSGICrawlerMiddleware(
+        lambda environ, start_response: [b"ok"],
+        verify_ip=True,
+    )
+
+    with patch("is_crawler.contrib.verify_crawler_ip") as verify:
+        middleware(
+            {
+                "HTTP_USER_AGENT": _BOT,
+                "REMOTE_ADDR": "   ",
+            },
+            lambda status, headers: None,
+        )
 
     verify.assert_not_called()
 
