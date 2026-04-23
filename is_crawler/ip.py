@@ -78,6 +78,7 @@ def _domains_for(name: str) -> tuple[str, ...] | None:
     return mapping.get(base)
 
 
+@lru_cache(maxsize=1)
 def _all_domain_suffixes() -> tuple[str, ...]:
     seen: set[str] = set()
     suffixes: list[str] = []

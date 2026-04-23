@@ -1,12 +1,12 @@
 import json
 import socket
-import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
 from is_crawler.ip import (
+    _all_domain_suffixes,
     _domains_for,
     _forward_ips,
     _load_domains,
@@ -332,6 +332,11 @@ def test_forward_confirmed_rdns_invalid_ip_returns_none_without_lookup():
         result = forward_confirmed_rdns("not-an-ip", (".googlebot.com",))
     assert result is None
     lookup.assert_not_called()
+
+
+def test_all_domain_suffixes_cached():
+    _all_domain_suffixes.cache_clear()
+    assert _all_domain_suffixes() is _all_domain_suffixes()
 
 
 # --- ip_in_range / known_crawler_ip ---

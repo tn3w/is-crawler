@@ -214,7 +214,7 @@ for info, name in iter_crawlers():      # (CrawlerInfo, robots-name) per DB entr
 
 ### IP verification (`is_crawler.ip`)
 
-Two complementary strategies — use either or both.
+Two complementary strategies: use either or both.
 
 #### FCrDNS (forward-confirmed reverse DNS)
 
@@ -240,13 +240,13 @@ Check whether an IP belongs to any known crawler's published CIDR range. Require
 ```python
 from is_crawler.ip import ip_in_range, known_crawler_ip, known_crawler_rdns
 
-ip_in_range("66.249.66.1")    # True  — in Googlebot ranges
-ip_in_range("8.8.8.8")        # False — not a known crawler range
+ip_in_range("66.249.66.1")    # True : in Googlebot ranges
+ip_in_range("8.8.8.8")        # False: not a known crawler range
 known_crawler_ip("66.249.66.1")  # alias for ip_in_range
-known_crawler_rdns("66.249.66.1")  # True — reverse DNS matches a known crawler domain
+known_crawler_rdns("66.249.66.1")  # True: reverse DNS matches a known crawler domain
 ```
 
-Results are LRU-cached. The file is optional — if absent, `ip_in_range` returns `False` rather than raising.
+Results are LRU-cached. The file is optional: if absent, `ip_in_range` returns `False` rather than raising.
 
 ### Tools
 
