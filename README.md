@@ -30,26 +30,38 @@ from is_crawler import (
     is_crawler, crawler_signals, crawler_info, crawler_has_tag,
     crawler_name, crawler_version, crawler_url, CrawlerInfo,
 )
-from is_crawler.ip import verify_crawler_ip
+from is_crawler.ip import (
+    verify_crawler_ip,
+    reverse_dns,
+    forward_confirmed_rdns,
+    ip_in_range,
+    known_crawler_ip,
+    known_crawler_rdns,
+)
 
 ua = "Googlebot/2.1 (+http://www.google.com/bot.html)"
 ip = "66.249.66.1"
 
-is_crawler(ua)                              # True
-crawler_signals(ua)                         # ['bot_signal', 'no_browser_signature', 'url_in_ua']
-crawler_name(ua)                            # 'Googlebot'
-crawler_version(ua)                         # '2.1'
-crawler_url(ua)                             # 'http://www.google.com/bot.html'
-verify_crawler_ip(ua, ip)                   # True - FCrDNS validation
+is_crawler(ua)                                  # True
+crawler_signals(ua)                             # ['bot_signal', 'no_browser_signature', 'url_in_ua']
+crawler_name(ua)                                # 'Googlebot'
+crawler_version(ua)                             # '2.1'
+crawler_url(ua)                                 # 'http://www.google.com/bot.html'
+verify_crawler_ip(ua, ip)                       # True - FCrDNS validation
+reverse_dns(ip)                                 # 'crawl-66-249-66-1.googlebot.com'
+forward_confirmed_rdns(ip, (".googlebot.com",)) # hostname or None
+ip_in_range(ip)                                 # True - in known crawler CIDRs
+known_crawler_ip(ip)                            # alias for ip_in_range
+known_crawler_rdns(ip)                          # True - known crawler via FCrDNS/rDNS
 
-info = crawler_info(ua)                     # CrawlerInfo(...)
+info = crawler_info(ua)                         # CrawlerInfo(...)
 if info is not None:
-    info.url                                # 'http://www.google.com/bot.html'
-    info.description                        # "Google's main web crawling bot..."
-    info.tags                               # ('search-engine',)
+    info.url                                    # 'http://www.google.com/bot.html'
+    info.description                            # "Google's main web crawling bot..."
+    info.tags                                   # ('search-engine',)
 
-crawler_has_tag(ua, "search-engine")        # True
-crawler_has_tag(ua, ["ai-crawler", "seo"])  # False
+crawler_has_tag(ua, "search-engine")            # True
+crawler_has_tag(ua, ["ai-crawler", "seo"])      # False
 ```
 
 ## API
@@ -202,7 +214,11 @@ for info, name in iter_crawlers():      # (CrawlerInfo, robots-name) per DB entr
 
 ### IP verification (`is_crawler.ip`)
 
-Forward-confirmed reverse DNS (FCrDNS). rDNS → suffix check → forward lookup → IP match. Catches UA spoofing. `socket` only, no deps.
+Two complementary strategies — use either or both.
+
+#### FCrDNS (forward-confirmed reverse DNS)
+
+rDNS → suffix check → forward lookup → IP match. Catches UA spoofing. `socket` only, no deps.
 
 ```python
 from is_crawler.ip import verify_crawler_ip, forward_confirmed_rdns, reverse_dns
@@ -216,6 +232,45 @@ forward_confirmed_rdns("66.249.66.1", (".googlebot.com",))   # hostname or None
 ```
 
 Built-in suffixes: Googlebot, Bingbot, Applebot, DuckDuckBot, YandexBot, Baiduspider, FacebookBot, and 80+ more. Crawler name taken from `crawler_name(ua)`.
+
+#### IP range lookup
+
+Check whether an IP belongs to any known crawler's published CIDR range. Requires building the range database first (see **Tools** below).
+
+```python
+from is_crawler.ip import ip_in_range, known_crawler_ip, known_crawler_rdns
+
+ip_in_range("66.249.66.1")    # True  — in Googlebot ranges
+ip_in_range("8.8.8.8")        # False — not a known crawler range
+known_crawler_ip("66.249.66.1")  # alias for ip_in_range
+known_crawler_rdns("66.249.66.1")  # True — reverse DNS matches a known crawler domain
+```
+
+Results are LRU-cached. The file is optional — if absent, `ip_in_range` returns `False` rather than raising.
+
+### Tools
+
+Scripts in `tools/` build the data files shipped inside the package.
+
+#### `build_user_agents.py`
+
+Compiles `is_crawler/crawler-user-agents.json` from the upstream [monperrus/crawler-user-agents](https://github.com/monperrus/crawler-user-agents) source plus local extras.
+
+```bash
+python3 tools/build_user_agents.py
+python3 tools/build_user_agents.py --input crawler-user-agents.json --output is_crawler/crawler-user-agents.json
+```
+
+#### `build_ip_ranges.py`
+
+Fetches live IP range data from 39 official sources (Google, Bing, DuckDuckGo, Apple, OpenAI, Anthropic, Perplexity, Common Crawl, Cloudflare, Fastly, AWS, Azure, Oracle Cloud, GitHub, Telegram, Ahrefs, Yandex, Facebook, Kagi, Amazon, UptimeRobot, Pingdom, Stripe, and more) and writes a flat `is_crawler/crawler-ip-ranges.json` mapping each source name to its CIDR list.
+
+```bash
+python3 tools/build_ip_ranges.py
+python3 tools/build_ip_ranges.py --timeout 30 --skip-errors
+```
+
+Source definitions live in `tools/crawler-ip-ranges.json` (name → `{url, pattern}`) and can be extended independently of the build script.
 
 ### CLI
 

@@ -6,7 +6,7 @@ Output format: JSON array of [pattern, url, description, [tags]].
 Instances are omitted to keep the file small.
 
 Usage:
-    python3 tools/build_db.py \\
+    python3 tools/build_user_agents.py \\
         [--input  crawler-user-agents.json] \\
         [--output is_crawler/crawler-user-agents.json] \\
 """

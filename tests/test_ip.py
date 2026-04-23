@@ -1,4 +1,7 @@
+import json
 import socket
+import tempfile
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -7,7 +10,11 @@ from is_crawler.ip import (
     _domains_for,
     _forward_ips,
     _load_domains,
+    _load_networks,
     forward_confirmed_rdns,
+    ip_in_range,
+    known_crawler_ip,
+    known_crawler_rdns,
     reverse_dns,
     verify_crawler_ip,
 )
@@ -98,6 +105,73 @@ def test_domains_for_name_with_space():
 def test_domains_for_case_insensitive():
     assert _domains_for("GOOGLEBOT") == _domains_for("googlebot")
     assert _domains_for("gOoGlEbOt") == _domains_for("googlebot")
+
+
+# --- _load_networks ---
+
+
+def test_load_networks_returns_list():
+    nets = _load_networks()
+    assert isinstance(nets, list)
+
+
+def test_load_networks_cached():
+    assert _load_networks() is _load_networks()
+
+
+def test_load_networks_without_file_returns_empty(tmp_path, monkeypatch):
+    import is_crawler.ip as ip_mod
+
+    original = ip_mod._IP_NETWORKS
+    ip_mod._IP_NETWORKS = None
+    fake_path = tmp_path / "crawler-ip-ranges.json"
+    with monkeypatch.context() as m:
+        m.setattr(
+            "is_crawler.ip.Path",
+            lambda *a, **kw: (
+                fake_path if "crawler-ip-ranges" in str(a) else Path(*a, **kw)
+            ),
+        )
+        result = ip_mod._load_networks()
+    ip_mod._IP_NETWORKS = original
+    assert result == []
+
+
+def test_load_networks_skips_invalid_cidr(tmp_path, monkeypatch):
+    import is_crawler.ip as ip_mod
+
+    data = {"test": ["192.168.1.0/24", "not-a-cidr", "10.0.0.0/8"]}
+    ranges_file = tmp_path / "crawler-ip-ranges.json"
+    ranges_file.write_text(json.dumps(data))
+
+    original = ip_mod._IP_NETWORKS
+    ip_mod._IP_NETWORKS = None
+
+    class FakePath:
+        def __init__(self, *args, **kwargs):
+            self._path = Path(*args, **kwargs)
+
+        def __truediv__(self, other):
+            if other == "crawler-ip-ranges.json":
+                return ranges_file
+            return self._path / other
+
+        def exists(self):
+            return self._path.exists()
+
+        def open(self, *a, **kw):
+            return self._path.open(*a, **kw)
+
+        def __str__(self):
+            return str(self._path)
+
+    with monkeypatch.context() as m:
+        m.setattr("is_crawler.ip.Path", FakePath)
+        ip_mod._IP_NETWORKS = None
+        nets = ip_mod._load_networks()
+
+    ip_mod._IP_NETWORKS = original
+    assert len(nets) == 2
 
 
 # --- reverse_dns ---
@@ -257,6 +331,109 @@ def test_forward_confirmed_rdns_invalid_ip_returns_none_without_lookup():
     with patch("socket.gethostbyaddr") as lookup:
         result = forward_confirmed_rdns("not-an-ip", (".googlebot.com",))
     assert result is None
+    lookup.assert_not_called()
+
+
+# --- ip_in_range / known_crawler_ip ---
+
+
+def _with_networks(cidrs: list[str]):
+    import ipaddress
+
+    import is_crawler.ip as ip_mod
+
+    original = ip_mod._IP_NETWORKS
+    ip_mod._IP_NETWORKS = [ipaddress.ip_network(c, strict=False) for c in cidrs]
+    ip_in_range.cache_clear()
+    return original
+
+
+def _restore_networks(original):
+    import is_crawler.ip as ip_mod
+
+    ip_mod._IP_NETWORKS = original
+    ip_in_range.cache_clear()
+
+
+def test_ip_in_range_hit():
+    orig = _with_networks(["66.249.64.0/19", "192.178.4.0/27"])
+    try:
+        assert ip_in_range("66.249.66.1") is True
+    finally:
+        _restore_networks(orig)
+
+
+def test_ip_in_range_miss():
+    orig = _with_networks(["66.249.64.0/19"])
+    try:
+        assert ip_in_range("8.8.8.8") is False
+    finally:
+        _restore_networks(orig)
+
+
+def test_ip_in_range_ipv6_hit():
+    orig = _with_networks(["2001:4860:4801::/48"])
+    try:
+        assert ip_in_range("2001:4860:4801::1") is True
+    finally:
+        _restore_networks(orig)
+
+
+def test_ip_in_range_invalid_ip():
+    orig = _with_networks(["66.249.64.0/19"])
+    try:
+        assert ip_in_range("not-an-ip") is False
+    finally:
+        _restore_networks(orig)
+
+
+def test_ip_in_range_empty_networks():
+    orig = _with_networks([])
+    try:
+        assert ip_in_range("66.249.66.1") is False
+    finally:
+        _restore_networks(orig)
+
+
+def test_known_crawler_ip_delegates():
+    orig = _with_networks(["66.249.64.0/19"])
+    try:
+        assert known_crawler_ip("66.249.66.1") is True
+        assert known_crawler_ip("8.8.8.8") is False
+    finally:
+        _restore_networks(orig)
+
+
+def test_known_crawler_rdns_hit():
+    reverse_dns.cache_clear()
+    _forward_ips.cache_clear()
+    ip = "66.249.66.1"
+    with (
+        patch(
+            "socket.gethostbyaddr",
+            return_value=("crawl-66-249-66-1.googlebot.com", [], [ip]),
+        ),
+        patch(
+            "socket.getaddrinfo",
+            return_value=[
+                (socket.AF_INET, socket.SOCK_STREAM, 0, "", (ip, 0)),
+            ],
+        ),
+    ):
+        assert known_crawler_rdns(ip) is True
+
+
+def test_known_crawler_rdns_miss():
+    reverse_dns.cache_clear()
+    _forward_ips.cache_clear()
+    with patch("socket.gethostbyaddr", return_value=("dns.google", [], ["8.8.8.8"])):
+        assert known_crawler_rdns("8.8.8.8") is False
+
+
+def test_known_crawler_rdns_invalid_ip_returns_false_without_lookup():
+    reverse_dns.cache_clear()
+    with patch("socket.gethostbyaddr") as lookup:
+        assert known_crawler_rdns("not-an-ip") is False
     lookup.assert_not_called()
 
 
@@ -454,4 +631,7 @@ def test_all_exports():
         "verify_crawler_ip",
         "reverse_dns",
         "forward_confirmed_rdns",
+        "ip_in_range",
+        "known_crawler_ip",
+        "known_crawler_rdns",
     }

@@ -1,0 +1,154 @@
+{
+    "google-common-crawlers": {
+        "url": "https://developers.google.com/static/crawling/ipranges/common-crawlers.json",
+        "pattern": "\"(?:ipv4Prefix|ipv6Prefix)\"\\s*:\\s*\"([^\"]+)\""
+    },
+    "google-special-crawlers": {
+        "url": "https://developers.google.com/static/crawling/ipranges/special-crawlers.json",
+        "pattern": "\"(?:ipv4Prefix|ipv6Prefix)\"\\s*:\\s*\"([^\"]+)\""
+    },
+    "google-user-triggered-fetchers": {
+        "url": "https://developers.google.com/static/crawling/ipranges/user-triggered-fetchers.json",
+        "pattern": "\"(?:ipv4Prefix|ipv6Prefix)\"\\s*:\\s*\"([^\"]+)\""
+    },
+    "google-user-triggered-fetchers-google": {
+        "url": "https://developers.google.com/static/crawling/ipranges/user-triggered-fetchers-google.json",
+        "pattern": "\"(?:ipv4Prefix|ipv6Prefix)\"\\s*:\\s*\"([^\"]+)\""
+    },
+    "google-cloud": {
+        "url": "https://www.gstatic.com/ipranges/cloud.json",
+        "pattern": "\"(?:ipv4Prefix|ipv6Prefix)\"\\s*:\\s*\"([^\"]+)\""
+    },
+    "google-goog": {
+        "url": "https://www.gstatic.com/ipranges/goog.json",
+        "pattern": "\"(?:ipv4Prefix|ipv6Prefix)\"\\s*:\\s*\"([^\"]+)\""
+    },
+    "bingbot": {
+        "url": "https://www.bing.com/toolbox/bingbot.json",
+        "pattern": "\"(?:ipv4Prefix|ipv6Prefix)\"\\s*:\\s*\"([^\"]+)\""
+    },
+    "duckduckbot": {
+        "url": "https://duckduckgo.com/duckduckbot.json",
+        "pattern": "\"(?:ipv4Prefix|ipv6Prefix)\"\\s*:\\s*\"([^\"]+)\""
+    },
+    "duckassistbot": {
+        "url": "https://duckduckgo.com/duckassistbot.json",
+        "pattern": "\"(?:ipv4Prefix|ipv6Prefix)\"\\s*:\\s*\"([^\"]+)\""
+    },
+    "applebot": {
+        "url": "https://search.developer.apple.com/applebot.json",
+        "pattern": "\"(?:ipv4Prefix|ipv6Prefix)\"\\s*:\\s*\"([^\"]+)\""
+    },
+    "gptbot": {
+        "url": "https://openai.com/gptbot.json",
+        "pattern": "\"(?:ipv4Prefix|ipv6Prefix)\"\\s*:\\s*\"([^\"]+)\""
+    },
+    "oai-searchbot": {
+        "url": "https://openai.com/searchbot.json",
+        "pattern": "\"(?:ipv4Prefix|ipv6Prefix)\"\\s*:\\s*\"([^\"]+)\""
+    },
+    "chatgpt-user": {
+        "url": "https://openai.com/chatgpt-user.json",
+        "pattern": "\"(?:ipv4Prefix|ipv6Prefix)\"\\s*:\\s*\"([^\"]+)\""
+    },
+    "perplexitybot": {
+        "url": "https://www.perplexity.ai/perplexitybot.json",
+        "pattern": "\"(?:ipv4Prefix|ipv6Prefix)\"\\s*:\\s*\"([^\"]+)\""
+    },
+    "perplexity-user": {
+        "url": "https://www.perplexity.ai/perplexity-user.json",
+        "pattern": "\"(?:ipv4Prefix|ipv6Prefix)\"\\s*:\\s*\"([^\"]+)\""
+    },
+    "claudebot": {
+        "url": "https://platform.claude.com/docs/en/api/ip-addresses",
+        "pattern": "\\b((?:[0-9]{1,3}\\.){3}[0-9]{1,3}/[0-9]{1,2}|[0-9a-fA-F:]+/[0-9]{1,3})\\b"
+    },
+    "ccbot": {
+        "url": "https://index.commoncrawl.org/ccbot.json",
+        "pattern": "\"(?:ipv4Prefix|ipv6Prefix)\"\\s*:\\s*\"([^\"]+)\""
+    },
+    "cloudflare-v4": {
+        "url": "https://www.cloudflare.com/ips-v4",
+        "pattern": "(?m)^([0-9]+(?:\\.[0-9]+){3}/[0-9]+)\\s*$"
+    },
+    "cloudflare-v6": {
+        "url": "https://www.cloudflare.com/ips-v6",
+        "pattern": "(?m)^([0-9a-fA-F:]+/[0-9]+)\\s*$"
+    },
+    "fastly": {
+        "url": "https://api.fastly.com/public-ip-list",
+        "pattern": "\"((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)/[0-9]+)\""
+    },
+    "aws": {
+        "url": "https://ip-ranges.amazonaws.com/ip-ranges.json",
+        "pattern": "\"(?:ip_prefix|ipv6_prefix)\"\\s*:\\s*\"([^\"]+)\""
+    },
+    "azure-public": {
+        "url": "https://download.microsoft.com/download/7/1/d/71d86715-5596-4529-9b13-da13a5de5b63/ServiceTags_Public_20260420.json",
+        "pattern": "\"((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)/[0-9]+)\""
+    },
+    "oracle-cloud": {
+        "url": "https://docs.oracle.com/en-us/iaas/tools/public_ip_ranges.json",
+        "pattern": "\"cidr\"\\s*:\\s*\"([^\"]+)\""
+    },
+    "github": {
+        "url": "https://api.github.com/meta",
+        "pattern": "\"((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)/[0-9]+)\""
+    },
+    "telegrambot": {
+        "url": "https://core.telegram.org/resources/cidr.txt",
+        "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)/[0-9]+)\\s*$"
+    },
+    "ahrefsbot": {
+        "url": "https://api.ahrefs.com/v3/public/crawler-ip-ranges",
+        "pattern": "\"((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)/[0-9]+)\""
+    },
+    "yandexbot": {
+        "url": "https://yandex.com/ips",
+        "pattern": "((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)/[0-9]+)"
+    },
+    "facebookexternalhit": {
+        "url": "https://developers.facebook.com/docs/sharing/webmasters/web-crawlers",
+        "pattern": "((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)/[0-9]+)"
+    },
+    "kagibot": {
+        "url": "https://kagi.com/bot",
+        "pattern": "\\b((?:[0-9]{1,3}\\.){3}[0-9]{1,3})\\b"
+    },
+    "amazonbot": {
+        "url": "https://developer.amazon.com/amazonbot/ip-addresses/",
+        "pattern": "\"(?:ipv4Prefix|ipv6Prefix|ip_prefix|ipv6_prefix)\"\\s*:\\s*\"([^\"]+)\""
+    },
+    "amzn-searchbot": {
+        "url": "https://developer.amazon.com/amazonbot/searchbot-ip-addresses/",
+        "pattern": "\"(?:ipv4Prefix|ipv6Prefix|ip_prefix|ipv6_prefix)\"\\s*:\\s*\"([^\"]+)\""
+    },
+    "amzn-user": {
+        "url": "https://developer.amazon.com/amazonbot/live-ip-addresses/",
+        "pattern": "\"(?:ipv4Prefix|ipv6Prefix|ip_prefix|ipv6_prefix)\"\\s*:\\s*\"([^\"]+)\""
+    },
+    "uptimerobot": {
+        "url": "https://api.uptimerobot.com/meta/ips",
+        "pattern": "\"((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)/[0-9]+)\""
+    },
+    "pingdom": {
+        "url": "https://my.pingdom.com/probes/feed",
+        "pattern": "<pingdom:ip>([^<]+)</pingdom:ip>"
+    },
+    "pingdom-v6": {
+        "url": "https://my.pingdom.com/probes/feed",
+        "pattern": "<pingdom:ipv6>([^<]+)</pingdom:ipv6>"
+    },
+    "stripe": {
+        "url": "https://stripe.com/files/ips/ips_webhooks.txt",
+        "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)(?:/[0-9]+)?)\\s*$"
+    },
+    "stripe-api": {
+        "url": "https://stripe.com/files/ips/ips_api.txt",
+        "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)(?:/[0-9]+)?)\\s*$"
+    },
+    "stripe-armada-gator": {
+        "url": "https://stripe.com/files/ips/ips_armada_gator.txt",
+        "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)(?:/[0-9]+)?)\\s*$"
+    }
+}
