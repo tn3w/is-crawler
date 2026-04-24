@@ -313,9 +313,22 @@ Full-log classify time:
 | `apache_access_2.txt` | 0.77 ms | 2,480          |
 | Combined              | 2.16 ms | 8,942          |
 
+### IP verification
+
+First-call rDNS latency is network-dependent.
+
+| Function                 | Warm cache |
+| ------------------------ | ---------- |
+| `ip_in_range`            | 0.06 µs    |
+| `known_crawler_ip`       | 0.08 µs    |
+| `reverse_dns`            | 0.48 µs    |
+| `forward_confirmed_rdns` | 3.69 µs    |
+| `known_crawler_rdns`     | 4.27 µs    |
+| `verify_crawler_ip`      | 3.23 µs    |
+
 ### Notes
 
-- Warm cache reflects repeated UA lookups with LRU hits.
+- Warm cache reflects repeated lookups with LRU hits.
 - Cold cache clears the public API caches between benchmark runs.
 - DB patterns compile lazily per 48-entry chunk on first match.
 
