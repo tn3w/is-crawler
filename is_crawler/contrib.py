@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from . import crawler_has_tag, crawler_name, is_crawler
-from .ip import verify_crawler_ip
+from .ip import known_crawler_ip, known_crawler_rdns, verify_crawler_ip
 
 __all__ = [
     "CrawlerMiddlewareResult",
@@ -23,18 +23,31 @@ class CrawlerMiddlewareResult:
     is_crawler: bool
     name: str | None
     verified: bool
+    in_ip_range: bool = False
+    rdns_match: bool = False
 
 
 def _blocked(
     user_agent: str,
     ip: str | None,
     verify_ip: bool,
+    check_ip_range: bool,
+    check_rdns: bool,
 ) -> CrawlerMiddlewareResult:
     detected = is_crawler(user_agent)
     verified = False
-    if verify_ip and detected and ip:
-        verified = verify_crawler_ip(user_agent, ip)
+    in_range = False
+    rdns = False
 
+    if ip:
+        if check_ip_range:
+            in_range = known_crawler_ip(ip)
+        if check_rdns:
+            rdns = known_crawler_rdns(ip)
+        if verify_ip and detected:
+            verified = verify_crawler_ip(user_agent, ip)
+
+    detected = detected or in_range or rdns
     name = crawler_name(user_agent) if detected else None
     return CrawlerMiddlewareResult(
         user_agent=user_agent,
@@ -42,6 +55,8 @@ def _blocked(
         is_crawler=detected,
         name=name,
         verified=bool(verified),
+        in_ip_range=in_range,
+        rdns_match=rdns,
     )
 
 
@@ -114,6 +129,8 @@ class WSGICrawlerMiddleware:
         block: bool = False,
         block_tags: str | Iterable[str] | None = None,
         verify_ip: bool = False,
+        check_ip_range: bool = False,
+        check_rdns: bool = False,
         trust_forwarded: bool = False,
         environ_key: str = "is_crawler",
         status: str = "403 Forbidden",
@@ -123,6 +140,8 @@ class WSGICrawlerMiddleware:
         self.block = block
         self.block_tags = _to_tags(block_tags)
         self.verify_ip = verify_ip
+        self.check_ip_range = check_ip_range
+        self.check_rdns = check_rdns
         self.trust_forwarded = trust_forwarded
         self.environ_key = environ_key
         self.status = status
@@ -135,7 +154,9 @@ class WSGICrawlerMiddleware:
     ) -> Any:
         user_agent = environ.get("HTTP_USER_AGENT", "")
         ip = _wsgi_ip(environ, self.trust_forwarded)
-        result = _blocked(user_agent, ip, self.verify_ip)
+        result = _blocked(
+            user_agent, ip, self.verify_ip, self.check_ip_range, self.check_rdns
+        )
         environ[self.environ_key] = result
 
         if self.block and _should_block(result, self.block_tags):
@@ -156,6 +177,8 @@ class ASGICrawlerMiddleware:
         block: bool = False,
         block_tags: str | Iterable[str] | None = None,
         verify_ip: bool = False,
+        check_ip_range: bool = False,
+        check_rdns: bool = False,
         trust_forwarded: bool = False,
         scope_key: str = "is_crawler",
         state_key: str = "crawler",
@@ -166,6 +189,8 @@ class ASGICrawlerMiddleware:
         self.block = block
         self.block_tags = _to_tags(block_tags)
         self.verify_ip = verify_ip
+        self.check_ip_range = check_ip_range
+        self.check_rdns = check_rdns
         self.trust_forwarded = trust_forwarded
         self.scope_key = scope_key
         self.state_key = state_key
@@ -179,7 +204,9 @@ class ASGICrawlerMiddleware:
 
         user_agent = _scope_header(scope, b"user-agent")
         ip = _scope_ip(scope, self.trust_forwarded)
-        result = _blocked(user_agent, ip, self.verify_ip)
+        result = _blocked(
+            user_agent, ip, self.verify_ip, self.check_ip_range, self.check_rdns
+        )
         scope[self.scope_key] = result
 
         state = scope.setdefault("state", {})

@@ -170,13 +170,21 @@ request.state.crawler.verified
 ```
 
 Both middlewares are zero-dep. They attach `CrawlerMiddlewareResult` with
-`user_agent`, `ip`, `is_crawler`, `name`, and `verified`.
+`user_agent`, `ip`, `is_crawler`, `name`, `verified`, `in_ip_range`, `rdns_match`.
 
 - `WSGICrawlerMiddleware`: Flask, Django, any WSGI app
 - `ASGICrawlerMiddleware`: FastAPI, Starlette, any ASGI app
 
 Optional flags: `block=True`, `block_tags=...`, `verify_ip=True`,
-`trust_forwarded=True`.
+`check_ip_range=True`, `check_rdns=True`, `trust_forwarded=True`.
+
+IP flags:
+
+- `verify_ip` → strict FCrDNS (rDNS + forward lookup, UA-name matched). Sets `verified`.
+- `check_ip_range` → CIDR lookup against shipped ranges. Sets `in_ip_range`. Cheap, offline.
+- `check_rdns` → rDNS suffix against any known crawler domain. Sets `rdns_match`. One DNS lookup.
+
+A positive `in_ip_range` or `rdns_match` also forces `is_crawler=True` (catches UA-less crawlers).
 
 With `trust_forwarded=True`, middleware uses the first IP from
 `X-Forwarded-For`, then `X-Real-IP`, before the direct client address.

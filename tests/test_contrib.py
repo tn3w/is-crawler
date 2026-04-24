@@ -121,6 +121,48 @@ def test_wsgi_middleware_attaches_context():
     assert seen["result"].verified is False
 
 
+def test_wsgi_middleware_check_ip_range_sets_flag():
+    seen = {}
+
+    def app(environ, start_response):
+        seen["result"] = environ["is_crawler"]
+        start_response("200 OK", [])
+        return [b"ok"]
+
+    middleware = WSGICrawlerMiddleware(app, check_ip_range=True)
+
+    with patch("is_crawler.contrib.known_crawler_ip", return_value=True) as check:
+        middleware(
+            {"HTTP_USER_AGENT": _BROWSER, "REMOTE_ADDR": "66.249.66.1"},
+            lambda status, headers: None,
+        )
+
+    check.assert_called_once_with("66.249.66.1")
+    assert seen["result"].in_ip_range is True
+    assert seen["result"].is_crawler is True
+
+
+def test_wsgi_middleware_check_rdns_sets_flag():
+    seen = {}
+
+    def app(environ, start_response):
+        seen["result"] = environ["is_crawler"]
+        start_response("200 OK", [])
+        return [b"ok"]
+
+    middleware = WSGICrawlerMiddleware(app, check_rdns=True)
+
+    with patch("is_crawler.contrib.known_crawler_rdns", return_value=True) as check:
+        middleware(
+            {"HTTP_USER_AGENT": _BROWSER, "REMOTE_ADDR": "66.249.66.1"},
+            lambda status, headers: None,
+        )
+
+    check.assert_called_once_with("66.249.66.1")
+    assert seen["result"].rdns_match is True
+    assert seen["result"].is_crawler is True
+
+
 def test_wsgi_middleware_verify_ip_without_ip_skips_lookup():
     middleware = WSGICrawlerMiddleware(
         lambda environ, start_response: [b"ok"],
