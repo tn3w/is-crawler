@@ -10,7 +10,7 @@ from is_crawler.ip import (
     _domains_for,
     _forward_ips,
     _load_domains,
-    _load_networks,
+    _parse_networks,
     forward_confirmed_rdns,
     ip_in_range,
     known_crawler_ip,
@@ -107,23 +107,35 @@ def test_domains_for_case_insensitive():
     assert _domains_for("gOoGlEbOt") == _domains_for("googlebot")
 
 
-# --- _load_networks ---
+# --- _parse_networks ---
 
 
-def test_load_networks_returns_list():
-    nets = _load_networks()
+def test_parse_networks_returns_list():
+    nets = _parse_networks()
     assert isinstance(nets, list)
 
 
-def test_load_networks_cached():
-    assert _load_networks() is _load_networks()
+def test_build_index_lazy_and_cached():
+    import is_crawler.ip as ip_mod
+    from is_crawler.ip import _build_index
+
+    original = ip_mod._IP_INDEX
+    try:
+        ip_mod._IP_INDEX = None
+        ip_in_range.cache_clear()
+        first = _build_index()
+        assert _build_index() is first
+        starts4, ends4, starts6, ends6 = first
+        assert len(starts4) == len(ends4)
+        assert len(starts6) == len(ends6)
+    finally:
+        ip_mod._IP_INDEX = original
+        ip_in_range.cache_clear()
 
 
-def test_load_networks_without_file_returns_empty(tmp_path, monkeypatch):
+def test_parse_networks_without_file_returns_empty(tmp_path, monkeypatch):
     import is_crawler.ip as ip_mod
 
-    original = ip_mod._IP_NETWORKS
-    ip_mod._IP_NETWORKS = None
     fake_path = tmp_path / "crawler-ip-ranges.json"
     with monkeypatch.context() as m:
         m.setattr(
@@ -132,20 +144,16 @@ def test_load_networks_without_file_returns_empty(tmp_path, monkeypatch):
                 fake_path if "crawler-ip-ranges" in str(a) else Path(*a, **kw)
             ),
         )
-        result = ip_mod._load_networks()
-    ip_mod._IP_NETWORKS = original
+        result = ip_mod._parse_networks()
     assert result == []
 
 
-def test_load_networks_skips_invalid_cidr(tmp_path, monkeypatch):
+def test_parse_networks_skips_invalid_cidr(tmp_path, monkeypatch):
     import is_crawler.ip as ip_mod
 
     data = {"test": ["192.168.1.0/24", "not-a-cidr", "10.0.0.0/8"]}
     ranges_file = tmp_path / "crawler-ip-ranges.json"
     ranges_file.write_text(json.dumps(data))
-
-    original = ip_mod._IP_NETWORKS
-    ip_mod._IP_NETWORKS = None
 
     class FakePath:
         def __init__(self, *args, **kwargs):
@@ -167,10 +175,8 @@ def test_load_networks_skips_invalid_cidr(tmp_path, monkeypatch):
 
     with monkeypatch.context() as m:
         m.setattr("is_crawler.ip.Path", FakePath)
-        ip_mod._IP_NETWORKS = None
-        nets = ip_mod._load_networks()
+        nets = ip_mod._parse_networks()
 
-    ip_mod._IP_NETWORKS = original
     assert len(nets) == 2
 
 
@@ -347,8 +353,16 @@ def _with_networks(cidrs: list[str]):
 
     import is_crawler.ip as ip_mod
 
-    original = ip_mod._IP_NETWORKS
-    ip_mod._IP_NETWORKS = [ipaddress.ip_network(c, strict=False) for c in cidrs]
+    original = ip_mod._IP_INDEX
+    nets = [ipaddress.ip_network(c, strict=False) for c in cidrs]
+    v4 = sorted(ipaddress.collapse_addresses([n for n in nets if n.version == 4]))
+    v6 = sorted(ipaddress.collapse_addresses([n for n in nets if n.version == 6]))
+    ip_mod._IP_INDEX = (
+        [int(n.network_address) for n in v4],
+        [int(n.broadcast_address) for n in v4],
+        [int(n.network_address) for n in v6],
+        [int(n.broadcast_address) for n in v6],
+    )
     ip_in_range.cache_clear()
     return original
 
@@ -356,7 +370,7 @@ def _with_networks(cidrs: list[str]):
 def _restore_networks(original):
     import is_crawler.ip as ip_mod
 
-    ip_mod._IP_NETWORKS = original
+    ip_mod._IP_INDEX = original
     ip_in_range.cache_clear()
 
 

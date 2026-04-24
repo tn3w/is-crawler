@@ -231,7 +231,7 @@ Built-in suffixes: Googlebot, Bingbot, Applebot, DuckDuckBot, YandexBot, Baidusp
 
 #### IP range lookup
 
-Check whether an IP belongs to any known crawler's published CIDR range. Requires building the range database first (see **Tools** below).
+Check whether an IP belongs to any known crawler's published CIDR range. Requires a build range database which is included (see **Tools** below).
 
 ```python
 from is_crawler.ip import ip_in_range, known_crawler_ip, known_crawler_rdns

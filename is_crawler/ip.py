@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import bisect
 import ipaddress
 import json
 import os
@@ -21,7 +22,7 @@ __all__ = [
 _CACHE = 4096
 
 _RDNS_DOMAINS: dict[str, tuple[str, ...]] | None = None
-_IP_NETWORKS: list[ipaddress.IPv4Network | ipaddress.IPv6Network] | None = None
+_IP_INDEX: tuple[list[int], list[int], list[int], list[int]] | None = None
 
 
 def _load_domains() -> dict[str, tuple[str, ...]]:
@@ -43,15 +44,10 @@ def _load_domains() -> dict[str, tuple[str, ...]]:
     return mapping
 
 
-def _load_networks() -> list[ipaddress.IPv4Network | ipaddress.IPv6Network]:
-    global _IP_NETWORKS
-    if _IP_NETWORKS is not None:
-        return _IP_NETWORKS
-
+def _parse_networks() -> list[ipaddress.IPv4Network | ipaddress.IPv6Network]:
     path = Path(os.path.dirname(__file__)) / str(Path("crawler-ip-ranges.json"))
     if not path.exists():
-        _IP_NETWORKS = []
-        return _IP_NETWORKS
+        return []
 
     with path.open(encoding="utf-8") as f:
         data: dict[str, list[str]] = json.load(f)
@@ -63,8 +59,6 @@ def _load_networks() -> list[ipaddress.IPv4Network | ipaddress.IPv6Network]:
                 networks.append(ipaddress.ip_network(cidr, strict=False))
             except ValueError:
                 pass
-
-    _IP_NETWORKS = networks
     return networks
 
 
@@ -120,6 +114,11 @@ def _forward_ips(host: str) -> frozenset[str]:
     return frozenset(str(info[4][0]) for info in infos)
 
 
+@lru_cache(maxsize=_CACHE)
+def _suffix_exact(suffixes: tuple[str, ...]) -> frozenset[str]:
+    return frozenset(s.lstrip(".") for s in suffixes)
+
+
 def forward_confirmed_rdns(ip: str, suffixes: tuple[str, ...]) -> str | None:
     normalized_ip = _normalized_ip(ip)
     if normalized_ip is None:
@@ -129,10 +128,32 @@ def forward_confirmed_rdns(ip: str, suffixes: tuple[str, ...]) -> str | None:
     if not host:
         return None
 
-    if not any(host == s.lstrip(".") or host.endswith(s) for s in suffixes):
+    if not host.endswith(suffixes) and host not in _suffix_exact(suffixes):
         return None
 
     return host if normalized_ip in _forward_ips(host) else None
+
+
+def _build_index() -> tuple[list[int], list[int], list[int], list[int]]:
+    global _IP_INDEX
+    if _IP_INDEX is not None:
+        return _IP_INDEX
+
+    v4: list = []
+    v6: list = []
+    for net in _parse_networks():
+        (v4 if net.version == 4 else v6).append(net)
+
+    collapsed4 = sorted(ipaddress.collapse_addresses(v4)) if v4 else []
+    collapsed6 = sorted(ipaddress.collapse_addresses(v6)) if v6 else []
+
+    starts4 = [int(n.network_address) for n in collapsed4]
+    ends4 = [int(n.broadcast_address) for n in collapsed4]
+    starts6 = [int(n.network_address) for n in collapsed6]
+    ends6 = [int(n.broadcast_address) for n in collapsed6]
+
+    _IP_INDEX = (starts4, ends4, starts6, ends6)
+    return _IP_INDEX
 
 
 @lru_cache(maxsize=_CACHE)
@@ -142,7 +163,19 @@ def ip_in_range(ip: str) -> bool:
         return False
 
     addr = ipaddress.ip_address(normalized)
-    return any(addr in net for net in _load_networks())
+    starts4, ends4, starts6, ends6 = _build_index()
+
+    if addr.version == 4:
+        starts, ends = starts4, ends4
+    else:
+        starts, ends = starts6, ends6
+
+    if not starts:
+        return False
+
+    n = int(addr)
+    i = bisect.bisect_right(starts, n) - 1
+    return i >= 0 and ends[i] >= n
 
 
 def known_crawler_ip(ip: str) -> bool:
