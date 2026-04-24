@@ -13,10 +13,6 @@ Fast, regex-free crawler detection from user agents. Zero deps, ReDoS-safe heuri
 
 </div>
 
-## Why regex-free?
-
-Regex is a frequent source of ReDoS vulnerabilities, one un-anchored `.*` or nested quantifier against a hostile UA can spike CPU to seconds. Crawler detection runs on every request, so a catastrophic pattern is a denial-of-service primitive. `is-crawler` implements all heuristics with `str.find` + char scans. No regex engine, no backtracking, no ReDoS surface. `crawler_info` uses `re` only to match against curated DB patterns ([monperrus/crawler-user-agents](https://github.com/monperrus/crawler-user-agents)) which are simple literals (e.g. `Googlebot\/`, `bingbot`, `AdsBot-Google([^-]|$)`, `[wW]get`), no nested quantifiers, no catastrophic backtracking paths.
-
 ## Install
 
 ```bash
@@ -287,40 +283,49 @@ Every public function has a 32k-entry LRU cache. Repeat UAs hit in ~40 ns.
 
 ## Benchmarks
 
-Python 3.14, Linux x86_64. Corpus: 1,231 crawler UAs, 15,812 browser UAs. `cua` = [`crawler-user-agents`](https://pypi.org/project/crawler-user-agents/) v1.44.
+Python 3.14, Linux x86_64. `cua` = [`crawler-user-agents`](https://pypi.org/project/crawler-user-agents/) v1.44.
 
-### Hot-path (warm cache)
+### Synthetic corpus
 
-| Function             | is_crawler | cua      | speedup   |
-| -------------------- | ---------- | -------- | --------- |
-| `is_crawler` (mixed) | 0.05 µs    | 158.9 µs | **3000×** |
-| `crawler_info`       | 0.60 µs    | 732.0 µs | **1220×** |
-| `crawler_signals`    | 1.13 µs    | -        | -         |
-| `crawler_name`       | 0.33 µs    | -        | -         |
-| `crawler_version`    | 0.32 µs    | -        | -         |
-| `crawler_url`        | 0.09 µs    | -        | -         |
-| `crawler_has_tag`    | 0.10 µs    | -        | -         |
+Corpus: 1,231 crawler UAs + 15,812 browser UAs.
 
-### Cold-cache (per-call, no LRU hits)
+| Scenario   | `is_crawler` | `crawler_info` | `cua.is_crawler` | `cua.crawler_info` |
+| ---------- | ------------ | -------------- | ---------------- | ------------------ |
+| Warm cache | 0.05 µs      | 0.60 µs        | 158.9 µs         | 732.0 µs           |
+| Cold cache | 1.85 µs      | 2.07 µs        | 176.94 µs        | 733.4 µs           |
 
-| Function          | Test Case | is_crawler | cua       | speedup  |
-| ----------------- | --------- | ---------- | --------- | -------- |
-| `is_crawler`      | crawlers  | 1.94 µs    | 64.35 µs  | **33×**  |
-| `is_crawler`      | browsers  | 1.85 µs    | 183.76 µs | **99×**  |
-| `is_crawler`      | mixed     | 1.85 µs    | 176.94 µs | **96×**  |
-| `crawler_info`    | -         | 2.07 µs    | 733.4 µs  | **354×** |
-| `crawler_name`    | -         | 1.36 µs    | -         | -        |
-| `crawler_version` | -         | 1.37 µs    | -         | -        |
-| `crawler_url`     | -         | 0.29 µs    | -         | -        |
+That is roughly `3000×` faster for hot `is_crawler`, `96×` faster for cold `is_crawler`, and `354×` faster for cold `crawler_info`.
 
-### Cold-start
+### Real Apache logs
 
-| Module              | Cold-start |
-| ------------------- | ---------- |
-| `is_crawler`        | 1.29 ms    |
-| `crawleruseragents` | 0.80 ms    |
+Corpus: `42,512` UA entries from two Apache access logs (`8,942` crawlers, `33,570` browsers, `21.0%` crawler ratio).
 
-DB patterns compile lazily per 48-entry chunk on first match.
+| Scenario   | `is_crawler` (all) | `crawler_info` (all) | `cua.is_crawler` (all) | `cua.crawler_info` (all) |
+| ---------- | ------------------ | -------------------- | ---------------------- | ------------------------ |
+| Warm cache | 0.044 µs           | 0.115 µs             | 64.121 µs              | 1513.618 µs              |
+| Cold cache | 0.143 µs           | 0.970 µs             | -                      | -                        |
+
+Full-log classify time:
+
+| Log                   | Time    | Crawlers found |
+| --------------------- | ------- | -------------- |
+| `apache_access_1.txt` | 2.22 ms | 6,462          |
+| `apache_access_2.txt` | 0.77 ms | 2,480          |
+| Combined              | 2.16 ms | 8,942          |
+
+### Notes
+
+- Warm cache reflects repeated UA lookups with LRU hits.
+- Cold cache clears the public API caches between benchmark runs.
+- DB patterns compile lazily per 48-entry chunk on first match.
+
+## Implementation Notes
+
+### Why regex-free?
+
+Crawler detection runs on every request, so predictable runtime matters. `is-crawler` implements its hot-path heuristics with `str.find` plus char scans instead of regex backtracking. That keeps `is_crawler()` fast and avoids the usual ReDoS footguns from hostile user-agent strings.
+
+`crawler_info()` does use `re`, but only against curated upstream patterns from [monperrus/crawler-user-agents](https://github.com/monperrus/crawler-user-agents), and those patterns are simple enough to avoid catastrophic backtracking in practice.
 
 ## Formatting
 
