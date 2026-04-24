@@ -150,5 +150,69 @@
     "stripe-armada-gator": {
         "url": "https://stripe.com/files/ips/ips_armada_gator.txt",
         "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)(?:/[0-9]+)?)\\s*$"
+    },
+    "datadog": {
+        "url": "https://ip-ranges.datadoghq.com",
+        "pattern": "\"((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)/[0-9]+)\""
+    },
+    "datadog-eu": {
+        "url": "https://ip-ranges.datadoghq.eu",
+        "pattern": "\"((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)/[0-9]+)\""
+    },
+    "newrelic-synthetics": {
+        "url": "https://s3.amazonaws.com/nr-synthetics-assets/nat-ip-dnsname/production/ip-ranges.json",
+        "pattern": "\"((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)/[0-9]+)\""
+    },
+    "statuscake": {
+        "url": "https://app.statuscake.com/Workfloor/Locations.php?format=txt",
+        "pattern": "\\b((?:[0-9]{1,3}\\.){3}[0-9]{1,3})\\b"
+    },
+    "checkly": {
+        "url": "https://api.checklyhq.com/v1/static-ips",
+        "pattern": "\"((?:[0-9]{1,3}\\.){3}[0-9]{1,3})\""
+    },
+    "braintree": {
+        "url": "https://assets.braintreegateway.com/json/ips.json",
+        "pattern": "\"((?:[0-9]{1,3}\\.){3}[0-9]{1,3}(?:/[0-9]+)?)\""
+    },
+    "paypal": {
+        "url": "https://www.paypal.com/us/cshelp/article/what-are-the-internet-protocol-ip-addresses-for-paypal-server-endpoints-ts1056",
+        "pattern": "\\b((?:[0-9]{1,3}\\.){3}[0-9]{1,3}/[0-9]{1,2})\\b"
+    },
+    "zscaler": {
+        "url": "https://config.zscaler.com/api/zscaler.net/hubs/cidr/json/recommended",
+        "pattern": "\"((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)/[0-9]+)\""
+    },
+    "mailchimp": {
+        "url": "https://mailchimp.com/about/ips/",
+        "pattern": "\\b((?:[0-9]{1,3}\\.){3}[0-9]{1,3}/[0-9]{1,2})\\b"
+    },
+    "linode-akamai": {
+        "url": "https://geoip.linode.com",
+        "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)/[0-9]+),"
+    },
+    "digitalocean": {
+        "url": "https://digitalocean.com/geo/google.csv",
+        "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)/[0-9]+),"
+    },
+    "vultr": {
+        "url": "https://geofeed.constant.com/?json",
+        "pattern": "\"ip_prefix\"\\s*:\\s*\"([^\"]+)\""
+    },
+    "circleci": {
+        "url": "https://circleci.com/docs/ip-ranges-list.json",
+        "pattern": "\"((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)(?:/[0-9]+)?)\""
+    },
+    "updown-v4": {
+        "url": "https://updown.io/api/nodes/ipv4",
+        "pattern": "\"((?:[0-9]{1,3}\\.){3}[0-9]{1,3})\""
+    },
+    "updown-v6": {
+        "url": "https://updown.io/api/nodes/ipv6",
+        "pattern": "\"([0-9a-fA-F:]+)\""
+    },
+    "hetrixtools": {
+        "url": "https://hetrixtools.com/resources/uptime-monitor-only-ips.txt",
+        "pattern": "(?m)^((?:[0-9]{1,3}\\.){3}[0-9]{1,3})\\s*$"
     }
 }
