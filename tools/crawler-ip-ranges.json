@@ -214,5 +214,93 @@
     "hetrixtools": {
         "url": "https://hetrixtools.com/resources/uptime-monitor-only-ips.txt",
         "pattern": "(?m)^((?:[0-9]{1,3}\\.){3}[0-9]{1,3})\\s*$"
+    },
+    "semrushbot": {
+        "url": "https://raw.githubusercontent.com/AnTheMaker/GoodBots/main/iplists/semrushbot.ips",
+        "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)(?:/[0-9]+)?)\\s*$"
+    },
+    "mojeekbot": {
+        "url": "https://raw.githubusercontent.com/AnTheMaker/GoodBots/main/iplists/mojeekbot.ips",
+        "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)(?:/[0-9]+)?)\\s*$"
+    },
+    "twitterbot": {
+        "url": "https://raw.githubusercontent.com/AnTheMaker/GoodBots/main/iplists/twitterbot.ips",
+        "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)(?:/[0-9]+)?)\\s*$"
+    },
+    "betteruptimebot": {
+        "url": "https://raw.githubusercontent.com/AnTheMaker/GoodBots/main/iplists/betteruptimebot.ips",
+        "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)(?:/[0-9]+)?)\\s*$"
+    },
+    "freshpingbot": {
+        "url": "https://raw.githubusercontent.com/AnTheMaker/GoodBots/main/iplists/freshpingbot.ips",
+        "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)(?:/[0-9]+)?)\\s*$"
+    },
+    "outageowl": {
+        "url": "https://raw.githubusercontent.com/AnTheMaker/GoodBots/main/iplists/outageowl.ips",
+        "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)(?:/[0-9]+)?)\\s*$"
+    },
+    "webpagetestbot": {
+        "url": "https://raw.githubusercontent.com/AnTheMaker/GoodBots/main/iplists/webpagetestbot.ips",
+        "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)(?:/[0-9]+)?)\\s*$"
+    },
+    "marginalia": {
+        "url": "https://raw.githubusercontent.com/AnTheMaker/GoodBots/main/iplists/marginalia.ips",
+        "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)(?:/[0-9]+)?)\\s*$"
+    },
+    "bunnycdn": {
+        "url": "https://raw.githubusercontent.com/AnTheMaker/GoodBots/main/iplists/bunnycdn.ips",
+        "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)(?:/[0-9]+)?)\\s*$"
+    },
+    "imagekit": {
+        "url": "https://raw.githubusercontent.com/AnTheMaker/GoodBots/main/iplists/imagekit.ips",
+        "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)(?:/[0-9]+)?)\\s*$"
+    },
+    "imgix": {
+        "url": "https://raw.githubusercontent.com/AnTheMaker/GoodBots/main/iplists/imgix.ips",
+        "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)(?:/[0-9]+)?)\\s*$"
+    },
+    "molliewebhook": {
+        "url": "https://raw.githubusercontent.com/AnTheMaker/GoodBots/main/iplists/molliewebhook.ips",
+        "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)(?:/[0-9]+)?)\\s*$"
+    },
+    "rssapi": {
+        "url": "https://raw.githubusercontent.com/AnTheMaker/GoodBots/main/iplists/rssapi.ips",
+        "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)(?:/[0-9]+)?)\\s*$"
+    },
+    "stripewebhook": {
+        "url": "https://raw.githubusercontent.com/AnTheMaker/GoodBots/main/iplists/stripewebhook.ips",
+        "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)(?:/[0-9]+)?)\\s*$"
+    },
+    "dataforseobot": {
+        "url": "https://dataforseo.com/dataforseo-bot",
+        "pattern": "\\b((?:[0-9]{1,3}\\.){3}[0-9]{1,3}/[0-9]{1,2}|[0-9a-fA-F:]+/[0-9]{1,3})\\b"
+    },
+    "anthropic-api": {
+        "url": "https://docs.anthropic.com/en/api/ip-addresses",
+        "pattern": "\\b((?:[0-9]{1,3}\\.){3}[0-9]{1,3}/[0-9]{1,2}|[0-9a-fA-F:]+/[0-9]{1,3})\\b"
+    },
+    "meta-crawler": {
+        "url": "https://raw.githubusercontent.com/lord-alfred/ipranges/main/facebook/ipv4.txt",
+        "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3})/[0-9]+)\\s*$"
+    },
+    "meta-crawler-v6": {
+        "url": "https://raw.githubusercontent.com/lord-alfred/ipranges/main/facebook/ipv6.txt",
+        "pattern": "(?m)^([0-9a-fA-F:]+/[0-9]+)\\s*$"
+    },
+    "gcp-cloud-nat": {
+        "url": "https://www.gstatic.com/ipranges/cloud_geofeed",
+        "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)/[0-9]+),"
+    },
+    "twitter-x": {
+        "url": "https://raw.githubusercontent.com/lord-alfred/ipranges/main/twitter/ipv4.txt",
+        "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3})/[0-9]+)\\s*$"
+    },
+    "twitter-x-v6": {
+        "url": "https://raw.githubusercontent.com/lord-alfred/ipranges/main/twitter/ipv6.txt",
+        "pattern": "(?m)^([0-9a-fA-F:]+/[0-9]+)\\s*$"
+    },
+    "akamai": {
+        "url": "https://raw.githubusercontent.com/SecOps-Institute/Akamai-ASN-and-IPs-List/master/akamai_ip_cidr_blocks.lst",
+        "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)/[0-9]+)\\s*$"
     }
 }
