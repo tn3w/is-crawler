@@ -18,10 +18,10 @@ from __future__ import annotations
 
 import argparse
 import json
+from pathlib import Path
 import re
 import sys
 import urllib.request
-from pathlib import Path
 
 REPO_ROOT = Path(__file__).parent.parent
 TOOLS_DIR = Path(__file__).parent

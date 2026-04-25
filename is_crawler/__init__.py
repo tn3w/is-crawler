@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import json
-import re as _re
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from functools import lru_cache
 from importlib.metadata import version
+import json
 from pathlib import Path
+import re as _re
 from typing import NamedTuple
 
 __version__ = version("is-crawler")
@@ -359,8 +359,7 @@ class _Chunk:
 
         if self._entries is None:
             self._entries = [
-                (_re.compile(p), CrawlerInfo(u, d, tuple(t)))
-                for p, u, d, t in self.rows
+                (_re.compile(p), CrawlerInfo(u, d, tuple(t))) for p, u, d, t in self.rows
             ]
 
         for pattern, info in self._entries:

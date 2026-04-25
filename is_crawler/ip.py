@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import bisect
+from functools import lru_cache
 import ipaddress
 import json
 import os
-import socket
-from functools import lru_cache
 from pathlib import Path
+import socket
 
 from . import crawler_name
 

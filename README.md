@@ -354,9 +354,9 @@ Crawler detection runs on every request, so predictable runtime matters. `is-cra
 ## Formatting
 
 ```bash
-pip install black isort
-isort . && black .
-npx prtfm
+pip install -e ".[dev]"
+ruff format . && ruff check --fix .
+npx --yes prettier --write --single-quote --print-width=100 --trailing-comma=es5 --end-of-line=lf "**/*.{md,json,yml,yaml,html,css,js,ts}"
 ```
 
 ## Contributing

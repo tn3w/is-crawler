@@ -1,6 +1,6 @@
+from pathlib import Path
 import re
 import time
-from pathlib import Path
 
 import pytest
 
@@ -220,8 +220,7 @@ def test_crawler_url_extracted_from_log_uas():
         == "http://www.feedly.com/fetcher.html"
     )
     assert (
-        crawler_url("CatchBot/2.0; +http://www.catchbot.com")
-        == "http://www.catchbot.com"
+        crawler_url("CatchBot/2.0; +http://www.catchbot.com") == "http://www.catchbot.com"
     )
 
 

@@ -9,11 +9,11 @@ Run:
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 import re
+from statistics import mean, stdev
 import sys
 import time
-from pathlib import Path
-from statistics import mean, stdev
 from typing import Callable
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -35,9 +35,7 @@ def _parse_user_agents(log_file: Path) -> list[str]:
     return agents
 
 
-def _timeit(
-    fn, args: list, iterations: int = 5, warmup: int = 2
-) -> tuple[float, float]:
+def _timeit(fn, args: list, iterations: int = 5, warmup: int = 2) -> tuple[float, float]:
     for ua in args[:500]:
         fn(ua)
 
@@ -132,16 +130,12 @@ def bench_apache_logs_cold_cache(
         print(f"  {name}: {_fmt(m, sd)}")
 
 
-def bench_cua_comparison(
-    all_agents: list[str], crawlers: list[str], browsers: list[str]
-):
+def bench_cua_comparison(all_agents: list[str], crawlers: list[str], browsers: list[str]):
     import crawleruseragents
 
     def _cua_info(ua: str):
         indices = crawleruseragents.matching_crawlers(ua)
-        return (
-            crawleruseragents.CRAWLER_USER_AGENTS_DATA[indices[0]] if indices else None
-        )
+        return crawleruseragents.CRAWLER_USER_AGENTS_DATA[indices[0]] if indices else None
 
     rows = [
         ("cua.is_crawler (all)      ", crawleruseragents.is_crawler, all_agents),

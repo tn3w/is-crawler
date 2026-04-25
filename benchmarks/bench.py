@@ -10,9 +10,9 @@ from __future__ import annotations
 
 import argparse
 import importlib
-import time
 from pathlib import Path
 from statistics import mean, stdev
+import time
 from typing import Callable
 
 import is_crawler as _ic
@@ -20,14 +20,14 @@ from is_crawler import _bare_compat, _bot_signal, _browser, _known_tool, _url_in
 
 FIXTURES = Path(__file__).parent.parent / "tests" / "fixtures"
 CRAWLERS = [
-    l.strip()
-    for l in (FIXTURES / "crawler_user_agents.txt").read_text().splitlines()
-    if l.strip()
+    line.strip()
+    for line in (FIXTURES / "crawler_user_agents.txt").read_text().splitlines()
+    if line.strip()
 ]
 BROWSERS = [
-    l.strip()
-    for l in (FIXTURES / "browser_user_agents.txt").read_text().splitlines()
-    if l.strip()
+    line.strip()
+    for line in (FIXTURES / "browser_user_agents.txt").read_text().splitlines()
+    if line.strip()
 ]
 ALL_UAS = CRAWLERS + BROWSERS
 
@@ -205,9 +205,7 @@ def bench_cua():
 
     def _cua_info(ua: str):
         indices = crawleruseragents.matching_crawlers(ua)
-        return (
-            crawleruseragents.CRAWLER_USER_AGENTS_DATA[indices[0]] if indices else None
-        )
+        return crawleruseragents.CRAWLER_USER_AGENTS_DATA[indices[0]] if indices else None
 
     rows: list[tuple[str, Callable, list]] = [
         ("cua.is_crawler (crawlers)        ", crawleruseragents.is_crawler, CRAWLERS),

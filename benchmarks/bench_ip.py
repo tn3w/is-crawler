@@ -7,8 +7,8 @@ Run:
 
 from __future__ import annotations
 
-import time
 from statistics import mean, stdev
+import time
 from typing import Callable
 
 from is_crawler.ip import (
@@ -94,9 +94,6 @@ def bench_ip_range():
 
 
 def bench_rdns_cached():
-    rdns_pairs = [(ip,) for ip in ALL_IPS]
-    frdns_pairs = [(ip, (".googlebot.com",)) for ip in ALL_IPS]
-
     print("\n── rDNS / FCrDNS (warm cache — network already resolved) ──")
 
     for ip in ALL_IPS:

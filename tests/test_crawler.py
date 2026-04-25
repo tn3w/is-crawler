@@ -1,4 +1,7 @@
+import io
+import json
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -27,16 +30,35 @@ from is_crawler import (
     crawler_signals,
     crawler_url,
     crawler_version,
+    is_academic,
+    is_advertising,
+    is_ai_crawler,
+    is_archiver,
+    is_bad_crawler,
+    is_browser_automation,
     is_crawler,
+    is_feed_reader,
+    is_good_crawler,
+    is_http_library,
+    is_monitoring,
+    is_scanner,
+    is_search_engine,
+    is_seo,
+    is_social_preview,
     iter_crawlers,
     robots_agents_for_tags,
 )
+from is_crawler.__main__ import _analyze, _iter_inputs, main
 
 _FIXTURES = Path(__file__).parent / "fixtures"
 
 
 def _load(name: str) -> list[str]:
-    return [l.strip() for l in (_FIXTURES / name).read_text().splitlines() if l.strip()]
+    return [
+        line.strip()
+        for line in (_FIXTURES / name).read_text().splitlines()
+        if line.strip()
+    ]
 
 
 # --- module ---
@@ -428,9 +450,7 @@ def test_crawler_name_empty():
 
 
 def test_crawler_name_single_bot_in_mozilla():
-    assert (
-        crawler_name("Mozilla/5.0 AppleWebKit/537.36 FooBot Safari/537.36") == "FooBot"
-    )
+    assert crawler_name("Mozilla/5.0 AppleWebKit/537.36 FooBot Safari/537.36") == "FooBot"
 
 
 def test_crawler_name_none_for_browser_only():
@@ -641,12 +661,6 @@ def test_fixture_loadkpi_crawlers_pass_rate():
 
 # --- CLI (__main__) ---
 
-import io
-import json
-from unittest.mock import patch
-
-from is_crawler.__main__ import _analyze, _iter_inputs, main
-
 _GOOGLEBOT = "Googlebot/2.1 (+http://www.google.com/bot.html)"
 
 
@@ -734,23 +748,6 @@ def test_main_stdin_crlf(capsys):
 
 
 # --- category shortcuts ---
-
-from is_crawler import (
-    is_academic,
-    is_advertising,
-    is_ai_crawler,
-    is_archiver,
-    is_bad_crawler,
-    is_browser_automation,
-    is_feed_reader,
-    is_good_crawler,
-    is_http_library,
-    is_monitoring,
-    is_scanner,
-    is_search_engine,
-    is_seo,
-    is_social_preview,
-)
 
 
 def test_is_search_engine():

@@ -1,6 +1,6 @@
 import json
-import socket
 from pathlib import Path
+import socket
 from unittest.mock import patch
 
 import pytest
@@ -463,12 +463,12 @@ _GOOGLEBOT_UA = "Googlebot/2.1 (+http://www.google.com/bot.html)"
 _BINGBOT_UA = "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)"
 _GPTBOT_UA = "Mozilla/5.0 (compatible; GPTBot/1.0; +https://openai.com/gptbot)"
 _CLAUDE_UA = "Mozilla/5.0 (compatible; ClaudeBot/1.0; +https://anthropic.com/bot)"
-_APPLEBOT_UA = (
-    "Mozilla/5.0 (compatible; Applebot/0.1; +http://www.apple.com/go/applebot)"
-)
+_APPLEBOT_UA = "Mozilla/5.0 (compatible; Applebot/0.1; +http://www.apple.com/go/applebot)"
 _DUCKBOT_UA = "DuckDuckBot/1.1"
 _YANDEX_UA = "Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)"
-_BAIDU_UA = "Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)"
+_BAIDU_UA = (
+    "Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)"
+)
 _FB_UA = "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)"
 _AHREFS_UA = "Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)"
 _SEMRUSH_UA = "Mozilla/5.0 (compatible; SemrushBot/7; +http://www.semrush.com/bot.html)"
@@ -483,9 +483,7 @@ _ARCHIVE_UA = (
 )
 _CCBOT_UA = "CCBot/2.0 (https://commoncrawl.org/faq/)"
 _BYTESPIDER_UA = "Mozilla/5.0 (Linux; Android 5.0) Bytespider"
-_MOJEEK_UA = (
-    "Mozilla/5.0 (compatible; MojeekBot/0.11; +https://www.mojeek.com/bot.html)"
-)
+_MOJEEK_UA = "Mozilla/5.0 (compatible; MojeekBot/0.11; +https://www.mojeek.com/bot.html)"
 
 
 @pytest.mark.parametrize(
@@ -586,8 +584,7 @@ def test_verify_crawler_ip_forward_mismatch():
 
 def test_verify_crawler_ip_unknown_ua():
     assert (
-        verify_crawler_ip("Mozilla/5.0 (Windows NT 10.0) Chrome/120", "1.2.3.4")
-        is False
+        verify_crawler_ip("Mozilla/5.0 (Windows NT 10.0) Chrome/120", "1.2.3.4") is False
     )
 
 

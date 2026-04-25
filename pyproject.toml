@@ -1,6 +1,6 @@
 [project]
 name = "is-crawler"
-version = "1.5.3.4"
+version = "1.5.4"
 description = "Fast, regex-free crawler detection from user agents. Zero deps, ReDoS-safe heuristics, ~100× faster than alternatives."
 readme = "README.md"
 authors = [
@@ -28,7 +28,7 @@ classifiers = [
 keywords = ["crawler", "bot-detection", "user-agent", "spider", "scraper", "web-scraping", "bot", "robot", "useragent", "detection", "security", "middleware"]
 
 [project.optional-dependencies]
-dev = ["pytest", "pytest-cov"]
+dev = ["pytest", "pytest-cov", "ruff"]
 
 [project.scripts]
 is-crawler = "is_crawler.__main__:main"
@@ -40,14 +40,26 @@ Issues = "https://github.com/tn3w/is-crawler/issues"
 Funding = "https://www.buymeacoffee.com/tn3w"
 
 [build-system]
-requires = ["setuptools>=69", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.setuptools]
+[tool.hatch.build.targets.wheel]
 packages = ["is_crawler"]
+artifacts = ["is_crawler/*.json", "is_crawler/py.typed"]
 
-[tool.setuptools.package-data]
-is_crawler = ["crawler-user-agents.json", "crawler-rdns.json", "crawler-ip-ranges.json"]
+[tool.ruff]
+line-length = 90
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E501"]
+"tools/*" = ["E501"]
+
+[tool.ruff.lint.isort]
+force-sort-within-sections = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
