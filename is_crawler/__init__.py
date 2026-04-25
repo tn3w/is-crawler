@@ -17,6 +17,7 @@ __all__ = [
     "crawler_url",
     "crawler_signals",
     "crawler_info",
+    "assert_crawler",
     "crawler_has_tag",
     "is_search_engine",
     "is_ai_crawler",
@@ -35,6 +36,7 @@ __all__ = [
     "iter_crawlers",
     "robots_agents_for_tags",
     "build_robots_txt",
+    "build_ai_txt",
     "CrawlerInfo",
     "__version__",
 ]
@@ -397,6 +399,13 @@ def crawler_info(user_agent: str) -> CrawlerInfo | None:
     return None  # pragma: no cover
 
 
+def assert_crawler(user_agent: str) -> CrawlerInfo:
+    info = crawler_info(user_agent)
+    if info is None:
+        raise ValueError(f"not a known crawler: {user_agent!r}")
+    return info
+
+
 def crawler_has_tag(user_agent: str, tags: str | Iterable[str]) -> bool:
     info = crawler_info(user_agent)
     if not info:
@@ -501,26 +510,53 @@ def robots_agents_for_tags(tags: str | Iterable[str]) -> list[str]:
     return sorted(seen)
 
 
+def _as_set(tags: str | Iterable[str]) -> set[str]:
+    return {tags} if isinstance(tags, str) else set(tags)
+
+
+def _agent_directives(
+    disallow: str | Iterable[str],
+    allow: str | Iterable[str],
+    path: str,
+    rules: Iterable[tuple[str, str | Iterable[str]]],
+) -> dict[str, list[str]]:
+    directives: dict[str, list[str]] = {}
+
+    for agent in robots_agents_for_tags(_as_set(disallow)) if disallow else []:
+        directives.setdefault(agent, []).append(f"Disallow: {path}")
+
+    for agent in robots_agents_for_tags(_as_set(allow)) if allow else []:
+        directives.setdefault(agent, []).append(f"Allow: {path}")
+
+    for rule_path, rule_tags in rules:
+        for agent in robots_agents_for_tags(_as_set(rule_tags)):
+            directives.setdefault(agent, []).append(f"Disallow: {rule_path}")
+
+    return directives
+
+
 def build_robots_txt(
     disallow: str | Iterable[str] = (),
     allow: str | Iterable[str] = (),
     path: str = "/",
+    rules: Iterable[tuple[str, str | Iterable[str]]] = (),
 ) -> str:
-    disallow_tags = {disallow} if isinstance(disallow, str) else set(disallow)
-    allow_tags = {allow} if isinstance(allow, str) else set(allow)
-    disallow_agents = robots_agents_for_tags(disallow_tags) if disallow_tags else []
-    allow_agents = robots_agents_for_tags(allow_tags) if allow_tags else []
-    blocked = set(disallow_agents)
+    directives = _agent_directives(disallow, allow, path, rules)
+    if not directives:
+        return ""
 
-    blocks = []
-    for agent in disallow_agents:
-        blocks.append(f"User-agent: {agent}\nDisallow: {path}")
-    for agent in allow_agents:
-        if agent in blocked:
-            continue
-        blocks.append(f"User-agent: {agent}\nAllow: {path}")
+    blocks = [
+        f"User-agent: {agent}\n" + "\n".join(lines) for agent, lines in directives.items()
+    ]
+    return "\n\n".join(blocks) + "\n"
 
-    return "\n\n".join(blocks) + "\n" if blocks else ""
+
+def build_ai_txt(disallow: str | Iterable[str] = "ai-crawler") -> str:
+    agents = robots_agents_for_tags(_as_set(disallow))
+    if not agents:
+        return ""
+    blocks = [f"User-Agent: {agent}\nDisallow: /" for agent in agents]
+    return "\n\n".join(blocks) + "\n"
 
 
 def _name_chars_end(s: str, start: int) -> int:

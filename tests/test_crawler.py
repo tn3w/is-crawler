@@ -23,6 +23,8 @@ from is_crawler import (
     _url_in_ua,
     _word_char,
     _word_ends,
+    assert_crawler,
+    build_ai_txt,
     build_robots_txt,
     crawler_has_tag,
     crawler_info,
@@ -96,6 +98,8 @@ def test_all_exports():
         "iter_crawlers",
         "robots_agents_for_tags",
         "build_robots_txt",
+        "build_ai_txt",
+        "assert_crawler",
         "CrawlerInfo",
         "__version__",
     }
@@ -933,3 +937,30 @@ def test_build_robots_txt_disallow_precedence_on_overlap():
 
 def test_build_robots_txt_empty():
     assert build_robots_txt() == ""
+
+
+def test_assert_crawler_known():
+    ua = "Googlebot/2.1 (+http://www.google.com/bot.html)"
+    info = assert_crawler(ua)
+    assert isinstance(info, CrawlerInfo)
+
+
+def test_assert_crawler_unknown():
+    with pytest.raises(ValueError, match="not a known crawler"):
+        assert_crawler("Mozilla/5.0 (totally normal browser)")
+
+
+def test_build_ai_txt_has_agents():
+    out = build_ai_txt()
+    assert "User-Agent:" in out
+    assert "Disallow: /" in out
+
+
+def test_build_ai_txt_empty_tag():
+    out = build_ai_txt(disallow="nonexistent-tag-xyz")
+    assert out == ""
+
+
+def test_build_ai_txt_rules_branch():
+    out = build_robots_txt(rules=[("/private", "ai-crawler")])
+    assert "Disallow: /private" in out

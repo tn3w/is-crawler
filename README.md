@@ -202,21 +202,34 @@ awk -F'"' '{print $6}' access.log | python -m is_crawler | \
   jq -r '.is_crawler' | sort | uniq -c
 ```
 
-## robots.txt
+## robots.txt / ai.txt
 
 Generate directives from tags. Names are extracted from DB patterns, slash/URL-only entries skipped.
 
 ```python
-from is_crawler import build_robots_txt, robots_agents_for_tags
+from is_crawler import build_robots_txt, build_ai_txt, robots_agents_for_tags
 
 print(build_robots_txt(disallow=["ai-crawler", "scanner"]))
 # User-agent: GPTBot
 # Disallow: /
 # ...
 
+print(build_ai_txt())          # disallows all ai-crawler agents by default
+# User-Agent: GPTBot
+# Disallow: /
+# ...
+
 robots_agents_for_tags("ai-crawler")
 # ['AI2Bot', 'Applebot-Extended', 'Bytespider', 'CCBot', 'ChatGPT-User', ...]
 ```
+
+`build_robots_txt` also accepts a `rules` list of `(path, tags)` pairs for per-path control:
+
+```python
+build_robots_txt(rules=[("/api", "scanner"), ("/private", "ai-crawler")])
+```
+
+`assert_crawler(ua)` — like `crawler_info` but raises `ValueError` for unknown UAs.
 
 ## CLI
 
