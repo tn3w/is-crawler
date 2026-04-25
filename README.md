@@ -6,12 +6,12 @@ Crawler detection from User-Agent strings in 50 ns. Zero deps, no regex, ReDoS-s
 
 [![PyPI](https://img.shields.io/pypi/v/is-crawler?style=flat-square)](https://pypi.org/project/is-crawler/)
 [![Python](https://img.shields.io/pypi/pyversions/is-crawler?style=flat-square)](https://pypi.org/project/is-crawler/)
-[![License](https://img.shields.io/github/license/tn3w/is-crawler?style=flat-square)](https://github.com/tn3w/is-crawler/blob/main/LICENSE)
+[![License](https://img.shields.io/github/license/tn3w/is-crawler?style=flat-square)](https://github.com/tn3w/is-crawler/blob/master/LICENSE)
 [![Stars](https://img.shields.io/github/stars/tn3w/is-crawler?style=flat-square)](https://github.com/tn3w/is-crawler/stargazers)
 [![Downloads](https://static.pepy.tech/personalized-badge/is-crawler?period=month&units=international_system&left_color=grey&right_color=blue&left_text=downloads/month&style=flat-square)](https://pepy.tech/project/is-crawler)
 
 [![Issues](https://img.shields.io/github/issues/tn3w/is-crawler?style=flat-square)](https://github.com/tn3w/is-crawler/issues)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square)](https://github.com/tn3w/is-crawler/blob/main/CONTRIBUTING.md)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square)](https://github.com/tn3w/is-crawler/blob/master/CONTRIBUTING.md)
 [![Buy Me a Coffee](https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow?style=flat-square)](https://www.buymeacoffee.com/tn3w)
 
 </div>
@@ -286,8 +286,8 @@ ruff format . && ruff check --fix .
 npx --yes prettier --write --single-quote --print-width=100 --trailing-comma=es5 --end-of-line=lf "**/*.{md,yml,yaml,html,css,js,ts}" "tools/*.json"
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Report vulnerabilities via [GitHub private security advisory](https://github.com/tn3w/is-crawler/security), not public issues. See [SECURITY.md](SECURITY.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+See [CONTRIBUTING.md](https://github.com/tn3w/is-crawler/blob/master/CONTRIBUTING.md). Report vulnerabilities via [GitHub private security advisory](https://github.com/tn3w/is-crawler/security), not public issues. See [SECURITY.md](https://github.com/tn3w/is-crawler/blob/master/SECURITY.md) and [CODE_OF_CONDUCT.md](https://github.com/tn3w/is-crawler/blob/master/CODE_OF_CONDUCT.md).
 
 ## License
 
-[Apache-2.0](LICENSE)
+[Apache-2.0](https://github.com/tn3w/is-crawler/blob/master/LICENSE)
