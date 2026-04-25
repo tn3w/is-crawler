@@ -2,7 +2,7 @@
 
 # is-crawler
 
-Detect bots in 50 ns. Zero deps, no regex, ReDoS-safe.
+Crawler detection from User-Agent strings in 50 ns. Zero deps, no regex, ReDoS-safe.
 
 [![PyPI](https://img.shields.io/pypi/v/is-crawler?style=flat-square)](https://pypi.org/project/is-crawler/)
 [![Python](https://img.shields.io/pypi/pyversions/is-crawler?style=flat-square)](https://pypi.org/project/is-crawler/)
