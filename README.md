@@ -2,7 +2,7 @@
 
 # is-crawler
 
-Fast, regex-free crawler detection from user agents. Zero deps, ReDoS-safe heuristics, ~100× faster than alternatives. Includes FCrDNS IP verification for 100+ known crawlers.
+Detect bots in 50 ns. Zero deps, no regex, ReDoS-safe.
 
 [![PyPI](https://img.shields.io/pypi/v/is-crawler?style=flat-square)](https://pypi.org/project/is-crawler/)
 [![Python](https://img.shields.io/pypi/pyversions/is-crawler?style=flat-square)](https://pypi.org/project/is-crawler/)
@@ -16,342 +16,256 @@ Fast, regex-free crawler detection from user agents. Zero deps, ReDoS-safe heuri
 
 </div>
 
-## Install
-
 ```bash
 pip install is-crawler
 ```
 
-## Usage
+```python
+from is_crawler import is_crawler
+
+is_crawler("Googlebot/2.1 (+http://www.google.com/bot.html)")  # True
+is_crawler("Mozilla/5.0 (X11; Linux x86_64) Firefox/120.0")    # False
+```
+
+One call, runs on every request without blinking.
+
+```
+\(°o°)/   caught one!
+ /| |\
+```
+
+## Why
+
+Crawler detection sits on the request hot path. Most libraries reach for big regex tables, which means slow first hits, ReDoS exposure on hostile UAs, and millisecond-scale latency you pay forever.
+
+`is_crawler` runs `str.find` and small char scans against curated keywords. No backtracking, no DB load, no network. The optional `crawler_info` adds DB lookups when you want classification. Everything else (FCrDNS, IP ranges, robots.txt, middleware) is opt-in.
+
+```
+is-crawler  ▏                                                  0.04 µs
+cua         ████████████████████████████████████████████████  64.00 µs
+```
+
+|                   | is-crawler | crawler-user-agents | ua-parser |
+| ----------------- | ---------- | ------------------- | --------- |
+| Hot-path regex    | no         | yes                 | yes       |
+| ReDoS-safe        | yes        | no                  | no        |
+| FCrDNS verify     | yes        | no                  | no        |
+| IP range lookup   | yes        | no                  | no        |
+| WSGI/ASGI MW      | yes        | no                  | no        |
+| Warm `is_crawler` | 0.04 µs    | 64 µs               | n/a       |
+
+## In the wild
+
+What the API returns on real UAs you will actually see:
+
+| User agent                                                                  | `is_crawler` | `crawler_name`      | tag                |
+| --------------------------------------------------------------------------- | ------------ | ------------------- | ------------------ |
+| `Mozilla/5.0 ... Chrome/120.0.0.0 Safari/537.36`                            | False        | None                | -                  |
+| `Googlebot/2.1 (+http://www.google.com/bot.html)`                           | True         | Googlebot           | search-engine      |
+| `Mozilla/5.0 (compatible; GPTBot/1.2; +https://openai.com/gptbot)`          | True         | GPTBot              | ai-crawler         |
+| `Mozilla/5.0 ... HeadlessChrome/120.0.0.0 Safari/537.36`                    | True         | HeadlessChrome      | browser-automation |
+| `curl/8.4.0`                                                                | True         | curl                | http-library       |
+| `python-requests/2.31.0`                                                    | True         | python-requests     | http-library       |
+| `Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)`        | True         | AhrefsBot           | seo                |
+| `facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)` | True         | facebookexternalhit | social-preview     |
+| `Mozilla/5.0 (compatible; Nikto/2.5.0)`                                     | True         | Nikto               | scanner            |
+| `Mozilla/5.0 ... Safari/605.1.15` (no UA marker, valid Safari)              | False        | None                | -                  |
+
+## Detection
 
 ```python
 from is_crawler import (
     is_crawler, crawler_signals, crawler_info, crawler_has_tag,
     crawler_name, crawler_version, crawler_url, CrawlerInfo,
 )
-from is_crawler.ip import (
-    verify_crawler_ip,
-    reverse_dns,
-    forward_confirmed_rdns,
-    ip_in_range,
-    known_crawler_ip,
-    known_crawler_rdns,
-)
 
 ua = "Googlebot/2.1 (+http://www.google.com/bot.html)"
-ip = "66.249.66.1"
 
-is_crawler(ua)                                  # True
-crawler_signals(ua)                             # ['bot_signal', 'no_browser_signature', 'url_in_ua']
-crawler_name(ua)                                # 'Googlebot'
-crawler_version(ua)                             # '2.1'
-crawler_url(ua)                                 # 'http://www.google.com/bot.html'
-verify_crawler_ip(ua, ip)                       # True - FCrDNS validation
-reverse_dns(ip)                                 # 'crawl-66-249-66-1.googlebot.com'
-forward_confirmed_rdns(ip, (".googlebot.com",)) # hostname or None
-ip_in_range(ip)                                 # True - in known crawler CIDRs
-known_crawler_ip(ip)                            # alias for ip_in_range
-known_crawler_rdns(ip)                          # True - known crawler via FCrDNS/rDNS
-
-info = crawler_info(ua)                         # CrawlerInfo(...)
-if info is not None:
-    info.url                                    # 'http://www.google.com/bot.html'
-    info.description                            # "Google's main web crawling bot..."
-    info.tags                                   # ('search-engine',)
-
-crawler_has_tag(ua, "search-engine")            # True
-crawler_has_tag(ua, ["ai-crawler", "seo"])      # False
+is_crawler(ua)         # True
+crawler_name(ua)       # 'Googlebot'
+crawler_version(ua)    # '2.1'
+crawler_url(ua)        # 'http://www.google.com/bot.html'
+crawler_signals(ua)    # ['bot_signal', 'no_browser_signature', 'url_in_ua']
 ```
 
-## API
+`is_crawler` short-circuits on three rules: positive bot signal (keywords like `bot`/`crawl`/`spider`, known tools, embedded URL/email), missing browser signature (no `Mozilla/`, `WebKit`, OS token, etc.), or a bare `(compatible; ...)` block.
 
-### `is_crawler(ua: str) -> bool`
+`crawler_signals` exposes which rules fired, for logging and diagnostics.
 
-Heuristic detection. Returns `True` if the UA is a crawler. No DB lookup, no regex.
+## Classification
 
-Three short-circuit rules:
-
-1. **Positive signal**: bot keywords (`bot`, `crawl`, `spider`, `scrape`, `headless`, `slurp`, `archiv`, `preview`, ...), known tools (`playwright`, `selenium`, `wget`, `lighthouse`, `sqlmap`, `nikto`, `nmap`, `httrack`, `pingdom`, `google-safety`, ...), or a URL/email embedded in the UA.
-2. **No browser signature**: missing `Mozilla/`, `WebKit`, `Gecko`, `Trident`, `Presto`, `KHTML`, `Links`, `Lynx`, `Opera`, or an OS token like `(Windows`, `(Linux`, `(X11`, `(Macintosh`.
-3. **Bare `(compatible; ...)`**: classic bot block without OS/browser tokens inside.
-
-### `crawler_signals(ua: str) -> list[str]`
-
-Which individual rules fired. Subset of: `bot_signal`, `no_browser_signature`, `bare_compatible`, `known_tool`, `url_in_ua`. Useful for diagnostics and logging. `is_crawler` does not call this.
-
-### `crawler_name(ua: str) -> str | None`
-
-Product name extracted from the UA.
-
-- `Googlebot/2.1 ...` → `'Googlebot'`
-- `Mozilla/5.0 (compatible; bingbot/2.0; ...)` → `'bingbot'`
-- `Mozilla/5.0 ... Speedy Spider (...)` → `'Speedy Spider'`
-- Chrome/Firefox/Safari → `None`
-
-### `crawler_version(ua: str) -> str | None`
-
-Version token extracted from the UA. Returns `None` if no non-browser version is detectable.
-
-- `curl/7.64.1` → `'7.64.1'`
-- `Mozilla/5.0 (compatible; Miniflux/2.0.10; ...)` → `'2.0.10'`
-- `Googlebot/2.1 ...` → `'2.1'`
-
-### `crawler_url(ua: str) -> str | None`
-
-URL embedded in the UA (after `+`, `;`, or `-`).
-
-- `Googlebot/2.1 (+http://www.google.com/bot.html)` → `'http://www.google.com/bot.html'`
-- UA with no embedded URL → `None`
-
-### `crawler_info(ua: str) -> CrawlerInfo | None`
-
-DB lookup against 1200 known crawler patterns. Returns `None` for browsers (short-circuits via `is_crawler`).
+`crawler_info` matches against 1200 curated patterns from [monperrus/crawler-user-agents](https://github.com/monperrus/crawler-user-agents) plus extras. Patterns compile lazily in 48-entry chunks.
 
 ```python
-class CrawlerInfo(NamedTuple):
-    url: str                # crawler's info/docs URL (may be '')
-    description: str        # human-readable description
-    tags: tuple[str, ...]   # classification tags, e.g. ('search-engine',)
+info = crawler_info(ua)
+info.url            # 'http://www.google.com/bot.html'
+info.description    # "Google's main web crawling bot..."
+info.tags           # ('search-engine',)
+
+crawler_has_tag(ua, "search-engine")        # True
+crawler_has_tag(ua, ["ai-crawler", "seo"])  # False
 ```
 
-### `crawler_has_tag(ua: str, tags: str | Iterable[str]) -> bool`
+Tags: `search-engine`, `ai-crawler`, `seo`, `social-preview`, `advertising`, `archiver`, `feed-reader`, `monitoring`, `scanner`, `academic`, `http-library`, `browser-automation`.
 
-`True` if the crawler has any of the given tags. `tags` accepts a single string or a list.
+One-tag wrappers exist for each: `is_search_engine`, `is_ai_crawler`, `is_seo`, `is_social_preview`, `is_advertising`, `is_archiver`, `is_feed_reader`, `is_monitoring`, `is_scanner`, `is_academic`, `is_http_library`, `is_browser_automation`.
 
-Available tags: `search-engine`, `ai-crawler`, `seo`, `social-preview`, `advertising`, `archiver`, `feed-reader`, `monitoring`, `scanner`, `academic`, `http-library`, `browser-automation`.
-
-### Category shortcuts
-
-One-tag wrappers over `crawler_has_tag`:
+Quick gates:
 
 ```python
-is_search_engine(ua)       # 'search-engine'
-is_ai_crawler(ua)          # 'ai-crawler'
-is_seo(ua)                 # 'seo'
-is_social_preview(ua)      # 'social-preview'
-is_advertising(ua)         # 'advertising'
-is_archiver(ua)            # 'archiver'
-is_feed_reader(ua)         # 'feed-reader'
-is_monitoring(ua)          # 'monitoring'
-is_scanner(ua)             # 'scanner'
-is_academic(ua)            # 'academic'
-is_http_library(ua)        # 'http-library'
-is_browser_automation(ua)  # 'browser-automation'
+is_good_crawler(ua)   # search-engine, social-preview, feed-reader, archiver, academic
+is_bad_crawler(ua)    # ai-crawler, scanner, http-library, browser-automation, seo
 ```
 
-### `is_good_crawler(ua)` / `is_bad_crawler(ua)`
+`advertising` and `monitoring` are policy-dependent and belong to neither group.
 
-Opinionated groupings for quick allow/deny gates.
+## IP verification
 
-- **Good** (indexing, previews, archives, feeds, research): `search-engine`, `social-preview`, `feed-reader`, `archiver`, `academic`.
-- **Bad** (scraping, scanning, unattributed traffic): `ai-crawler`, `scanner`, `http-library`, `browser-automation`, `seo`.
-
-`advertising` and `monitoring` are intentionally neither: policy-dependent.
-
-### Middleware
+Two strategies, use either or both. `socket` only, no deps.
 
 ```python
-from is_crawler.contrib import WSGICrawlerMiddleware
+from is_crawler.ip import (
+    verify_crawler_ip, reverse_dns, forward_confirmed_rdns,
+    ip_in_range, known_crawler_ip, known_crawler_rdns,
+)
 
-app = WSGICrawlerMiddleware(app)
+verify_crawler_ip("Googlebot/2.1", "66.249.66.1")  # True (FCrDNS, UA-name matched)
+verify_crawler_ip("Googlebot/2.1", "8.8.8.8")      # False (spoof)
 
-# Flask
-request.environ["is_crawler"].is_crawler
+ip_in_range("66.249.66.1")        # True (CIDR lookup, offline)
+known_crawler_rdns("66.249.66.1") # True (rDNS suffix matches any known crawler)
 
-# Django
-request.META["is_crawler"].name
+reverse_dns("8.8.8.8")                                      # 'dns.google'
+forward_confirmed_rdns("66.249.66.1", (".googlebot.com",))  # hostname or None
 ```
 
+`verify_crawler_ip` does the full FCrDNS dance: rDNS lookup, suffix check against the UA's vendor, forward lookup, IP match. Catches UA spoofing.
+
+`ip_in_range` runs a bisect over collapsed CIDRs from 39 official sources (Google, Bing, OpenAI, Anthropic, Cloudflare, AWS, ...). Cheap and offline.
+
+## Middleware
+
+Drop-in for any WSGI or ASGI app. Zero deps.
+
 ```python
+from is_crawler.contrib import WSGICrawlerMiddleware, ASGICrawlerMiddleware
+
+app = WSGICrawlerMiddleware(app)                                  # Flask, Django
+app = ASGICrawlerMiddleware(app, block=True, block_tags="ai-crawler")  # FastAPI, Starlette
+
+# Flask:    request.environ["is_crawler"].is_crawler
+# Django:   request.META["is_crawler"].name
+# FastAPI:  request.scope["is_crawler"].verified
+```
+
+Both attach a `CrawlerMiddlewareResult` with `user_agent`, `ip`, `is_crawler`, `name`, `verified`, `in_ip_range`, `rdns_match`.
+
+Flags: `block`, `block_tags`, `verify_ip`, `check_ip_range`, `check_rdns`, `trust_forwarded`. A positive `in_ip_range` or `rdns_match` forces `is_crawler=True`, which catches UA-less crawlers. With `trust_forwarded=True`, IP comes from `X-Forwarded-For` then `X-Real-IP` then the direct client.
+
+## Recipes
+
+Block AI scrapers, let search engines through (FastAPI):
+
+```python
+from fastapi import FastAPI
 from is_crawler.contrib import ASGICrawlerMiddleware
 
-app = ASGICrawlerMiddleware(app, block=True, block_tags="ai-crawler")
-
-# FastAPI / Starlette
-request.scope["is_crawler"].is_crawler
-request.state.crawler.verified
+app = FastAPI()
+app = ASGICrawlerMiddleware(app, block=True, block_tags="ai-crawler", trust_forwarded=True)
 ```
 
-Both middlewares are zero-dep. They attach `CrawlerMiddlewareResult` with
-`user_agent`, `ip`, `is_crawler`, `name`, `verified`, `in_ip_range`, `rdns_match`.
-
-- `WSGICrawlerMiddleware`: Flask, Django, any WSGI app
-- `ASGICrawlerMiddleware`: FastAPI, Starlette, any ASGI app
-
-Optional flags: `block=True`, `block_tags=...`, `verify_ip=True`,
-`check_ip_range=True`, `check_rdns=True`, `trust_forwarded=True`.
-
-IP flags:
-
-- `verify_ip` → strict FCrDNS (rDNS + forward lookup, UA-name matched). Sets `verified`.
-- `check_ip_range` → CIDR lookup against shipped ranges. Sets `in_ip_range`. Cheap, offline.
-- `check_rdns` → rDNS suffix against any known crawler domain. Sets `rdns_match`. One DNS lookup.
-
-A positive `in_ip_range` or `rdns_match` also forces `is_crawler=True` (catches UA-less crawlers).
-
-With `trust_forwarded=True`, middleware uses the first IP from
-`X-Forwarded-For`, then `X-Real-IP`, before the direct client address.
-
-### `robots.txt` helpers
-
-Generate directives from DB tags. Names extracted from DB patterns (slash/URL-only entries skipped).
+Serve a live `robots.txt` from the DB (Flask):
 
 ```python
-from is_crawler import build_robots_txt, robots_agents_for_tags, iter_crawlers
+from flask import Response
+from is_crawler import build_robots_txt
 
-robots_agents_for_tags("ai-crawler")
-# ['AI2Bot', 'Applebot-Extended', 'Bytespider', 'CCBot', 'ChatGPT-User', 'Claude-Web', 'GPTBot', ...]
+@app.route("/robots.txt")
+def robots():
+    return Response(build_robots_txt(disallow=["ai-crawler", "scanner"]), mimetype="text/plain")
+```
+
+Verify Googlebot is real before trusting it:
+
+```python
+from is_crawler import is_crawler
+from is_crawler.ip import verify_crawler_ip
+
+if is_crawler(ua) and not verify_crawler_ip(ua, ip):
+    abort(403)  # spoofed
+```
+
+Crawler share of an access log:
+
+```bash
+awk -F'"' '{print $6}' access.log | python -m is_crawler | \
+  jq -r '.is_crawler' | sort | uniq -c
+```
+
+## robots.txt
+
+Generate directives from tags. Names are extracted from DB patterns, slash/URL-only entries skipped.
+
+```python
+from is_crawler import build_robots_txt, robots_agents_for_tags
 
 print(build_robots_txt(disallow=["ai-crawler", "scanner"]))
 # User-agent: GPTBot
 # Disallow: /
-#
-# User-agent: Nikto
-# Disallow: /
 # ...
 
-build_robots_txt(allow="search-engine", path="/public")
-# User-agent: Googlebot
-# Allow: /public
-# ...
-
-for info, name in iter_crawlers():      # (CrawlerInfo, robots-name) per DB entry
-    ...
+robots_agents_for_tags("ai-crawler")
+# ['AI2Bot', 'Applebot-Extended', 'Bytespider', 'CCBot', 'ChatGPT-User', ...]
 ```
 
-### IP verification (`is_crawler.ip`)
-
-Two complementary strategies: use either or both.
-
-#### FCrDNS (forward-confirmed reverse DNS)
-
-rDNS → suffix check → forward lookup → IP match. Catches UA spoofing. `socket` only, no deps.
-
-```python
-from is_crawler.ip import verify_crawler_ip, forward_confirmed_rdns, reverse_dns
-
-verify_crawler_ip("Googlebot/2.1 (+http://www.google.com/bot.html)", "66.249.66.1")
-# True → rDNS ends in .googlebot.com AND forward lookup returns same IP
-
-verify_crawler_ip("Googlebot/2.1", "8.8.8.8")               # False (spoof)
-reverse_dns("8.8.8.8")                                       # 'dns.google'
-forward_confirmed_rdns("66.249.66.1", (".googlebot.com",))   # hostname or None
-```
-
-Built-in suffixes: Googlebot, Bingbot, Applebot, DuckDuckBot, YandexBot, Baiduspider, FacebookBot, and 80+ more. Crawler name taken from `crawler_name(ua)`.
-
-#### IP range lookup
-
-Check whether an IP belongs to any known crawler's published CIDR range. Requires a build range database which is included (see **Tools** below).
-
-```python
-from is_crawler.ip import ip_in_range, known_crawler_ip, known_crawler_rdns
-
-ip_in_range("66.249.66.1")    # True : in Googlebot ranges
-ip_in_range("8.8.8.8")        # False: not a known crawler range
-known_crawler_ip("66.249.66.1")  # alias for ip_in_range
-known_crawler_rdns("66.249.66.1")  # True: reverse DNS matches a known crawler domain
-```
-
-Results are LRU-cached. The file is optional: if absent, `ip_in_range` returns `False` rather than raising.
-
-### Tools
-
-Scripts in `tools/` build the data files shipped inside the package.
-
-#### `build_user_agents.py`
-
-Compiles `is_crawler/crawler-user-agents.json` from the upstream [monperrus/crawler-user-agents](https://github.com/monperrus/crawler-user-agents) source plus local extras.
-
-```bash
-python3 tools/build_user_agents.py
-python3 tools/build_user_agents.py --input crawler-user-agents.json --output is_crawler/crawler-user-agents.json
-```
-
-#### `build_ip_ranges.py`
-
-Fetches live IP range data from 39 official sources (Google, Bing, DuckDuckGo, Apple, OpenAI, Anthropic, Perplexity, Common Crawl, Cloudflare, Fastly, AWS, Azure, Oracle Cloud, GitHub, Telegram, Ahrefs, Yandex, Facebook, Kagi, Amazon, UptimeRobot, Pingdom, Stripe, and more) and writes a flat `is_crawler/crawler-ip-ranges.json` mapping each source name to its CIDR list.
-
-```bash
-python3 tools/build_ip_ranges.py
-python3 tools/build_ip_ranges.py --timeout 30 --skip-errors
-```
-
-Source definitions live in `tools/crawler-ip-ranges.json` (name → `{url, pattern}`) and can be extended independently of the build script.
-
-### CLI
+## CLI
 
 ```bash
 python -m is_crawler "Googlebot/2.1 (+http://www.google.com/bot.html)"
 tail -f access.log | awk -F'"' '{print $6}' | python -m is_crawler
 ```
 
-One JSON object per UA (arg or stdin line) with `is_crawler`, `name`, `version`, `url`, `signals`, `info`.
-
-### Caching
-
-Every public function has a 32k-entry LRU cache. Repeat UAs hit in ~40 ns.
+One JSON object per UA with `is_crawler`, `name`, `version`, `url`, `signals`, `info`.
 
 ## Benchmarks
 
 Python 3.14, Linux x86_64. `cua` = [`crawler-user-agents`](https://pypi.org/project/crawler-user-agents/) v1.44.
 
-### Synthetic corpus
-
-Corpus: 1,231 crawler UAs + 15,812 browser UAs.
+Real Apache logs, 42,512 UA entries (21% crawler ratio):
 
 | Scenario   | `is_crawler` | `crawler_info` | `cua.is_crawler` | `cua.crawler_info` |
 | ---------- | ------------ | -------------- | ---------------- | ------------------ |
-| Warm cache | 0.05 µs      | 0.60 µs        | 158.9 µs         | 732.0 µs           |
-| Cold cache | 1.85 µs      | 2.07 µs        | 176.94 µs        | 733.4 µs           |
+| Warm cache | 0.044 µs     | 0.115 µs       | 64.121 µs        | 1513.618 µs        |
+| Cold cache | 0.143 µs     | 0.970 µs       | -                | -                  |
 
-That is roughly `3000×` faster for hot `is_crawler`, `96×` faster for cold `is_crawler`, and `354×` faster for cold `crawler_info`.
+Roughly 1450× faster on the hot path, 13000× faster for `crawler_info` warm. Full classify of 33,570 browser + 8,942 crawler UAs runs in 2.16 ms.
 
-### Real Apache logs
+IP verification, warm cache:
 
-Corpus: `42,512` UA entries from two Apache access logs (`8,942` crawlers, `33,570` browsers, `21.0%` crawler ratio).
+| Function                 | Time    |
+| ------------------------ | ------- |
+| `ip_in_range`            | 0.06 µs |
+| `reverse_dns`            | 0.48 µs |
+| `verify_crawler_ip`      | 3.23 µs |
+| `forward_confirmed_rdns` | 3.69 µs |
+| `known_crawler_rdns`     | 4.27 µs |
 
-| Scenario   | `is_crawler` (all) | `crawler_info` (all) | `cua.is_crawler` (all) | `cua.crawler_info` (all) |
-| ---------- | ------------------ | -------------------- | ---------------------- | ------------------------ |
-| Warm cache | 0.044 µs           | 0.115 µs             | 64.121 µs              | 1513.618 µs              |
-| Cold cache | 0.143 µs           | 0.970 µs             | -                      | -                        |
+Every public function has a 32k-entry LRU cache. First-call rDNS latency is network-bound.
 
-Full-log classify time:
+## Implementation
 
-| Log                   | Time    | Crawlers found |
-| --------------------- | ------- | -------------- |
-| `apache_access_1.txt` | 2.22 ms | 6,462          |
-| `apache_access_2.txt` | 0.77 ms | 2,480          |
-| Combined              | 2.16 ms | 8,942          |
+`is_crawler` uses `str.find` and char scans, never regex, so hostile UAs cannot trigger backtracking. `crawler_info` does use `re`, but only against curated upstream patterns that are simple by construction.
 
-### IP verification
+Data files are built by scripts in `tools/`:
 
-First-call rDNS latency is network-dependent.
+```bash
+python3 tools/build_user_agents.py   # crawler-user-agents.json from monperrus/crawler-user-agents
+python3 tools/build_ip_ranges.py     # crawler-ip-ranges.json from 39 official sources
+```
 
-| Function                 | Warm cache |
-| ------------------------ | ---------- |
-| `ip_in_range`            | 0.06 µs    |
-| `known_crawler_ip`       | 0.08 µs    |
-| `reverse_dns`            | 0.48 µs    |
-| `forward_confirmed_rdns` | 3.69 µs    |
-| `known_crawler_rdns`     | 4.27 µs    |
-| `verify_crawler_ip`      | 3.23 µs    |
+Source definitions for IP ranges live in `tools/crawler-ip-ranges.json` and can be extended without touching the build script.
 
-### Notes
-
-- Warm cache reflects repeated lookups with LRU hits.
-- Cold cache clears the public API caches between benchmark runs.
-- DB patterns compile lazily per 48-entry chunk on first match.
-
-## Implementation Notes
-
-### Why regex-free?
-
-Crawler detection runs on every request, so predictable runtime matters. `is-crawler` implements its hot-path heuristics with `str.find` plus char scans instead of regex backtracking. That keeps `is_crawler()` fast and avoids the usual ReDoS footguns from hostile user-agent strings.
-
-`crawler_info()` does use `re`, but only against curated upstream patterns from [monperrus/crawler-user-agents](https://github.com/monperrus/crawler-user-agents), and those patterns are simple enough to avoid catastrophic backtracking in practice.
-
-## Formatting
+## Development
 
 ```bash
 pip install -e ".[dev]"
@@ -359,17 +273,7 @@ ruff format . && ruff check --fix .
 npx --yes prettier --write --single-quote --print-width=100 --trailing-comma=es5 --end-of-line=lf "**/*.{md,yml,yaml,html,css,js,ts}" "tools/*.json"
 ```
 
-## Contributing
-
-Bug reports, feature requests, and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
-
-## Security
-
-Report vulnerabilities via [GitHub private security advisory](https://github.com/tn3w/is-crawler/security), **do not open a public issue**. See [SECURITY.md](SECURITY.md).
-
-## Code of Conduct
-
-See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md). Report vulnerabilities via [GitHub private security advisory](https://github.com/tn3w/is-crawler/security), not public issues. See [SECURITY.md](SECURITY.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
 ## License
 
