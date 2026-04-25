@@ -482,6 +482,18 @@ def test_crawler_name_prefix_odd_trailing_char_falls_back():
     assert crawler_name("BotName!x") == "BotName!x"
 
 
+def test_crawler_name_unclosed_paren_returns_none():
+    assert crawler_name("Mozilla/5.0 (Nikto/2.1.6") is None
+
+
+def test_crawler_name_skips_browser_platform_parens():
+    ua = (
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/59.0.3071.109 Safari/537.36"
+    )
+    assert crawler_name(ua) is None
+
+
 # --- crawler_version ---
 
 
