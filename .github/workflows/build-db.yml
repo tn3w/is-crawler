@@ -1,16 +1,6 @@
 name: Build crawler DB
 
 on:
-  schedule:
-    # Run weekly on Mondays at 04:00 UTC to pick up upstream changes
-    - cron: '0 4 * * 1'
-  push:
-    paths:
-      - '.github/workflows/build-db.yml'
-      - 'tools/extra-crawler-user-agents.json'
-      - 'tools/crawler-ip-ranges.json'
-      - 'tools/build_user_agents.py'
-      - 'tools/build_ip_ranges.py'
   workflow_dispatch:
 
 jobs:
