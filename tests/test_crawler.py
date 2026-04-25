@@ -1,12 +1,8 @@
-import io
-import json
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 
 from is_crawler import (
-    CrawlerInfo,
     __version__,
     _bare_compat,
     _bot_signal,
@@ -17,40 +13,17 @@ from is_crawler import (
     _has_by_domain,
     _known_tool,
     _leading_domain,
-    _robots_name,
     _semicolon_agent,
     _token_after,
     _url_in_ua,
     _word_char,
     _word_ends,
-    assert_crawler,
-    build_ai_txt,
-    build_robots_txt,
-    crawler_has_tag,
-    crawler_info,
     crawler_name,
     crawler_signals,
     crawler_url,
     crawler_version,
-    is_academic,
-    is_advertising,
-    is_ai_crawler,
-    is_archiver,
-    is_bad_crawler,
-    is_browser_automation,
     is_crawler,
-    is_feed_reader,
-    is_good_crawler,
-    is_http_library,
-    is_monitoring,
-    is_scanner,
-    is_search_engine,
-    is_seo,
-    is_social_preview,
-    iter_crawlers,
-    robots_agents_for_tags,
 )
-from is_crawler.__main__ import _analyze, _iter_inputs, main
 
 _FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -589,68 +562,6 @@ def test_crawler_url_none_when_mid_word():
     assert crawler_url("see http://example.com for info") is None
 
 
-# --- crawler_info ---
-
-
-_GOOGLEBOT = "Googlebot/2.1 (+http://www.google.com/bot.html)"
-_BINGBOT = "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)"
-_LINKEDINBOT = "LinkedInBot/1.0 (compatible; Mozilla/5.0; Jakarta Commons-HttpClient/3.1 +http://www.linkedin.com)"
-
-
-def test_crawler_info_returns_none_for_browser():
-    ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36"
-    assert crawler_info(ua) is None
-
-
-def test_crawler_info_googlebot():
-    info = crawler_info(_GOOGLEBOT)
-    assert info is not None
-    assert info.url == "http://www.google.com/bot.html"
-    assert info.description == "Google's main web crawling bot for search indexing"
-    assert info.tags == ("search-engine",)
-
-
-def test_crawler_info_bingbot():
-    info = crawler_info(_BINGBOT)
-    assert info is not None
-    assert info.url == "http://www.bing.com/bingbot.htm"
-    assert info.description == "Microsoft's web crawling bot for Bing search indexing"
-    assert info.tags == ("search-engine",)
-
-
-def test_crawler_info_linkedinbot():
-    info = crawler_info(_LINKEDINBOT)
-    assert info is not None
-    assert info.url == ""
-    assert (
-        info.description
-        == "LinkedIn's bot for crawling professional content and profiles"
-    )
-    assert info.tags == ("social-preview",)
-
-
-# --- crawler_has_tag ---
-
-
-def test_crawler_has_tag_single_string():
-    assert crawler_has_tag(_GOOGLEBOT, "search-engine") is True
-    assert crawler_has_tag(_GOOGLEBOT, "ai-crawler") is False
-
-
-def test_crawler_has_tag_list():
-    assert crawler_has_tag(_GOOGLEBOT, ["search-engine", "ai-crawler"]) is True
-    assert crawler_has_tag(_GOOGLEBOT, ["ai-crawler", "scanner"]) is False
-
-
-def test_crawler_has_tag_returns_false_for_browser():
-    ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36"
-    assert crawler_has_tag(ua, "search-engine") is False
-
-
-def test_crawler_has_tag_dedup_multi_tag():
-    assert crawler_has_tag("tagoobot/1.0", ["ai-crawler", "search-engine"]) is True
-
-
 # --- fixtures ---
 
 
@@ -675,292 +586,18 @@ def test_fixture_loadkpi_crawlers_pass_rate():
     assert rate >= 0.91, f"pass rate {rate:.2%} ({detected}/{len(uas)})"
 
 
-# --- CLI (__main__) ---
+# --- module integrity ---
 
-_GOOGLEBOT = "Googlebot/2.1 (+http://www.google.com/bot.html)"
 
+def test_init_does_not_import_regex():
+    import ast
 
-def test_analyze_crawler():
-    result = _analyze(_GOOGLEBOT)
-    assert result["is_crawler"] is True
-    assert result["name"] == "Googlebot"
-    assert result["version"] == "2.1"
-    assert result["url"] == "http://www.google.com/bot.html"
-    assert "bot_signal" in result["signals"]
-    assert result["info"] is not None
-    assert result["info"]["tags"] == ("search-engine",)
+    source = (Path(__file__).parent.parent / "is_crawler" / "__init__.py").read_text()
+    blocked = {"re", "regex"}
 
-
-def test_analyze_browser():
-    ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36"
-    result = _analyze(ua)
-    assert result["is_crawler"] is False
-    assert result["info"] is None
-
-
-def test_iter_inputs_argv():
-    items = list(_iter_inputs(["prog", "Googlebot/2.1"]))
-    assert items == ["Googlebot/2.1"]
-
-
-def test_iter_inputs_argv_multi_words():
-    items = list(_iter_inputs(["prog", "My", "Bot/1.0"]))
-    assert items == ["My Bot/1.0"]
-
-
-def test_iter_inputs_stdin():
-    fake_stdin = io.StringIO("BotA\nBotB\n\nBotC\n")
-    with patch("sys.stdin", fake_stdin):
-        items = list(_iter_inputs(["prog"]))
-    assert items == ["BotA", "BotB", "BotC"]
-
-
-def test_iter_inputs_stdin_crlf_and_whitespace():
-    fake_stdin = io.StringIO("BotA\r\n  \r\n BotB \r\n")
-    with patch("sys.stdin", fake_stdin):
-        items = list(_iter_inputs(["prog"]))
-    assert items == ["BotA", "BotB"]
-
-
-def test_main_argv(capsys):
-    with patch("sys.argv", ["prog", _GOOGLEBOT]):
-        result = main()
-    assert result == 0
-    out = capsys.readouterr().out
-    data = json.loads(out.strip())
-    assert data["is_crawler"] is True
-    assert data["name"] == "Googlebot"
-
-
-def test_main_stdin(capsys):
-    fake_stdin = io.StringIO(_GOOGLEBOT + "\n")
-    with patch("sys.argv", ["prog"]), patch("sys.stdin", fake_stdin):
-        result = main()
-    assert result == 0
-    out = capsys.readouterr().out
-    data = json.loads(out.strip())
-    assert data["is_crawler"] is True
-
-
-def test_main_stdin_multiple(capsys):
-    ua_browser = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0"
-    fake_stdin = io.StringIO(f"{_GOOGLEBOT}\n{ua_browser}\n")
-    with patch("sys.argv", ["prog"]), patch("sys.stdin", fake_stdin):
-        main()
-    lines = capsys.readouterr().out.strip().splitlines()
-    assert len(lines) == 2
-    assert json.loads(lines[0])["is_crawler"] is True
-    assert json.loads(lines[1])["is_crawler"] is False
-
-
-def test_main_stdin_crlf(capsys):
-    fake_stdin = io.StringIO(_GOOGLEBOT + "\r\n")
-    with patch("sys.argv", ["prog"]), patch("sys.stdin", fake_stdin):
-        result = main()
-    assert result == 0
-    out = capsys.readouterr().out
-    data = json.loads(out.strip())
-    assert data["name"] == "Googlebot"
-
-
-# --- category shortcuts ---
-
-
-def test_is_search_engine():
-    assert is_search_engine(_GOOGLEBOT) is True
-    assert is_search_engine("curl/7.64.1") is False
-
-
-def test_is_ai_crawler():
-    ua = "Mozilla/5.0 (compatible; GPTBot/1.0; +https://openai.com/gptbot)"
-    assert is_ai_crawler(ua) is True
-    assert is_ai_crawler(_GOOGLEBOT) is False
-
-
-def test_is_seo():
-    assert is_seo("Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)")
-    assert is_seo(_GOOGLEBOT) is False
-
-
-def test_is_social_preview():
-    ua = "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)"
-    assert is_social_preview(ua) is True
-    assert is_social_preview(_GOOGLEBOT) is False
-
-
-def test_is_advertising():
-    ua = "Mozilla/5.0 (compatible; AdsBot-Google; +http://www.google.com/adsbot.html)"
-    assert is_advertising(ua) is True
-
-
-def test_is_archiver():
-    ua = "Mozilla/5.0 (compatible; archive.org_bot; +http://www.archive.org/details/archive.org_bot)"
-    assert is_archiver(ua) is True
-
-
-def test_is_feed_reader():
-    ua = "Feedly/1.0 (+http://www.feedly.com/fetcher.html; like FeedFetcher-Google)"
-    assert is_feed_reader(ua) is True
-
-
-def test_is_monitoring():
-    ua = "Mozilla/5.0 (compatible; UptimeRobot/2.0; http://www.uptimerobot.com/)"
-    assert is_monitoring(ua) is True
-
-
-def test_is_scanner():
-    ua = "Mozilla/5.00 (Nikto/2.1.6) (Evasions:None) (Test:000003)"
-    assert is_scanner(ua) is True
-
-
-def test_is_academic():
-    ua = "ia_archiver-web.archive.org"
-    _ = is_academic(ua)
-    assert is_academic(_GOOGLEBOT) is False
-
-
-def test_is_http_library():
-    assert is_http_library("python-requests/2.28.0") is True
-
-
-def test_is_browser_automation():
-    ua = "Mozilla/5.0 (X11; Linux x86_64) HeadlessChrome/100.0.0.0 Safari/537.36"
-    _ = is_browser_automation(ua)
-
-
-def test_is_good_crawler():
-    assert is_good_crawler(_GOOGLEBOT) is True
-    ua = "Mozilla/5.0 (compatible; GPTBot/1.0; +https://openai.com/gptbot)"
-    assert is_good_crawler(ua) is False
-
-
-def test_is_bad_crawler():
-    ua = "Mozilla/5.0 (compatible; GPTBot/1.0; +https://openai.com/gptbot)"
-    assert is_bad_crawler(ua) is True
-    assert is_bad_crawler(_GOOGLEBOT) is False
-
-
-def test_good_bad_on_browser():
-    ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36"
-    assert is_good_crawler(ua) is False
-    assert is_bad_crawler(ua) is False
-
-
-# --- robots.txt helpers ---
-
-
-def test_robots_name_plain():
-    assert _robots_name("Googlebot\\/") == "Googlebot"
-
-
-def test_robots_name_escaped():
-    assert _robots_name("AdsBot-Google([^-]|$)") == "AdsBot-Google"
-
-
-def test_robots_name_charclass():
-    assert _robots_name("[wW]get") == "wget"
-
-
-def test_robots_name_escaped_dot():
-    assert _robots_name("grub\\.org") == "grub.org"
-
-
-def test_robots_name_escaped_parens():
-    assert _robots_name("Mediapartners \\(Googlebot\\)") == "Mediapartners"
-
-
-def test_robots_name_trailing_space():
-    assert _robots_name("webmon ") == "webmon"
-
-
-def test_robots_name_anchored():
-    assert _robots_name("^curl") == "curl"
-
-
-def test_robots_name_drops_urls():
-    assert _robots_name("https://example.com/bot") is None
-
-
-def test_robots_name_empty():
-    assert _robots_name("(compatible)") is None
-
-
-def test_iter_crawlers():
-    items = list(iter_crawlers())
-    assert len(items) > 500
-    info, name = items[0]
-    assert isinstance(info, CrawlerInfo)
-    assert name
-
-
-def test_robots_agents_single_tag():
-    agents = robots_agents_for_tags("search-engine")
-    assert "Googlebot" in agents
-    assert "bingbot" in agents
-    assert agents == sorted(agents)
-
-
-def test_robots_agents_multi_tag():
-    agents = robots_agents_for_tags(["ai-crawler", "scanner"])
-    assert "GPTBot" in agents
-    assert "Nikto" in agents
-
-
-def test_build_robots_txt_disallow():
-    out = build_robots_txt(disallow="ai-crawler")
-    assert "User-agent: GPTBot" in out
-    assert "Disallow: /" in out
-    assert out.endswith("\n")
-
-
-def test_build_robots_txt_allow_path():
-    out = build_robots_txt(allow="search-engine", path="/public")
-    assert "User-agent: Googlebot" in out
-    assert "Allow: /public" in out
-
-
-def test_build_robots_txt_both():
-    out = build_robots_txt(disallow="scanner", allow="search-engine")
-    assert "Disallow: /" in out
-    assert "Allow: /" in out
-
-
-def test_build_robots_txt_disallow_precedence_on_overlap():
-    out = build_robots_txt(
-        disallow=["ai-crawler", "scanner"],
-        allow=["ai-crawler", "search-engine"],
-    )
-    assert out.count("User-agent: GPTBot\n") == 1
-    assert "User-agent: GPTBot\nDisallow: /\n" in out
-    assert "User-agent: GPTBot\nAllow: /\n" not in out
-
-
-def test_build_robots_txt_empty():
-    assert build_robots_txt() == ""
-
-
-def test_assert_crawler_known():
-    ua = "Googlebot/2.1 (+http://www.google.com/bot.html)"
-    info = assert_crawler(ua)
-    assert isinstance(info, CrawlerInfo)
-
-
-def test_assert_crawler_unknown():
-    with pytest.raises(ValueError, match="not a known crawler"):
-        assert_crawler("Mozilla/5.0 (totally normal browser)")
-
-
-def test_build_ai_txt_has_agents():
-    out = build_ai_txt()
-    assert "User-Agent:" in out
-    assert "Disallow: /" in out
-
-
-def test_build_ai_txt_empty_tag():
-    out = build_ai_txt(disallow="nonexistent-tag-xyz")
-    assert out == ""
-
-
-def test_build_ai_txt_rules_branch():
-    out = build_robots_txt(rules=[("/private", "ai-crawler")])
-    assert "Disallow: /private" in out
+    for node in ast.walk(ast.parse(source)):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                assert alias.name.split(".")[0] not in blocked, alias.name
+        elif isinstance(node, ast.ImportFrom):
+            assert (node.module or "").split(".")[0] not in blocked, node.module

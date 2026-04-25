@@ -5,13 +5,13 @@ import time
 import pytest
 
 from is_crawler import (
-    crawler_info,
     crawler_name,
     crawler_signals,
     crawler_url,
     crawler_version,
     is_crawler,
 )
+from is_crawler.database import crawler_info
 
 _FIXTURES = Path(__file__).parent / "fixtures"
 _LOG_PATTERN = re.compile(r'"[^"]*" \d+ \d+ "[^"]*" "([^"]*)"$')
