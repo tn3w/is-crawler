@@ -84,12 +84,14 @@ def bench_cold_start(with_cua: bool = False):
     print("\n── Cold-start (JSON parse + chunk build) ──")
 
     def _reload_and_init():
-        importlib.reload(_ic)
-        import is_crawler as _fresh
+        from is_crawler import database as _db
 
-        _fresh._chunks = None  # type: ignore[attr-defined]
-        _fresh.crawler_info.cache_clear()
-        _fresh._load_chunks()  # type: ignore[attr-defined]
+        importlib.reload(_db)
+        importlib.reload(_ic)
+
+        _db._chunks = None
+        _db.crawler_info.cache_clear()
+        _db._load_chunks()
 
     m, sd = _cold_time(_reload_and_init)
     print(f"  is_crawler        : {m * 1000:7.2f} ms ± {sd * 1000:.2f}")
@@ -179,12 +181,12 @@ def bench_cold_cache(with_cua: bool = False):
 
 def bench_internals():
     rows: list[tuple[str, Callable]] = [
-        ("_bot_signal (crawlers) ", lambda ua: _bot_signal(ua)),
-        ("_bot_signal (browsers) ", lambda ua: _bot_signal(ua)),
-        ("_known_tool (mixed)    ", lambda ua: _known_tool(ua)),
-        ("_url_in_ua  (mixed)    ", lambda ua: _url_in_ua(ua)),
-        ("_browser    (mixed)    ", lambda ua: _browser(ua)),
-        ("_bare_compat (mixed)   ", lambda ua: _bare_compat(ua)),
+        ("_bot_signal (crawlers) ", _bot_signal),
+        ("_bot_signal (browsers) ", _bot_signal),
+        ("_known_tool (mixed)    ", _known_tool),
+        ("_url_in_ua  (mixed)    ", _url_in_ua),
+        ("_browser    (mixed)    ", _browser),
+        ("_bare_compat (mixed)   ", _bare_compat),
     ]
     datasets = [CRAWLERS, BROWSERS, ALL_UAS, ALL_UAS, ALL_UAS, ALL_UAS]
 

@@ -9,6 +9,7 @@ import time
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import is_crawler as ic
+from is_crawler import database as ic_db
 
 UA = "Googlebot/2.1 (+http://www.google.com/bot.html)"
 RUNS = 1000
@@ -29,7 +30,7 @@ def clear_ic_caches() -> None:
     ic.crawler_name.cache_clear()
     ic.crawler_version.cache_clear()
     ic.crawler_url.cache_clear()
-    ic._chunks = None
+    ic_db._chunks = None
 
 
 def bench_is_crawler() -> dict[str, float]:

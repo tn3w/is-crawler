@@ -354,9 +354,8 @@ def crawler_url(user_agent: str) -> str | None:
     return None
 
 
-def _compat_name(ua: str) -> str | None:
-    low = ua.lower()
-    i = low.find("(compatible;")
+def _compat_name_span(ua: str) -> tuple[int, int] | None:
+    i = ua.lower().find("(compatible;")
     if i == -1:
         return None
 
@@ -367,7 +366,14 @@ def _compat_name(ua: str) -> str | None:
     if j >= len(ua) or not ua[j].isalpha():
         return None
 
-    end = _name_chars_end(ua, j)
+    return j, _name_chars_end(ua, j)
+
+
+def _compat_name(ua: str) -> str | None:
+    span = _compat_name_span(ua)
+    if span is None:
+        return None
+    j, end = span
     return _strip_version(ua[j:end])
 
 
@@ -397,8 +403,7 @@ def _prefix_name(ua: str) -> str | None:
 
     after = ua[end]
     if after == "/":
-        tail_end = _name_chars_end(ua, end + 1)
-        end = tail_end
+        end = _name_chars_end(ua, end + 1)
         if end >= len(ua):
             return name
         after = ua[end]
@@ -454,7 +459,7 @@ def _split_segments(ua: str) -> list[str]:
 def _token_name(token: str) -> str | None:
     slash = token.find("/")
     base = token[:slash] if slash != -1 else token.rstrip(",")
-    if not base or not ("A" <= base[0] <= "Z") or base in _SKIP_TOKENS:
+    if not base or not _is_name_start(base[0]) or base in _SKIP_TOKENS:
         return None
     if any(c not in _NAME_CHARS for c in base):
         return None
@@ -495,19 +500,10 @@ def crawler_name(user_agent: str) -> str | None:
 
 
 def _version_from_compat(ua: str) -> str | None:
-    low = ua.lower()
-    i = low.find("(compatible;")
-    if i == -1:
+    span = _compat_name_span(ua)
+    if span is None:
         return None
-
-    j = i + len("(compatible;")
-    while j < len(ua) and ua[j] == " ":
-        j += 1
-
-    if j >= len(ua) or not ua[j].isalpha():
-        return None
-
-    end = _name_chars_end(ua, j)
+    _, end = span
     if end >= len(ua) or ua[end] != "/":
         return None
 

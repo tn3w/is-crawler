@@ -96,23 +96,21 @@ def bench_ip_range():
 def bench_rdns_cached():
     print("\n── rDNS / FCrDNS (warm cache — network already resolved) ──")
 
+    suffix = (".googlebot.com",)
+    fcrdns = lambda ip: forward_confirmed_rdns(ip, suffix)  # noqa: E731
+
     for ip in ALL_IPS:
         reverse_dns(ip)
-
-    m, sd = _timeit(lambda ip: reverse_dns(ip), ALL_IPS)
-    print(f"  reverse_dns       (mixed)   : {_fmt(m, sd)}")
-
-    for ip in ALL_IPS:
-        forward_confirmed_rdns(ip, (".googlebot.com",))
-
-    m, sd = _timeit(lambda ip: forward_confirmed_rdns(ip, (".googlebot.com",)), ALL_IPS)
-    print(f"  forward_conf_rdns (mixed)   : {_fmt(m, sd)}")
-
-    for ip in ALL_IPS:
+        fcrdns(ip)
         known_crawler_rdns(ip)
 
-    m, sd = _timeit(lambda ip: known_crawler_rdns(ip), ALL_IPS)
-    print(f"  known_crawler_rdns (mixed)  : {_fmt(m, sd)}")
+    for label, fn in [
+        ("reverse_dns       (mixed)   ", reverse_dns),
+        ("forward_conf_rdns (mixed)   ", fcrdns),
+        ("known_crawler_rdns (mixed)  ", known_crawler_rdns),
+    ]:
+        m, sd = _timeit(fn, ALL_IPS)
+        print(f"  {label}: {_fmt(m, sd)}")
 
 
 def bench_verify_cached():

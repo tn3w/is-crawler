@@ -19,6 +19,7 @@ from typing import Callable
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import is_crawler as _ic
+from is_crawler import database as _ic_db
 
 _FIXTURES = Path(__file__).parent.parent / "tests" / "fixtures"
 _LOG_PATTERN = re.compile(r'"[^"]*" \d+ \d+ "[^"]*" "([^"]*)"$')
@@ -75,7 +76,7 @@ def _clear_ic_caches() -> None:
     _ic.crawler_name.cache_clear()
     _ic.crawler_version.cache_clear()
     _ic.crawler_url.cache_clear()
-    _ic._chunks = None
+    _ic_db._chunks = None
 
 
 def bench_apache_logs(all_agents: list[str], crawlers: list[str], browsers: list[str]):

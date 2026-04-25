@@ -73,15 +73,10 @@ def _domains_for(name: str) -> tuple[str, ...] | None:
 
 @lru_cache(maxsize=1)
 def _all_domain_suffixes() -> tuple[str, ...]:
-    seen: set[str] = set()
-    suffixes: list[str] = []
+    seen: dict[str, None] = {}
     for group in _load_domains().values():
-        for suffix in group:
-            if suffix in seen:
-                continue
-            seen.add(suffix)
-            suffixes.append(suffix)
-    return tuple(suffixes)
+        seen.update(dict.fromkeys(group))
+    return tuple(seen)
 
 
 def _normalized_ip(ip: str) -> str | None:

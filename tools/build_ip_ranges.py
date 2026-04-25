@@ -40,16 +40,10 @@ def fetch(url: str, timeout: int) -> str:
 
 
 def extract_cidrs(body: str, pattern: str) -> list[str]:
-    raw = re.findall(pattern, body)
-    seen: set[str] = set()
-    result: list[str] = []
-    for item in raw:
-        item = item.strip().strip('"').strip("'").strip("`")
-        if not item or item in seen:
-            continue
-        seen.add(item)
-        result.append(item)
-    return sorted(result)
+    cleaned = (
+        m.strip().strip('"').strip("'").strip("`") for m in re.findall(pattern, body)
+    )
+    return sorted({item for item in cleaned if item})
 
 
 def parse_args() -> argparse.Namespace:
