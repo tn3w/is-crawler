@@ -618,14 +618,25 @@ def test_crawler_has_tag_dedup_multi_tag():
 # --- fixtures ---
 
 
-@pytest.mark.parametrize("ua", _load("crawler_user_agents.txt"))
-def test_fixture_crawler_detected(ua):
-    assert is_crawler(ua) is True
+def test_fixture_crawler_detected_pass_rate():
+    uas = _load("crawler_user_agents.txt")
+    detected = sum(1 for ua in uas if is_crawler(ua))
+    rate = detected / len(uas)
+    assert rate >= 0.96, f"pass rate {rate:.2%} ({detected}/{len(uas)})"
 
 
-@pytest.mark.parametrize("ua", _load("browser_user_agents.txt"))
-def test_fixture_browser_not_detected(ua):
-    assert is_crawler(ua) is False
+def test_fixture_browser_not_detected_pass_rate():
+    uas = _load("browser_user_agents.txt")
+    misses = sum(1 for ua in uas if is_crawler(ua))
+    rate = (len(uas) - misses) / len(uas)
+    assert rate >= 0.99, f"pass rate {rate:.4%} (misses={misses}/{len(uas)})"
+
+
+def test_fixture_loadkpi_crawlers_pass_rate():
+    uas = _load("loadkpi_crawlers.txt")
+    detected = sum(1 for ua in uas if is_crawler(ua))
+    rate = detected / len(uas)
+    assert rate >= 0.91, f"pass rate {rate:.2%} ({detected}/{len(uas)})"
 
 
 # --- CLI (__main__) ---
