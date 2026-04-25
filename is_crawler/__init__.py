@@ -610,28 +610,44 @@ def _prefix_name(ua: str) -> str | None:
 
 
 def _name_non_mozilla(ua: str) -> str | None:
-    name = _prefix_name(ua)
-    if name:
-        return name
-
     parts = ua.split()
     return _strip_version(parts[0]) if parts else None
 
 
-def _strip_parens(ua: str) -> str:
+_PAREN_SKIP_PREFIXES = (
+    "compatible;",
+    "khtml,",
+    "windows",
+    "macintosh",
+    "x11",
+    "linux",
+    "iphone",
+    "ipad",
+    "ipod",
+    "android",
+)
+
+
+def _split_segments(ua: str) -> list[str]:
     open_i = ua.find("(")
     if open_i == -1:
-        return ua
+        return [ua]
 
-    parts = []
+    segments = []
     start = 0
     while open_i != -1:
-        parts.append(ua[start:open_i])
+        segments.append(ua[start:open_i])
         close_i = ua.find(")", open_i + 1)
-        start = close_i + 1 if close_i != -1 else len(ua)
+        if close_i == -1:
+            start = len(ua)
+            break
+        inner = ua[open_i + 1 : close_i]
+        if not inner.lstrip().lower().startswith(_PAREN_SKIP_PREFIXES):
+            segments.append(inner)
+        start = close_i + 1
         open_i = ua.find("(", start)
-    parts.append(ua[start:])
-    return " ".join(parts)
+    segments.append(ua[start:])
+    return segments
 
 
 def _token_name(token: str) -> str | None:
@@ -639,27 +655,34 @@ def _token_name(token: str) -> str | None:
     base = token[:slash] if slash != -1 else token.rstrip(",")
     if not base or not ("A" <= base[0] <= "Z") or base in _SKIP_TOKENS:
         return None
+    if any(c not in _NAME_CHARS for c in base):
+        return None
     return base
 
 
 def _scan_mozilla_name(ua: str) -> str | None:
     last: str | None = None
-    prev: str | None = None
 
-    for token in _strip_parens(ua).split():
-        base = _token_name(token)
-        if base is None:
-            prev = None
-            continue
-
-        last = f"{prev} {base}" if prev else base
-        prev = last
+    for segment in _split_segments(ua):
+        prev: str | None = None
+        for token in segment.split():
+            base = _token_name(token)
+            if base is None:
+                prev = None
+                continue
+            last = f"{prev} {base}" if prev else base
+            prev = last
 
     return last
 
 
 @lru_cache(maxsize=_CACHE)
 def crawler_name(user_agent: str) -> str | None:
+    if not user_agent.startswith("Mozilla/"):
+        prefix = _prefix_name(user_agent)
+        if prefix:
+            return prefix
+
     compat = _compat_name(user_agent)
     if compat:
         return compat
