@@ -116,34 +116,6 @@ _NAME_CHARS = frozenset(
 )
 _SKIP_TOKENS = _BROWSER_TOKENS | {"KHTML", "like"}
 
-_SUSPICIOUS_LOW = (
-    "bot",
-    "crawl",
-    "spider",
-    "scan",
-    "fetch",
-    "wget",
-    "scrape",
-    "preview",
-    "slurp",
-    "archiv",
-    "headless",
-    "indexer",
-    "indexing",
-    "lighthouse",
-    "playwright",
-    "selenium",
-    "nikto",
-    "sqlmap",
-    "pingdom",
-    "httrack",
-    "nmap",
-    "google-",
-    "google ",
-    "by ",
-    "-agent",
-)
-
 
 def _word_char(c: str) -> bool:
     return c.isalnum() or c == "_"
@@ -270,13 +242,7 @@ def _known_tool(ua: str) -> bool:
 
 
 def _url_in_ua(ua: str) -> bool:
-    for marker in ("http://", "https://"):
-        i = 0
-        while (i := ua.find(marker, i)) != -1:
-            if i == 0 or ua[i - 1] in "+;" or (i >= 3 and ua[i - 3 : i] == " - "):
-                return True
-            i += 1
-    return False
+    return crawler_url(ua) is not None
 
 
 def _browser(ua: str) -> bool:

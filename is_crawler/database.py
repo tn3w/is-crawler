@@ -84,9 +84,7 @@ def crawler_has_tag(user_agent: str, tags: str | Iterable[str]) -> bool:
     info = crawler_info(user_agent)
     if not info:
         return False
-
-    wanted = {tags} if isinstance(tags, str) else set(tags)
-    return bool(wanted & set(info.tags))
+    return bool(_as_set(tags) & set(info.tags))
 
 
 _GOOD_TAGS = frozenset(
@@ -176,12 +174,8 @@ def iter_crawlers() -> Iterable[tuple[CrawlerInfo, str]]:
 
 
 def robots_agents_for_tags(tags: str | Iterable[str]) -> list[str]:
-    wanted = {tags} if isinstance(tags, str) else set(tags)
-    seen: set[str] = set()
-    for info, name in iter_crawlers():
-        if wanted & set(info.tags) and name not in seen:
-            seen.add(name)
-    return sorted(seen)
+    wanted = _as_set(tags)
+    return sorted({name for info, name in iter_crawlers() if wanted & set(info.tags)})
 
 
 def _as_set(tags: str | Iterable[str]) -> set[str]:
@@ -196,14 +190,14 @@ def _agent_directives(
 ) -> dict[str, list[str]]:
     directives: dict[str, list[str]] = {}
 
-    for agent in robots_agents_for_tags(_as_set(disallow)) if disallow else []:
+    for agent in robots_agents_for_tags(disallow) if disallow else []:
         directives.setdefault(agent, []).append(f"Disallow: {path}")
 
-    for agent in robots_agents_for_tags(_as_set(allow)) if allow else []:
+    for agent in robots_agents_for_tags(allow) if allow else []:
         directives.setdefault(agent, []).append(f"Allow: {path}")
 
     for rule_path, rule_tags in rules:
-        for agent in robots_agents_for_tags(_as_set(rule_tags)):
+        for agent in robots_agents_for_tags(rule_tags):
             directives.setdefault(agent, []).append(f"Disallow: {rule_path}")
 
     return directives
@@ -226,7 +220,7 @@ def build_robots_txt(
 
 
 def build_ai_txt(disallow: str | Iterable[str] = "ai-crawler") -> str:
-    agents = robots_agents_for_tags(_as_set(disallow))
+    agents = robots_agents_for_tags(disallow)
     if not agents:
         return ""
     blocks = [f"User-Agent: {agent}\nDisallow: /" for agent in agents]

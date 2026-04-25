@@ -4,7 +4,6 @@ import bisect
 from functools import lru_cache
 import ipaddress
 import json
-import os
 from pathlib import Path
 import socket
 
@@ -30,7 +29,7 @@ def _load_domains() -> dict[str, tuple[str, ...]]:
     if _RDNS_DOMAINS is not None:
         return _RDNS_DOMAINS
 
-    path = Path(os.path.dirname(__file__)) / str(Path("crawler-rdns.json"))
+    path = Path(__file__).parent / "crawler-rdns.json"
     with path.open(encoding="utf-8") as f:
         raw = json.load(f)
 
@@ -45,7 +44,7 @@ def _load_domains() -> dict[str, tuple[str, ...]]:
 
 
 def _parse_networks() -> list[ipaddress.IPv4Network | ipaddress.IPv6Network]:
-    path = Path(os.path.dirname(__file__)) / str(Path("crawler-ip-ranges.json"))
+    path = Path(__file__).parent / "crawler-ip-ranges.json"
     if not path.exists():
         return []
 

@@ -1,5 +1,4 @@
 import json
-from pathlib import Path
 import socket
 from unittest.mock import patch
 
@@ -136,48 +135,18 @@ def test_build_index_lazy_and_cached():
 def test_parse_networks_without_file_returns_empty(tmp_path, monkeypatch):
     import is_crawler.ip as ip_mod
 
-    fake_path = tmp_path / "crawler-ip-ranges.json"
-    with monkeypatch.context() as m:
-        m.setattr(
-            "is_crawler.ip.Path",
-            lambda *a, **kw: (
-                fake_path if "crawler-ip-ranges" in str(a) else Path(*a, **kw)
-            ),
-        )
-        result = ip_mod._parse_networks()
-    assert result == []
+    monkeypatch.setattr(ip_mod, "__file__", str(tmp_path / "ip.py"))
+    assert ip_mod._parse_networks() == []
 
 
 def test_parse_networks_skips_invalid_cidr(tmp_path, monkeypatch):
     import is_crawler.ip as ip_mod
 
     data = {"test": ["192.168.1.0/24", "not-a-cidr", "10.0.0.0/8"]}
-    ranges_file = tmp_path / "crawler-ip-ranges.json"
-    ranges_file.write_text(json.dumps(data))
+    (tmp_path / "crawler-ip-ranges.json").write_text(json.dumps(data))
 
-    class FakePath:
-        def __init__(self, *args, **kwargs):
-            self._path = Path(*args, **kwargs)
-
-        def __truediv__(self, other):
-            if other == "crawler-ip-ranges.json":
-                return ranges_file
-            return self._path / other
-
-        def exists(self):
-            return self._path.exists()
-
-        def open(self, *a, **kw):
-            return self._path.open(*a, **kw)
-
-        def __str__(self):
-            return str(self._path)
-
-    with monkeypatch.context() as m:
-        m.setattr("is_crawler.ip.Path", FakePath)
-        nets = ip_mod._parse_networks()
-
-    assert len(nets) == 2
+    monkeypatch.setattr(ip_mod, "__file__", str(tmp_path / "ip.py"))
+    assert len(ip_mod._parse_networks()) == 2
 
 
 # --- reverse_dns ---

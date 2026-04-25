@@ -105,3 +105,11 @@ def test_main_version(capsys):
         with patch("sys.argv", ["prog", flag]):
             assert main() == 0
         assert capsys.readouterr().out.strip() == __version__
+
+
+def test_main_unknown_flag(capsys):
+    with patch("sys.argv", ["prog", "--bogus"]):
+        assert main() == 2
+    err = capsys.readouterr().err
+    assert "unknown option: --bogus" in err
+    assert "Usage:" in err

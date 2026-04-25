@@ -56,6 +56,10 @@ def main() -> int:
     if argv and argv[0] in ("-V", "--version"):
         print(__version__)
         return 0
+    if argv and argv[0].startswith("-"):
+        print(f"is-crawler: unknown option: {argv[0]}", file=sys.stderr)
+        print(_USAGE, file=sys.stderr)
+        return 2
 
     for user_agent in _iter_inputs(sys.argv):
         print(json.dumps(_analyze(user_agent), ensure_ascii=False))
