@@ -4,12 +4,23 @@ import json
 import sys
 
 from . import (
+    __version__,
     crawler_info,
     crawler_name,
     crawler_signals,
     crawler_url,
     crawler_version,
     is_crawler,
+)
+
+_USAGE = (
+    "Usage: is-crawler [USER_AGENT...]\n"
+    "       <pipe> | is-crawler\n\n"
+    "Detect crawlers from user agents. "
+    "Outputs one JSON object per UA.\n\n"
+    "Options:\n"
+    "  -h, --help     Show this help and exit\n"
+    "  -V, --version  Show version and exit"
 )
 
 
@@ -38,6 +49,14 @@ def _iter_inputs(argv: list[str]):
 
 
 def main() -> int:
+    argv = sys.argv[1:]
+    if argv and argv[0] in ("-h", "--help"):
+        print(_USAGE)
+        return 0
+    if argv and argv[0] in ("-V", "--version"):
+        print(__version__)
+        return 0
+
     for user_agent in _iter_inputs(sys.argv):
         print(json.dumps(_analyze(user_agent), ensure_ascii=False))
     return 0

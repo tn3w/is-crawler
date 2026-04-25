@@ -2,6 +2,7 @@ import io
 import json
 from unittest.mock import patch
 
+from is_crawler import __version__
 from is_crawler.__main__ import _analyze, _iter_inputs, main
 
 _GOOGLEBOT = "Googlebot/2.1 (+http://www.google.com/bot.html)"
@@ -88,3 +89,19 @@ def test_main_stdin_crlf(capsys):
     out = capsys.readouterr().out
     data = json.loads(out.strip())
     assert data["name"] == "Googlebot"
+
+
+def test_main_help(capsys):
+    for flag in ("-h", "--help"):
+        with patch("sys.argv", ["prog", flag]):
+            assert main() == 0
+        out = capsys.readouterr().out
+        assert "Usage:" in out
+        assert "--version" in out
+
+
+def test_main_version(capsys):
+    for flag in ("-V", "--version"):
+        with patch("sys.argv", ["prog", flag]):
+            assert main() == 0
+        assert capsys.readouterr().out.strip() == __version__

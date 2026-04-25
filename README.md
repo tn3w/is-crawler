@@ -236,6 +236,8 @@ build_robots_txt(rules=[("/api", "scanner"), ("/private", "ai-crawler")])
 ```bash
 python -m is_crawler "Googlebot/2.1 (+http://www.google.com/bot.html)"
 tail -f access.log | awk -F'"' '{print $6}' | python -m is_crawler
+python -m is_crawler --help     # usage
+python -m is_crawler --version  # show version
 ```
 
 One JSON object per UA with `is_crawler`, `name`, `version`, `url`, `signals`, `info`.
