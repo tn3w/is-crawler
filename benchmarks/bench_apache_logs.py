@@ -76,7 +76,7 @@ def _clear_ic_caches() -> None:
     _ic.crawler_name.cache_clear()
     _ic.crawler_version.cache_clear()
     _ic.crawler_url.cache_clear()
-    _ic_db._chunks = None
+    _ic_db._load_chunks.cache_clear()
 
 
 def bench_apache_logs(all_agents: list[str], crawlers: list[str], browsers: list[str]):

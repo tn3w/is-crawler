@@ -5,6 +5,7 @@ import sys
 
 from . import (
     __version__,
+    crawler_contact,
     crawler_info,
     crawler_name,
     crawler_signals,
@@ -32,6 +33,7 @@ def _analyze(user_agent: str) -> dict:
         "name": crawler_name(user_agent),
         "version": crawler_version(user_agent),
         "url": crawler_url(user_agent),
+        "contact": crawler_contact(user_agent),
         "signals": crawler_signals(user_agent),
         "info": info._asdict() if info else None,
     }

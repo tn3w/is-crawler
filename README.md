@@ -244,7 +244,7 @@ python -m is_crawler --help     # usage
 python -m is_crawler --version  # show version
 ```
 
-One JSON object per UA with `is_crawler`, `name`, `version`, `url`, `signals`, `info`.
+One JSON object per UA with `is_crawler`, `name`, `version`, `url`, `contact`, `signals`, `info`.
 
 ## UA Parser
 

@@ -42,20 +42,12 @@ class _Chunk:
         return None  # pragma: no cover
 
 
-_chunks: list[_Chunk] | None = None
-
-
+@lru_cache(maxsize=1)
 def _load_chunks() -> list[_Chunk]:
-    global _chunks
-    if _chunks is not None:
-        return _chunks
-
     path = Path(__file__).parent / "crawler-user-agents.json"
     with path.open(encoding="utf-8") as f:
         rows = json.load(f)
-
-    _chunks = [_Chunk(rows[i : i + _CHUNK]) for i in range(0, len(rows), _CHUNK)]
-    return _chunks
+    return [_Chunk(rows[i : i + _CHUNK]) for i in range(0, len(rows), _CHUNK)]
 
 
 @lru_cache(maxsize=_CACHE)

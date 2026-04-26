@@ -173,15 +173,6 @@ def _valid_email_at(ua: str, at: int) -> tuple[int, int] | None:
     return (start, end) if start < at else None
 
 
-def _email_like(ua: str) -> bool:
-    i = 0
-    while (i := ua.find("@", i)) != -1:
-        if _valid_email_at(ua, i):
-            return True
-        i += 1
-    return False
-
-
 @lru_cache(maxsize=_CACHE)
 def crawler_contact(user_agent: str) -> str | None:
     i = 0
@@ -206,7 +197,7 @@ def _bot_signal(ua: str) -> bool:
     if "+http://" in ua or "+https://" in ua:
         return True
 
-    return "@" in ua and _email_like(ua)
+    return "@" in ua and crawler_contact(ua) is not None
 
 
 def _token_after(s: str, start: int, stops: str = " ();,") -> tuple[int, str]:
@@ -258,9 +249,7 @@ def _known_tool(ua: str) -> bool:
 
     if any(t in low for t in _TOOLS):
         return True
-    if ("wget" in low and _find_word(low, "wget")) or (
-        "nmap" in low and _find_word(low, "nmap")
-    ):
+    if _find_word(low, "wget") or _find_word(low, "nmap"):
         return True
     if "google" in low and any(
         f"google{sep}{suf}" in low for sep in " -" for suf in _GOOGLE_SUFFIXES
@@ -271,10 +260,6 @@ def _known_tool(ua: str) -> bool:
     if _leading_domain(ua):
         return True
     return "-agent" in low and _semicolon_agent(low)
-
-
-def _url_in_ua(ua: str) -> bool:
-    return crawler_url(ua) is not None
 
 
 def _browser(ua: str) -> bool:
@@ -334,12 +319,15 @@ def is_crawler(user_agent: str) -> bool:
         or "https://" in user_agent
     )
 
-    if not suspicious:
-        if not user_agent.startswith("Mozilla/") and _leading_domain(user_agent):
-            return True
-        return not _browser(user_agent) or _bare_compat(user_agent)
-
-    if _bot_signal(user_agent) or _known_tool(user_agent) or _url_in_ua(user_agent):
+    if suspicious and (
+        _bot_signal(user_agent) or _known_tool(user_agent) or crawler_url(user_agent)
+    ):
+        return True
+    if (
+        not suspicious
+        and not user_agent.startswith("Mozilla/")
+        and _leading_domain(user_agent)
+    ):
         return True
     return not _browser(user_agent) or _bare_compat(user_agent)
 
@@ -351,7 +339,7 @@ def crawler_signals(user_agent: str) -> list[str]:
         ("no_browser_signature", not _browser(user_agent)),
         ("bare_compatible", _bare_compat(user_agent)),
         ("known_tool", _known_tool(user_agent)),
-        ("url_in_ua", _url_in_ua(user_agent)),
+        ("url_in_ua", crawler_url(user_agent) is not None),
     ]
     return [name for name, ok in checks if ok]
 

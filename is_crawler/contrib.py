@@ -27,7 +27,7 @@ class CrawlerMiddlewareResult:
     rdns_match: bool = False
 
 
-def _blocked(
+def _inspect(
     user_agent: str,
     ip: str | None,
     verify_ip: bool,
@@ -121,7 +121,7 @@ def _scope_ip(scope: dict[str, Any], trust_forwarded: bool) -> str | None:
     return client[0]
 
 
-class WSGICrawlerMiddleware:
+class _BaseCrawlerMiddleware:
     def __init__(
         self,
         app: Callable[..., Any],
@@ -132,8 +132,6 @@ class WSGICrawlerMiddleware:
         check_ip_range: bool = False,
         check_rdns: bool = False,
         trust_forwarded: bool = False,
-        environ_key: str = "is_crawler",
-        status: str = "403 Forbidden",
         body: bytes = b"Forbidden",
     ) -> None:
         self.app = app
@@ -143,9 +141,29 @@ class WSGICrawlerMiddleware:
         self.check_ip_range = check_ip_range
         self.check_rdns = check_rdns
         self.trust_forwarded = trust_forwarded
+        self.body = body
+
+    def _inspect(self, user_agent: str, ip: str | None) -> CrawlerMiddlewareResult:
+        return _inspect(
+            user_agent, ip, self.verify_ip, self.check_ip_range, self.check_rdns
+        )
+
+    def _should_block(self, result: CrawlerMiddlewareResult) -> bool:
+        return self.block and _should_block(result, self.block_tags)
+
+
+class WSGICrawlerMiddleware(_BaseCrawlerMiddleware):
+    def __init__(
+        self,
+        app: Callable[..., Any],
+        *,
+        environ_key: str = "is_crawler",
+        status: str = "403 Forbidden",
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(app, **kwargs)
         self.environ_key = environ_key
         self.status = status
-        self.body = body
 
     def __call__(
         self,
@@ -154,12 +172,10 @@ class WSGICrawlerMiddleware:
     ) -> Any:
         user_agent = environ.get("HTTP_USER_AGENT", "")
         ip = _wsgi_ip(environ, self.trust_forwarded)
-        result = _blocked(
-            user_agent, ip, self.verify_ip, self.check_ip_range, self.check_rdns
-        )
+        result = self._inspect(user_agent, ip)
         environ[self.environ_key] = result
 
-        if self.block and _should_block(result, self.block_tags):
+        if self._should_block(result):
             start_response(
                 self.status,
                 [("Content-Type", "text/plain; charset=utf-8")],
@@ -169,33 +185,20 @@ class WSGICrawlerMiddleware:
         return self.app(environ, start_response)
 
 
-class ASGICrawlerMiddleware:
+class ASGICrawlerMiddleware(_BaseCrawlerMiddleware):
     def __init__(
         self,
         app: Callable[..., Any],
         *,
-        block: bool = False,
-        block_tags: str | Iterable[str] | None = None,
-        verify_ip: bool = False,
-        check_ip_range: bool = False,
-        check_rdns: bool = False,
-        trust_forwarded: bool = False,
         scope_key: str = "is_crawler",
         state_key: str = "crawler",
         status_code: int = 403,
-        body: bytes = b"Forbidden",
+        **kwargs: Any,
     ) -> None:
-        self.app = app
-        self.block = block
-        self.block_tags = _to_tags(block_tags)
-        self.verify_ip = verify_ip
-        self.check_ip_range = check_ip_range
-        self.check_rdns = check_rdns
-        self.trust_forwarded = trust_forwarded
+        super().__init__(app, **kwargs)
         self.scope_key = scope_key
         self.state_key = state_key
         self.status_code = status_code
-        self.body = body
 
     async def __call__(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
         if scope.get("type") != "http":
@@ -204,16 +207,14 @@ class ASGICrawlerMiddleware:
 
         user_agent = _scope_header(scope, b"user-agent")
         ip = _scope_ip(scope, self.trust_forwarded)
-        result = _blocked(
-            user_agent, ip, self.verify_ip, self.check_ip_range, self.check_rdns
-        )
+        result = self._inspect(user_agent, ip)
         scope[self.scope_key] = result
 
         state = scope.setdefault("state", {})
         if isinstance(state, dict):
             state[self.state_key] = result
 
-        if self.block and _should_block(result, self.block_tags):
+        if self._should_block(result):
             await send(
                 {
                     "type": "http.response.start",

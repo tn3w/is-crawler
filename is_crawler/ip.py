@@ -20,15 +20,9 @@ __all__ = [
 
 _CACHE = 4096
 
-_RDNS_DOMAINS: dict[str, tuple[str, ...]] | None = None
-_IP_INDEX: tuple[list[int], list[int], list[int], list[int]] | None = None
 
-
+@lru_cache(maxsize=1)
 def _load_domains() -> dict[str, tuple[str, ...]]:
-    global _RDNS_DOMAINS
-    if _RDNS_DOMAINS is not None:
-        return _RDNS_DOMAINS
-
     path = Path(__file__).parent / "crawler-rdns.json"
     with path.open(encoding="utf-8") as f:
         raw = json.load(f)
@@ -38,8 +32,6 @@ def _load_domains() -> dict[str, tuple[str, ...]]:
         suffixes = tuple(suffix_key.split())
         for name in names:
             mapping[name.lower()] = suffixes
-
-    _RDNS_DOMAINS = mapping
     return mapping
 
 
@@ -128,11 +120,8 @@ def forward_confirmed_rdns(ip: str, suffixes: tuple[str, ...]) -> str | None:
     return host if normalized_ip in _forward_ips(host) else None
 
 
+@lru_cache(maxsize=1)
 def _build_index() -> tuple[list[int], list[int], list[int], list[int]]:
-    global _IP_INDEX
-    if _IP_INDEX is not None:
-        return _IP_INDEX
-
     v4: list = []
     v6: list = []
     for net in _parse_networks():
@@ -146,8 +135,7 @@ def _build_index() -> tuple[list[int], list[int], list[int], list[int]]:
     starts6 = [int(n.network_address) for n in collapsed6]
     ends6 = [int(n.broadcast_address) for n in collapsed6]
 
-    _IP_INDEX = (starts4, ends4, starts6, ends6)
-    return _IP_INDEX
+    return (starts4, ends4, starts6, ends6)
 
 
 @lru_cache(maxsize=_CACHE)

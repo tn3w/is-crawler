@@ -115,20 +115,18 @@ def test_parse_networks_returns_list():
 
 
 def test_build_index_lazy_and_cached():
-    import is_crawler.ip as ip_mod
     from is_crawler.ip import _build_index
 
-    original = ip_mod._IP_INDEX
+    _build_index.cache_clear()
+    ip_in_range.cache_clear()
     try:
-        ip_mod._IP_INDEX = None
-        ip_in_range.cache_clear()
         first = _build_index()
         assert _build_index() is first
         starts4, ends4, starts6, ends6 = first
         assert len(starts4) == len(ends4)
         assert len(starts6) == len(ends6)
     finally:
-        ip_mod._IP_INDEX = original
+        _build_index.cache_clear()
         ip_in_range.cache_clear()
 
 
@@ -322,16 +320,17 @@ def _with_networks(cidrs: list[str]):
 
     import is_crawler.ip as ip_mod
 
-    original = ip_mod._IP_INDEX
+    original = ip_mod._build_index
     nets = [ipaddress.ip_network(c, strict=False) for c in cidrs]
     v4 = sorted(ipaddress.collapse_addresses([n for n in nets if n.version == 4]))
     v6 = sorted(ipaddress.collapse_addresses([n for n in nets if n.version == 6]))
-    ip_mod._IP_INDEX = (
+    index = (
         [int(n.network_address) for n in v4],
         [int(n.broadcast_address) for n in v4],
         [int(n.network_address) for n in v6],
         [int(n.broadcast_address) for n in v6],
     )
+    ip_mod._build_index = lambda: index
     ip_in_range.cache_clear()
     return original
 
@@ -339,7 +338,7 @@ def _with_networks(cidrs: list[str]):
 def _restore_networks(original):
     import is_crawler.ip as ip_mod
 
-    ip_mod._IP_INDEX = original
+    ip_mod._build_index = original
     ip_in_range.cache_clear()
 
 

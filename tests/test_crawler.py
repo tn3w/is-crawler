@@ -7,7 +7,6 @@ from is_crawler import (
     _bare_compat,
     _bot_signal,
     _browser,
-    _email_like,
     _fetch_not_api,
     _find_word,
     _has_by_domain,
@@ -15,7 +14,6 @@ from is_crawler import (
     _leading_domain,
     _semicolon_agent,
     _token_after,
-    _url_in_ua,
     _word_char,
     _word_ends,
     crawler_contact,
@@ -104,13 +102,6 @@ def test_fetch_not_api_variants():
     assert _fetch_not_api("datafetcher")
     assert not _fetch_not_api("fetchapi")
     assert not _fetch_not_api("nothing")
-
-
-def test_email_like_valid():
-    assert _email_like("agent@crawler.example.com")
-    assert not _email_like("noatsign")
-    assert not _email_like("@nodomain")
-    assert not _email_like("a@x.5")
 
 
 def test_token_after_stops_at_delimiter():
@@ -226,31 +217,6 @@ def test_semicolon_agent_semicolon():
 
 def test_semicolon_agent_no_match():
     assert not _semicolon_agent("; foobar)")
-
-
-# --- _url_in_ua ---
-
-
-@pytest.mark.parametrize(
-    "ua",
-    [
-        "http://example.com",
-        "SomeBot (+http://example.com)",
-        "SomeBot;http://example.com",
-        "Feed - http://example.com",
-    ],
-)
-def test_url_in_ua_true(ua):
-    assert _url_in_ua(ua)
-
-
-def test_url_in_ua_false():
-    assert not _url_in_ua("Mozilla/5.0 Chrome/120")
-    assert not _url_in_ua("see http://example.com for info")
-
-
-def test_url_in_ua_https_leading():
-    assert _url_in_ua("https://example.com")
 
 
 # --- _browser ---

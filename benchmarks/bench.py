@@ -16,7 +16,7 @@ import time
 from typing import Callable
 
 import is_crawler as _ic
-from is_crawler import _bare_compat, _bot_signal, _browser, _known_tool, _url_in_ua
+from is_crawler import _bare_compat, _bot_signal, _browser, _known_tool
 
 FIXTURES = Path(__file__).parent.parent / "tests" / "fixtures"
 CRAWLERS = [
@@ -89,7 +89,6 @@ def bench_cold_start(with_cua: bool = False):
         importlib.reload(_db)
         importlib.reload(_ic)
 
-        _db._chunks = None
         _db.crawler_info.cache_clear()
         _db._load_chunks()
 
@@ -184,11 +183,10 @@ def bench_internals():
         ("_bot_signal (crawlers) ", _bot_signal),
         ("_bot_signal (browsers) ", _bot_signal),
         ("_known_tool (mixed)    ", _known_tool),
-        ("_url_in_ua  (mixed)    ", _url_in_ua),
         ("_browser    (mixed)    ", _browser),
         ("_bare_compat (mixed)   ", _bare_compat),
     ]
-    datasets = [CRAWLERS, BROWSERS, ALL_UAS, ALL_UAS, ALL_UAS, ALL_UAS]
+    datasets = [CRAWLERS, BROWSERS, ALL_UAS, ALL_UAS, ALL_UAS]
 
     print("\n── Internal helpers (no cache) ──")
     for (name, fn), args in zip(rows, datasets):
