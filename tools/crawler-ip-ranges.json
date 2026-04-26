@@ -63,6 +63,10 @@
     "url": "https://platform.claude.com/docs/en/api/ip-addresses",
     "pattern": "\\b((?:[0-9]{1,3}\\.){3}[0-9]{1,3}/[0-9]{1,2}|[0-9a-fA-F:]+/[0-9]{1,3})\\b"
   },
+  "mistralai-user": {
+    "url": "https://mistral.ai/mistralai-user-ips.json",
+    "pattern": "\"ipv4Prefix\"\\s*:\\s*\"([^\"]+)\""
+  },
   "ccbot": {
     "url": "https://index.commoncrawl.org/ccbot.json",
     "pattern": "\"(?:ipv4Prefix|ipv6Prefix)\"\\s*:\\s*\"([^\"]+)\""
@@ -215,6 +219,10 @@
     "url": "https://hetrixtools.com/resources/uptime-monitor-only-ips.txt",
     "pattern": "(?m)^((?:[0-9]{1,3}\\.){3}[0-9]{1,3})\\s*$"
   },
+  "sentry": {
+    "url": "https://docs.sentry.io/api/ip-ranges",
+    "pattern": "\"((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)(?:/[0-9]+)?)\""
+  },
   "semrushbot": {
     "url": "https://raw.githubusercontent.com/AnTheMaker/GoodBots/main/iplists/semrushbot.ips",
     "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)(?:/[0-9]+)?)\\s*$"
@@ -271,6 +279,10 @@
     "url": "https://raw.githubusercontent.com/AnTheMaker/GoodBots/main/iplists/stripewebhook.ips",
     "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)(?:/[0-9]+)?)\\s*$"
   },
+  "commoncrawlbot": {
+    "url": "https://raw.githubusercontent.com/AnTheMaker/GoodBots/main/iplists/commoncrawlbot.ips",
+    "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)(?:/[0-9]+)?)\\s*$"
+  },
   "dataforseobot": {
     "url": "https://dataforseo.com/dataforseo-bot",
     "pattern": "\\b((?:[0-9]{1,3}\\.){3}[0-9]{1,3}/[0-9]{1,2}|[0-9a-fA-F:]+/[0-9]{1,3})\\b"
@@ -302,5 +314,21 @@
   "akamai": {
     "url": "https://raw.githubusercontent.com/SecOps-Institute/Akamai-ASN-and-IPs-List/master/akamai_ip_cidr_blocks.lst",
     "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)/[0-9]+)\\s*$"
+  },
+  "w3c-validator": {
+    "url": "https://validator.w3.org/services",
+    "pattern": "\\b((?:[0-9]{1,3}\\.){3}[0-9]{1,3}|[0-9a-fA-F:]+/[0-9]{1,3})\\b"
+  },
+  "botify": {
+    "url": "https://support.botify.com/en/articles/9108634-allowing-botify-ip-addresses",
+    "pattern": "\\b((?:[0-9]{1,3}\\.){3}[0-9]{1,3}(?:/[0-9]{1,2})?)\\b"
+  },
+  "site24x7": {
+    "url": "https://www.site24x7.com/community/site24x7-monitoring-server-ip-updates",
+    "pattern": "\\b((?:[0-9]{1,3}\\.){3}[0-9]{1,3}(?:/[0-9]{1,2})?)\\b"
+  },
+  "lumar-deepcrawl": {
+    "url": "https://help.lumar.io/hc/en-us/articles/23917897055761-Request-IP-Addresses",
+    "pattern": "\\b((?:[0-9]{1,3}\\.){3}[0-9]{1,3})\\b"
   }
 }
