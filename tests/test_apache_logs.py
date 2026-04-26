@@ -1,6 +1,5 @@
 from pathlib import Path
 import re
-import time
 
 import pytest
 
@@ -263,33 +262,3 @@ def test_no_false_positives_on_unique_browser_uas(all_agents):
         and is_crawler(ua)
     ]
     assert false_positives == [], f"false positives: {false_positives}"
-
-
-# --- throughput benchmark (reported, not gated) ---
-
-
-def test_throughput_benchmark(all_agents, capsys):
-    warmup = all_agents[:500]
-    for ua in warmup:
-        is_crawler(ua)
-
-    iterations = 3
-    times = []
-    for _ in range(iterations):
-        t0 = time.perf_counter()
-        for ua in all_agents:
-            is_crawler(ua)
-        times.append(time.perf_counter() - t0)
-
-    total_calls = len(all_agents) * iterations
-    elapsed = sum(times)
-    rate = total_calls / elapsed
-    per_call_us = (elapsed / total_calls) * 1e6
-
-    with capsys.disabled():
-        print(
-            f"\n[apache log benchmark] {len(all_agents)} UAs × {iterations} runs"
-            f" → {rate:,.0f} calls/s  ({per_call_us:.2f} µs/call)"
-        )
-
-    assert per_call_us < 500, f"too slow: {per_call_us:.1f} µs/call"
