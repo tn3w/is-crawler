@@ -34,6 +34,7 @@ __all__ = [
     "crawler_name",
     "crawler_version",
     "crawler_url",
+    "crawler_contact",
     "crawler_signals",
     "crawler_info",
     "assert_crawler",
@@ -146,20 +147,51 @@ def _fetch_not_api(s: str) -> bool:
     return False
 
 
+def _local_start(ua: str, at: int) -> int:
+    start = at
+    while start > 0 and (ua[start - 1].isalnum() or ua[start - 1] in "._%+-"):
+        start -= 1
+    return start
+
+
+def _domain_end(ua: str, at: int) -> int:
+    end = at + 1
+    while end < len(ua) and (ua[end].isalnum() or ua[end] in "_.-"):
+        end += 1
+    return end
+
+
+def _valid_email_at(ua: str, at: int) -> tuple[int, int] | None:
+    end = _domain_end(ua, at)
+    domain = ua[at + 1 : end]
+    if "." not in domain:
+        return None
+    tld = domain.rsplit(".", 1)[1]
+    if len(tld) < 2 or not tld.isalpha():
+        return None
+    start = _local_start(ua, at)
+    return (start, end) if start < at else None
+
+
 def _email_like(ua: str) -> bool:
     i = 0
     while (i := ua.find("@", i)) != -1:
-        j = i + 1
-        while j < len(ua) and (ua[j].isalnum() or ua[j] in "_.-"):
-            j += 1
-
-        token = ua[i + 1 : j]
-        if "." in token and i > 0:
-            tld = token.rsplit(".", 1)[1]
-            if len(tld) >= 2 and tld.isalpha():
-                return True
+        if _valid_email_at(ua, i):
+            return True
         i += 1
     return False
+
+
+@lru_cache(maxsize=_CACHE)
+def crawler_contact(user_agent: str) -> str | None:
+    i = 0
+    while (i := user_agent.find("@", i)) != -1:
+        span = _valid_email_at(user_agent, i)
+        if span:
+            start, end = span
+            return user_agent[start:end]
+        i += 1
+    return None
 
 
 def _bot_signal(ua: str) -> bool:

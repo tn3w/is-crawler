@@ -18,6 +18,7 @@ from is_crawler import (
     _url_in_ua,
     _word_char,
     _word_ends,
+    crawler_contact,
     crawler_name,
     crawler_signals,
     crawler_url,
@@ -73,6 +74,7 @@ def test_all_exports():
         "build_robots_txt",
         "build_ai_txt",
         "assert_crawler",
+        "crawler_contact",
         "CrawlerInfo",
         "__version__",
     }
@@ -114,6 +116,19 @@ def test_email_like_valid():
 def test_token_after_stops_at_delimiter():
     end, token = _token_after("foo bar", 0)
     assert token == "foo" and end == 3
+
+
+def test_crawler_contact_found():
+    ua = "MyBot/1.0 (+https://example.com; contact@example.com)"
+    assert crawler_contact(ua) == "contact@example.com"
+
+
+def test_crawler_contact_invalid_at():
+    assert crawler_contact("agent @nodomain") is None
+
+
+def test_crawler_contact_none():
+    assert crawler_contact("Mozilla/5.0 (Windows NT 10.0)") is None
 
 
 # --- _bot_signal ---
