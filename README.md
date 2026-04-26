@@ -76,7 +76,7 @@ What the API returns on real UAs you will actually see:
 ```python
 from is_crawler import (
     is_crawler, crawler_signals, crawler_info, crawler_has_tag,
-    crawler_name, crawler_version, crawler_url, crawler_contact, CrawlerInfo,
+    crawler_name, crawler_version, crawler_url, crawler_contact,
 )
 
 ua = "Googlebot/2.1 (+http://www.google.com/bot.html)"
