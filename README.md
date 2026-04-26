@@ -76,7 +76,7 @@ What the API returns on real UAs you will actually see:
 ```python
 from is_crawler import (
     is_crawler, crawler_signals, crawler_info, crawler_has_tag,
-    crawler_name, crawler_version, crawler_url, CrawlerInfo,
+    crawler_name, crawler_version, crawler_url, crawler_contact, CrawlerInfo,
 )
 
 ua = "Googlebot/2.1 (+http://www.google.com/bot.html)"
@@ -86,6 +86,10 @@ crawler_name(ua)       # 'Googlebot'
 crawler_version(ua)    # '2.1'
 crawler_url(ua)        # 'http://www.google.com/bot.html'
 crawler_signals(ua)    # ['bot_signal', 'no_browser_signature', 'url_in_ua']
+
+ua2 = "MyBot/1.0 (contact: bot@example.com)"
+crawler_contact(ua2)   # 'bot@example.com'
+crawler_contact(ua)    # None
 ```
 
 `is_crawler` short-circuits on three rules: positive bot signal (keywords like `bot`/`crawl`/`spider`, known tools, embedded URL/email), missing browser signature (no `Mozilla/`, `WebKit`, OS token, etc.), or a bare `(compatible; ...)` block.
@@ -242,20 +246,68 @@ python -m is_crawler --version  # show version
 
 One JSON object per UA with `is_crawler`, `name`, `version`, `url`, `signals`, `info`.
 
+## UA Parser
+
+`parse(ua)` returns a `UserAgent` with all common fields. Zero deps, no regex, 4096-entry LRU cache.
+
+```python
+from is_crawler.parser import parse, parse_or_none
+
+ua = parse("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36")
+
+ua.browser          # 'Chrome'
+ua.browser_version  # '134.0.0.0'
+ua.browser_major    # '134'
+ua.os               # 'Windows'
+ua.os_version       # '10/11'
+ua.engine           # 'Blink'
+ua.engine_version   # '537.36'
+ua.device           # 'Desktop'
+ua.device_brand     # None
+ua.device_model     # None
+ua.cpu              # 'x86_64'
+ua.is_mobile        # False
+ua.is_tablet        # False
+ua.is_crawler       # False
+ua.languages        # []
+ua.rendering        # 'KHTML, like Gecko'
+ua.product_token    # 'Mozilla/5.0'
+ua.comment          # '(Windows NT 10.0; Win64; x64)'
+ua.raw              # original string
+
+ua.to_dict()        # all fields as dict
+```
+
+`parse_or_none(value)` normalises bytes/None/non-str, returns `None` for empty input.
+
 ## Benchmarks
 
-Python 3.14, Linux x86_64. `cua` = [`crawler-user-agents`](https://pypi.org/project/crawler-user-agents/) v1.44.
+Python 3.14, Linux x86_64. `cua` = [`crawler-user-agents`](https://pypi.org/project/crawler-user-agents/) v1.47.
 
-Real Apache logs, 42,512 UA entries (21% crawler ratio):
+**Apache Logs** 42,512 UA entries (8,942 crawlers, 33,570 browsers, 21% ratio):
 
 | Scenario   | `is_crawler` | `crawler_info` | `cua.is_crawler` | `cua.crawler_info` |
 | ---------- | ------------ | -------------- | ---------------- | ------------------ |
-| Warm cache | 0.044 µs     | 0.115 µs       | 64.121 µs        | 1513.618 µs        |
-| Cold cache | 0.143 µs     | 0.970 µs       | -                | -                  |
+| Warm cache | 0.046 µs     | 0.116 µs       | 66.234 µs        | 1585.007 µs        |
+| Cold cache | 0.151 µs     | 0.987 µs       | —                | —                  |
 
-Roughly 1450× faster on the hot path, 13000× faster for `crawler_info` warm. Full classify of 33,570 browser + 8,942 crawler UAs runs in 2.16 ms.
+~1440× faster on the hot path, ~13700× faster for `crawler_info` warm. Full classify of 42,512 Apache log UAs runs in 2.15 ms.
 
-IP verification, warm cache:
+**Fixture UAs** 2,149 crawlers + 19,910 browsers:
+
+| Scenario   | `is_crawler` (mixed) | `crawler_info` | `cua.is_crawler` (mixed) | `cua.crawler_info` |
+| ---------- | -------------------- | -------------- | ------------------------ | ------------------ |
+| Warm cache | 0.04 µs              | 1.33 µs        | 80.95 µs                 | 563.53 µs          |
+| Cold cache | 2.07 µs              | 4.85 µs        | 82.00 µs                 | 581.76 µs          |
+
+**UA parser** 19,910 real browser UAs vs [`ua-parser`](https://pypi.org/project/ua-parser/) (~20× faster):
+
+| Scenario   | `parser.parse` | `ua-parser` |
+| ---------- | -------------- | ----------- |
+| Warm cache | 21.45 µs       | 443.20 µs   |
+| Cold cache | 21.20 µs       | 443.05 µs   |
+
+**IP verification** warm cache:
 
 | Function                 | Time    |
 | ------------------------ | ------- |

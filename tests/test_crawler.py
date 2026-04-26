@@ -604,10 +604,14 @@ def test_fixture_loadkpi_crawlers_pass_rate():
 # --- module integrity ---
 
 
-def test_init_does_not_import_regex():
+@pytest.mark.parametrize(
+    "module",
+    ["__init__.py", "__main__.py", "contrib.py", "ip.py", "parser.py"],
+)
+def test_module_does_not_import_regex(module):
     import ast
 
-    source = (Path(__file__).parent.parent / "is_crawler" / "__init__.py").read_text()
+    source = (Path(__file__).parent.parent / "is_crawler" / module).read_text()
     blocked = {"re", "regex"}
 
     for node in ast.walk(ast.parse(source)):
