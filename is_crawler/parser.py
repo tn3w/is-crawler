@@ -773,9 +773,10 @@ def parse_or_none(value: object) -> UserAgent | None:
     return parse(normalized) if normalized else None
 
 
+@lru_cache(maxsize=4096)
 def is_crawler(ua: str) -> bool:
     return _detect_crawler(ua)
 
 
 def is_browser(ua: str) -> bool:
-    return not _detect_crawler(ua)
+    return not is_crawler(ua)
