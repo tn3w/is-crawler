@@ -42,6 +42,28 @@ def test_version():
     assert isinstance(__version__, str)
 
 
+def test_version_falls_back_when_package_metadata_is_missing(monkeypatch):
+    import importlib
+    import importlib.metadata
+    import is_crawler as mod
+
+    real_version = importlib.metadata.version
+
+    def fake_version(name: str) -> str:
+        if name == "is-crawler":
+            raise importlib.metadata.PackageNotFoundError
+        return real_version(name)
+
+    monkeypatch.setattr(importlib.metadata, "version", fake_version)
+    reloaded = importlib.reload(mod)
+
+    try:
+        assert reloaded.__version__ == "0+unknown"
+    finally:
+        monkeypatch.setattr(importlib.metadata, "version", real_version)
+        importlib.reload(reloaded)
+
+
 def test_all_exports():
     import is_crawler as mod
 

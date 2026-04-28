@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from functools import lru_cache
-from importlib.metadata import version
+from importlib.metadata import PackageNotFoundError, version
 
 from is_crawler.database import (
     CrawlerInfo,
@@ -28,7 +28,10 @@ from is_crawler.database import (
     robots_agents_for_tags,
 )
 
-__version__ = version("is-crawler")
+try:
+    __version__ = version("is-crawler")
+except PackageNotFoundError:
+    __version__ = "0+unknown"
 __all__ = [
     "is_crawler",
     "crawler_name",
