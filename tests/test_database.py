@@ -14,6 +14,7 @@ from is_crawler import (
 )
 from is_crawler.database import (
     CrawlerInfo,
+    _as_set,
     _robots_name,
     assert_crawler,
     build_ai_txt,
@@ -713,3 +714,261 @@ def test_has_tag_accepts_generator():
 
 def test_has_tag_empty_iterable_false():
     assert crawler_has_tag("Googlebot/2.1", []) is False
+
+
+# --- _as_set ---
+
+
+def test_as_set_string():
+    assert _as_set("foo") == {"foo"}
+
+
+def test_as_set_list():
+    assert _as_set(["foo", "bar"]) == {"foo", "bar"}
+
+
+def test_as_set_set():
+    assert _as_set({"foo"}) == {"foo"}
+
+
+def test_as_set_generator():
+    assert _as_set(x for x in ["a", "b"]) == {"a", "b"}
+
+
+def test_as_set_frozenset():
+    assert _as_set(frozenset({"foo"})) == {"foo"}
+
+
+# --- CrawlerInfo ---
+
+
+def test_crawlerinfo_fields():
+    info = CrawlerInfo("http://x.com", "desc", ("search-engine",))
+    assert info.url == "http://x.com"
+    assert info.description == "desc"
+    assert info.tags == ("search-engine",)
+
+
+def test_crawlerinfo_tuple_unpack():
+    url, description, tags = CrawlerInfo("u", "d", ("t",))
+    assert url == "u" and description == "d" and tags == ("t",)
+
+
+def test_crawlerinfo_immutable():
+    info = CrawlerInfo("u", "d", ("t",))
+    with pytest.raises(AttributeError):
+        info.url = "x"  # type: ignore[misc]
+
+
+# --- _robots_name additional ---
+
+
+def test_robots_name_leading_dot():
+    assert _robots_name(".Bot") == "Bot"
+
+
+def test_robots_name_leading_dash():
+    assert _robots_name("-Bot") == "Bot"
+
+
+def test_robots_name_trailing_dot():
+    assert _robots_name("Bot.") == "Bot"
+
+
+def test_robots_name_question_mark_splits():
+    assert _robots_name("Bot?extra") == "Bot"
+
+
+def test_robots_name_star_splits():
+    assert _robots_name("*Bot") is None
+
+
+def test_robots_name_only_dots():
+    assert _robots_name("...") is None
+
+
+def test_robots_name_slash_only():
+    assert _robots_name("/") is None
+
+
+def test_robots_name_empty_string():
+    assert _robots_name("") is None
+
+
+def test_robots_name_charclass_uses_first_char():
+    assert _robots_name("[Gg]ooglebot") == "Googlebot"
+
+
+# --- tag predicate negatives ---
+
+
+def test_is_advertising_false():
+    assert is_advertising("curl/7.64.1") is False
+
+
+def test_is_feed_reader_false():
+    assert is_feed_reader("curl/7.64.1") is False
+
+
+def test_is_monitoring_false():
+    assert is_monitoring("curl/7.64.1") is False
+
+
+def test_is_scanner_false():
+    assert is_scanner("curl/7.64.1") is False
+
+
+def test_is_http_library_false():
+    assert is_http_library(_GOOGLEBOT) is False
+
+
+def test_is_browser_automation_false():
+    assert is_browser_automation("curl/7.64.1") is False
+
+
+def test_is_archiver_false():
+    assert is_archiver("curl/7.64.1") is False
+
+
+def test_is_academic_false():
+    assert is_academic("curl/7.64.1") is False
+
+
+def test_is_seo_false():
+    assert is_seo("curl/7.64.1") is False
+
+
+# --- robots_agents_for_tags ---
+
+
+def test_robots_agents_empty_list():
+    assert robots_agents_for_tags([]) == []
+
+
+def test_robots_agents_nonexistent_tag():
+    assert robots_agents_for_tags("nonexistent-xyz") == []
+
+
+def test_robots_agents_frozenset_input():
+    agents = robots_agents_for_tags(frozenset({"search-engine"}))
+    assert "Googlebot" in agents
+
+
+def test_robots_agents_list_multi_tag():
+    agents = robots_agents_for_tags(["ai-crawler", "search-engine"])
+    assert "Googlebot" in agents
+    assert "GPTBot" in agents
+    assert agents == sorted(agents)
+
+
+# --- build_robots_txt additional ---
+
+
+def test_build_robots_txt_disallow_custom_path():
+    out = build_robots_txt(disallow="ai-crawler", path="/private")
+    assert "Disallow: /private" in out
+    assert "User-agent: GPTBot" in out
+
+
+def test_build_robots_txt_allow_only():
+    out = build_robots_txt(allow="search-engine")
+    assert "User-agent: Googlebot" in out
+    assert "Allow: /" in out
+    assert "Disallow" not in out
+
+
+def test_build_robots_txt_rules_list_tags():
+    out = build_robots_txt(rules=[("/private", ["ai-crawler", "scanner"])])
+    assert "Disallow: /private" in out
+    assert "GPTBot" in out
+    assert "Nikto" in out
+
+
+def test_build_robots_txt_same_agent_disallow_and_rules():
+    out = build_robots_txt(disallow="ai-crawler", rules=[("/extra", "ai-crawler")])
+    assert out.count("User-agent: GPTBot") == 1
+    assert "Disallow: /" in out
+    assert "Disallow: /extra" in out
+
+
+def test_build_robots_txt_allow_and_rules_different_agents():
+    out = build_robots_txt(allow="search-engine", rules=[("/private", "scanner")])
+    assert "Allow: /" in out
+    assert "Disallow: /private" in out
+
+
+def test_build_robots_txt_multiple_agents_block_separator():
+    out = build_robots_txt(disallow=["ai-crawler", "scanner"])
+    blocks = out.split("\n\n")
+    assert len(blocks) > 1
+    assert out.endswith("\n")
+
+
+def test_build_robots_txt_rules_only():
+    out = build_robots_txt(rules=[("/priv", "ai-crawler")])
+    assert "Disallow: /priv" in out
+    assert "GPTBot" in out
+
+
+def test_build_robots_txt_multi_rule_paths():
+    out = build_robots_txt(
+        rules=[("/private", "ai-crawler"), ("/public", "search-engine")]
+    )
+    assert "Disallow: /private" in out
+    assert "Disallow: /public" in out
+
+
+# --- build_ai_txt additional ---
+
+
+def test_build_ai_txt_list_input():
+    out = build_ai_txt(disallow=["ai-crawler"])
+    assert "GPTBot" in out
+    assert "Disallow: /" in out
+
+
+def test_build_ai_txt_user_agent_disallow_counts_match():
+    out = build_ai_txt()
+    user_agent_lines = [
+        line for line in out.splitlines() if line.startswith("User-Agent:")
+    ]
+    disallow_lines = [line for line in out.splitlines() if line.startswith("Disallow:")]
+    assert len(user_agent_lines) == len(disallow_lines)
+    assert len(user_agent_lines) > 0
+
+
+def test_build_ai_txt_ends_with_newline():
+    out = build_ai_txt()
+    assert out.endswith("\n")
+
+
+def test_build_ai_txt_search_engine_tag():
+    out = build_ai_txt(disallow="search-engine")
+    assert "Googlebot" in out
+    assert "bingbot" in out
+
+
+# --- iter_crawlers ---
+
+
+def test_iter_crawlers_all_names_nonempty():
+    assert all(name for _, name in iter_crawlers())
+
+
+def test_iter_crawlers_all_tags_nonempty():
+    assert all(info.tags for info, _ in iter_crawlers())
+
+
+def test_iter_crawlers_info_type():
+    for info, name in iter_crawlers():
+        assert isinstance(info, CrawlerInfo)
+        assert isinstance(name, str)
+        break
+
+
+# --- assert_crawler ---
+
+
+def test_assert_crawler_unknown_synthetic():
+    with pytest.raises(ValueError, match="not a known crawler"):
+        assert_crawler("RandomThing/1.0 +http://x.com")

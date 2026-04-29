@@ -7,13 +7,30 @@ from is_crawler import (
     _bare_compat,
     _bot_signal,
     _browser,
+    _compat_name,
+    _domain_end,
+    _domain_tld,
     _fetch_not_api,
     _find_word,
+    _grab_name_sequence,
     _has_by_domain,
+    _is_name_start,
     _known_tool,
     _leading_domain,
+    _local_start,
+    _name_chars_end,
+    _name_non_mozilla,
+    _prefix_name,
+    _scan_mozilla_name,
     _semicolon_agent,
+    _split_segments,
+    _strip_version,
     _token_after,
+    _token_name,
+    _valid_email_at,
+    _version_from_compat,
+    _version_mozilla,
+    _version_non_mozilla,
     _word_char,
     _word_ends,
     crawler_contact,
@@ -212,22 +229,6 @@ def test_has_by_domain_at_start():
 
 def test_has_by_domain_mid_word_no_match():
     assert not _has_by_domain("nearby example.com")
-
-
-def test_leading_domain_slash():
-    assert _leading_domain("example.com/crawler")
-
-
-def test_leading_domain_space():
-    assert _leading_domain("example.com crawler")
-
-
-def test_leading_domain_no_tld():
-    assert not _leading_domain("localhost/foo")
-
-
-def test_leading_domain_no_separator():
-    assert not _leading_domain("example.com")
 
 
 def test_semicolon_agent_paren():
@@ -564,6 +565,499 @@ def test_crawler_url_none_when_embedded():
 
 def test_crawler_url_none_when_mid_word():
     assert crawler_url("see http://example.com for info") is None
+
+
+# --- _local_start / _domain_end / _valid_email_at ---
+
+
+def test_local_start_full_local():
+    assert _local_start("foo@bar.com", 3) == 0
+
+
+def test_local_start_stops_at_special():
+    assert _local_start("(foo@bar.com", 4) == 1
+
+
+def test_domain_end_alpha_dot():
+    assert _domain_end("@bar.com/path", 0) == 8
+
+
+def test_domain_end_underscore():
+    assert _domain_end("@bar_baz.io", 0) == 11
+
+
+def test_valid_email_at_no_dot_in_domain():
+    assert _valid_email_at("foo@nodomain", 3) is None
+
+
+def test_valid_email_at_short_tld():
+    assert _valid_email_at("foo@bar.b", 3) is None
+
+
+def test_valid_email_at_non_alpha_tld():
+    assert _valid_email_at("foo@bar.1x", 3) is None
+
+
+def test_valid_email_at_start_equals_at():
+    assert _valid_email_at("@bar.com", 0) is None
+
+
+def test_valid_email_at_valid():
+    assert _valid_email_at("a@b.com", 1) == (0, 7)
+
+
+def test_crawler_contact_second_at_valid():
+    assert crawler_contact("x @ y foo@bar.com") == "foo@bar.com"
+
+
+def test_crawler_contact_two_char_tld():
+    assert crawler_contact("agent@example.io") == "agent@example.io"
+
+
+# --- _domain_tld / _token_after / _name_chars_end / _strip_version ---
+
+
+def test_domain_tld_no_dot():
+    assert _domain_tld("nodot") is False
+
+
+def test_domain_tld_known():
+    assert _domain_tld("example.com") is True
+
+
+def test_domain_tld_unknown():
+    assert _domain_tld("example.xyz") is False
+
+
+def test_token_after_custom_stop():
+    end, tok = _token_after("foo;bar", 0, ";")
+    assert tok == "foo" and end == 3
+
+
+def test_token_after_no_stop():
+    end, tok = _token_after("foobar", 0)
+    assert tok == "foobar" and end == 6
+
+
+def test_name_chars_end_stops_at_special():
+    assert _name_chars_end("foo!bar", 0) == 3
+
+
+def test_strip_version_with_slash():
+    assert _strip_version("Bot/1.0") == "Bot"
+
+
+def test_strip_version_no_slash():
+    assert _strip_version("Bot") == "Bot"
+
+
+# --- _is_name_start / _grab_name_sequence ---
+
+
+def test_is_name_start_upper():
+    assert _is_name_start("A") and _is_name_start("Z")
+
+
+def test_is_name_start_lower_false():
+    assert not _is_name_start("a") and not _is_name_start("1")
+
+
+def test_grab_name_sequence_multi_word():
+    end, name = _grab_name_sequence("Foo Bar Baz/1.0", 0)
+    assert name == "Foo Bar Baz" and end == 11
+
+
+def test_grab_name_sequence_stops_at_lowercase():
+    end, name = _grab_name_sequence("FooBot bar", 0)
+    assert name == "FooBot"
+
+
+def test_grab_name_sequence_single():
+    end, name = _grab_name_sequence("Bot", 0)
+    assert name == "Bot"
+
+
+# --- _prefix_name ---
+
+
+def test_prefix_name_empty():
+    assert _prefix_name("") is None
+
+
+def test_prefix_name_lowercase_start():
+    assert _prefix_name("curl/7.64") is None
+
+
+def test_prefix_name_bare_eof():
+    assert _prefix_name("BotName") == "BotName"
+
+
+def test_prefix_name_slash_eof():
+    assert _prefix_name("BotName/1.0") == "BotName"
+
+
+def test_prefix_name_slash_then_space():
+    assert _prefix_name("Bot/1.0 extra") == "Bot"
+
+
+def test_prefix_name_space_dash():
+    assert _prefix_name("MyBot/1.0 - details") == "MyBot"
+
+
+def test_prefix_name_slash_then_punct():
+    assert _prefix_name("Bot/1.0(extra)") is None
+
+
+# --- _compat_name ---
+
+
+def test_compat_name_empty_after_semicolon():
+    assert _compat_name("(compatible;") is None
+
+
+def test_compat_name_digit_start():
+    assert _compat_name("(compatible; 1bot)") is None
+
+
+def test_compat_name_valid():
+    assert _compat_name("(compatible; MyBot/1.0)") == "MyBot"
+
+
+# --- _name_non_mozilla ---
+
+
+def test_name_non_mozilla_with_slash():
+    assert _name_non_mozilla("curl/7.64.1") == "curl"
+
+
+def test_name_non_mozilla_bare():
+    assert _name_non_mozilla("curl") == "curl"
+
+
+def test_name_non_mozilla_empty():
+    assert _name_non_mozilla("") is None
+
+
+# --- _split_segments ---
+
+
+def test_split_segments_no_paren():
+    assert _split_segments("foobar") == ["foobar"]
+
+
+def test_split_segments_unclosed():
+    assert _split_segments("foo (bar baz") == ["foo ", ""]
+
+
+def test_split_segments_skips_compatible():
+    assert _split_segments("A (compatible; test) B") == ["A ", " B"]
+
+
+def test_split_segments_skips_khtml():
+    assert _split_segments("A (KHTML, like Gecko) B") == ["A ", " B"]
+
+
+def test_split_segments_skips_windows():
+    assert _split_segments("A (Windows NT 10.0) B") == ["A ", " B"]
+
+
+def test_split_segments_skips_macintosh():
+    assert _split_segments("A (Macintosh; Intel) B") == ["A ", " B"]
+
+
+def test_split_segments_skips_x11():
+    assert _split_segments("A (x11; Linux) B") == ["A ", " B"]
+
+
+def test_split_segments_skips_linux():
+    assert _split_segments("A (Linux; Android) B") == ["A ", " B"]
+
+
+def test_split_segments_skips_iphone():
+    assert _split_segments("A (iPhone; CPU) B") == ["A ", " B"]
+
+
+def test_split_segments_skips_ipad():
+    assert _split_segments("A (iPad; CPU) B") == ["A ", " B"]
+
+
+def test_split_segments_skips_ipod():
+    assert _split_segments("A (iPod; CPU) B") == ["A ", " B"]
+
+
+def test_split_segments_skips_android():
+    assert _split_segments("A (Android 14) B") == ["A ", " B"]
+
+
+def test_split_segments_keeps_non_skip():
+    result = _split_segments("A (FooBot/1.0) B")
+    assert "FooBot/1.0" in result
+
+
+def test_split_segments_multiple_parens():
+    result = _split_segments("A (w) B (x11) C (compat) D")
+    assert "w" in result
+    assert "compat" in result
+
+
+# --- _token_name ---
+
+
+def test_token_name_skip_mozilla():
+    assert _token_name("Mozilla") is None
+
+
+def test_token_name_skip_applewebkit():
+    assert _token_name("AppleWebKit") is None
+
+
+def test_token_name_special_char():
+    assert _token_name("Foo\x00Bar") is None
+
+
+def test_token_name_lowercase_start():
+    assert _token_name("curl") is None
+
+
+def test_token_name_with_slash():
+    assert _token_name("FooBot/1.0") == "FooBot"
+
+
+def test_token_name_trailing_comma():
+    assert _token_name("Foo,") == "Foo"
+
+
+# --- _scan_mozilla_name ---
+
+
+def test_scan_mozilla_name_browser_only():
+    assert (
+        _scan_mozilla_name("Mozilla/5.0 (Windows NT 10.0) Chrome/120 Safari/537") is None
+    )
+
+
+def test_scan_mozilla_name_finds_bot():
+    assert (
+        _scan_mozilla_name("Mozilla/5.0 AppleWebKit/537.36 FooBot/1.0 Safari/537")
+        == "FooBot"
+    )
+
+
+# --- _version_from_compat ---
+
+
+def test_version_from_compat_no_slash():
+    assert _version_from_compat("Mozilla/5.0 (compatible; MyBot)") is None
+
+
+def test_version_from_compat_slash():
+    assert _version_from_compat("Mozilla/5.0 (compatible; Bot/2.0)") == "2.0"
+
+
+def test_version_from_compat_empty_ver():
+    assert _version_from_compat("Mozilla/5.0 (compatible; Bot/)") is None
+
+
+# --- _version_mozilla ---
+
+
+def test_version_mozilla_skips_http_token():
+    assert _version_mozilla("Mozilla/5.0 http://x.com FooBot/2.0") == "2.0"
+
+
+def test_version_mozilla_trailing_slash_no_ver():
+    assert _version_mozilla("Mozilla/5.0 FooBot/") is None
+
+
+def test_version_mozilla_from_compat_first():
+    assert _version_mozilla("Mozilla/5.0 (compatible; Bot/3.0)") == "3.0"
+
+
+# --- _version_non_mozilla ---
+
+
+def test_version_non_mozilla_with_slash():
+    assert _version_non_mozilla("curl/7.64.1") == "7.64.1"
+
+
+def test_version_non_mozilla_no_slash():
+    assert _version_non_mozilla("curl") is None
+
+
+def test_version_non_mozilla_empty():
+    assert _version_non_mozilla("") is None
+
+
+# --- crawler_url extra paths ---
+
+
+def test_crawler_url_at_start():
+    assert crawler_url("http://example.com/bot") == "http://example.com/bot"
+
+
+def test_crawler_url_semicolon_prefix():
+    assert crawler_url("info;http://example.com/b") == "http://example.com/b"
+
+
+def test_crawler_url_stops_at_space():
+    assert crawler_url("+http://example.com/b info") == "http://example.com/b"
+
+
+def test_crawler_url_stops_at_paren():
+    assert crawler_url("(+http://example.com/b)") == "http://example.com/b"
+
+
+def test_crawler_url_mid_word_no_match():
+    assert crawler_url("seehttp://x.com") is None
+
+
+def test_crawler_url_space_dash_prefix():
+    assert crawler_url("Bot - http://example.com") == "http://example.com"
+
+
+# --- _bot_signal additional ---
+
+
+def test_bot_signal_https_prefix():
+    assert _bot_signal("checker (+https://example.com)")
+
+
+def test_bot_signal_at_sign_invalid():
+    assert not _bot_signal("agent @nodomain")
+
+
+# --- _known_tool additional ---
+
+
+def test_known_tool_wget_word_boundary():
+    assert _known_tool("Wget/1.21")
+
+
+def test_known_tool_nmap_word_boundary():
+    assert _known_tool("Nmap Scripting Engine")
+
+
+def test_known_tool_google_extended():
+    assert _known_tool("Google-Extended")
+
+
+def test_known_tool_leading_domain():
+    assert _known_tool("example.com/crawler")
+
+
+def test_known_tool_semicolon_agent():
+    assert _known_tool("Mozilla/5.0 (Windows NT 10.0; test-agent) Gecko/20100101")
+
+
+# --- _has_by_domain ---
+
+
+def test_has_by_domain_no_known_tld():
+    assert not _has_by_domain("by foo.xyz")
+
+
+def test_has_by_domain_at_word_boundary():
+    assert _has_by_domain("by foo.com")
+
+
+# --- _leading_domain ---
+
+
+def test_leading_domain_slash():
+    assert _leading_domain("example.com/crawler")
+
+
+def test_leading_domain_space():
+    assert _leading_domain("example.com crawler")
+
+
+def test_leading_domain_no_tld():
+    assert not _leading_domain("localhost/foo")
+
+
+def test_leading_domain_no_separator():
+    assert not _leading_domain("example.com")
+
+
+def test_leading_domain_with_slash():
+    assert _leading_domain("example.com/path")
+
+
+def test_leading_domain_with_space():
+    assert _leading_domain("example.com crawler")
+
+
+def test_leading_domain_unknown_tld():
+    assert not _leading_domain("localhost/foo")
+
+
+# --- _bare_compat additional ---
+
+
+def test_bare_compat_no_close_paren():
+    assert not _bare_compat("(compatible; text")
+
+
+def test_bare_compat_empty_compat():
+    assert _bare_compat("(compatible;)")
+
+
+# --- is_crawler additional paths ---
+
+
+def test_is_crawler_not_suspicious_mozilla_no_lead():
+    assert not is_crawler("Mozilla/5.0")
+
+
+def test_is_crawler_not_suspicious_not_mozilla_with_lead():
+    assert is_crawler("example.org/foo")
+
+
+def test_is_crawler_simple_tool_no_domain():
+    assert is_crawler("MyTool")
+
+
+def test_is_crawler_index_with_browser_sig():
+    assert not is_crawler("Mozilla/5.0 (Windows NT 10.0) Chrome/120 index")
+
+
+def test_is_crawler_google_with_suffix_no_browser():
+    assert is_crawler("Google-Extended")
+
+
+# --- crawler_name additional paths ---
+
+
+def test_crawler_name_compat_empty_after_semicolon():
+    assert crawler_name("Mozilla/5.0 (compatible;") is None
+
+
+def test_crawler_name_grab_multi_word():
+    assert crawler_name("NewsBlur Feed Fetcher/1.0") == "NewsBlur Feed Fetcher"
+
+
+def test_crawler_name_scan_only_browser_tokens():
+    ua = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120 Safari/537"
+    assert crawler_name(ua) is None
+
+
+def test_crawler_name_slash_then_punct_fallback():
+    assert crawler_name("Bot/1.0(extra)") == "Bot"
+
+
+# --- crawler_version additional paths ---
+
+
+def test_crawler_version_compat_with_slash():
+    assert crawler_version("Mozilla/5.0 (compatible; Bot/2.0)") == "2.0"
+
+
+def test_crawler_version_compat_no_slash():
+    assert crawler_version("Mozilla/5.0 (compatible; MyBot)") is None
+
+
+def test_crawler_version_mozilla_skips_http():
+    assert crawler_version("Mozilla/5.0 http://x.com FooBot/2.0") == "2.0"
 
 
 # --- fixtures ---
