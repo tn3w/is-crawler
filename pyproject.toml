@@ -1,6 +1,6 @@
 [project]
 name = "is-crawler"
-version = "1.5.9.4"
+version = "1.5.10"
 description = "Crawler detection from User-Agent strings in 50 ns. Zero deps, no regex, ReDoS-safe."
 readme = "README.md"
 authors = [
@@ -63,4 +63,6 @@ force-sort-within-sections = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+python_files = ["*.py"]
+python_functions = ["test_*"]
 addopts = "--cov=is_crawler --cov-report=term-missing --cov-fail-under=100 -v"
