@@ -45,6 +45,7 @@ def test_version():
 def test_version_falls_back_when_package_metadata_is_missing(monkeypatch):
     import importlib
     import importlib.metadata
+
     import is_crawler as mod
 
     real_version = importlib.metadata.version

@@ -6,6 +6,7 @@ from is_crawler.contrib import (
     CrawlerMiddlewareResult,
     WSGICrawlerMiddleware,
     _first_forwarded_ip,
+    _forwarded_ip,
     _scope_header,
     _scope_ip,
     _should_block,
@@ -29,12 +30,31 @@ def test_first_forwarded_ip_variants():
     assert _first_forwarded_ip("1.2.3.4, 5.6.7.8") == "1.2.3.4"
 
 
+def test_forwarded_ip_variants():
+    assert _forwarded_ip(None) is None
+    assert _forwarded_ip("for=1.2.3.4;proto=https;by=203.0.113.43") == "1.2.3.4"
+    assert _forwarded_ip('for=""') is None
+    assert _forwarded_ip('for="1.2.3.4:1234"') == "1.2.3.4"
+    assert _forwarded_ip('for="[2001:db8:cafe::17]:4711"') == "2001:db8:cafe::17"
+    assert _forwarded_ip('for="[2001:db8:cafe::17:4711"') is None
+    assert _forwarded_ip("proto=https;by=203.0.113.43") is None
+
+
 def test_wsgi_ip_prefers_forwarded_when_trusted():
     environ = {
         "HTTP_X_FORWARDED_FOR": "1.2.3.4, 5.6.7.8",
         "REMOTE_ADDR": "9.9.9.9",
     }
     assert _wsgi_ip(environ, True) == "1.2.3.4"
+
+
+def test_wsgi_ip_prefers_standard_forwarded_when_trusted():
+    environ = {
+        "HTTP_FORWARDED": 'for="66.249.66.1:1234";proto=https',
+        "HTTP_X_FORWARDED_FOR": "1.2.3.4, 5.6.7.8",
+        "REMOTE_ADDR": "9.9.9.9",
+    }
+    assert _wsgi_ip(environ, True) == "66.249.66.1"
 
 
 def test_wsgi_ip_falls_back_to_x_real_ip_when_trusted():
@@ -80,6 +100,16 @@ def test_scope_ip_forwarded_client_and_none():
             True,
         )
         == "1.2.3.4"
+    )
+    assert (
+        _scope_ip(
+            {
+                "headers": [(b"forwarded", b'for="[2001:db8:cafe::17]:4711"')],
+                "client": ("9.9.9.9", 1234),
+            },
+            True,
+        )
+        == "2001:db8:cafe::17"
     )
     assert _scope_ip({"client": ("9.9.9.9", 1234)}, False) == "9.9.9.9"
     assert _scope_ip({}, False) is None

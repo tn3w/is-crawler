@@ -83,8 +83,41 @@ def _first_forwarded_ip(value: str | None) -> str | None:
     return ip or None
 
 
+def _clean_forwarded_for(value: str) -> str | None:
+    ip = value.strip().strip('"')
+    if not ip:
+        return None
+    if ip.startswith("["):
+        end = ip.find("]")
+        if end == -1:
+            return None
+        return ip[1:end] or None
+    if ip.count(":") == 1 and "." in ip:
+        host, _, port = ip.partition(":")
+        return host or None
+    return ip
+
+
+def _forwarded_ip(value: str | None) -> str | None:
+    if not value:
+        return None
+
+    for part in value.split(","):
+        for field in part.split(";"):
+            key, _, raw_value = field.partition("=")
+            if key.strip().lower() != "for":
+                continue
+            return _clean_forwarded_for(raw_value)
+
+    return None
+
+
 def _wsgi_ip(environ: dict[str, Any], trust_forwarded: bool) -> str | None:
     if trust_forwarded:
+        ip = _forwarded_ip(environ.get("HTTP_FORWARDED"))
+        if ip:
+            return ip
+
         ip = _first_forwarded_ip(environ.get("HTTP_X_FORWARDED_FOR"))
         if ip:
             return ip
@@ -107,6 +140,10 @@ def _scope_header(scope: dict[str, Any], name: bytes) -> str:
 
 def _scope_ip(scope: dict[str, Any], trust_forwarded: bool) -> str | None:
     if trust_forwarded:
+        ip = _forwarded_ip(_scope_header(scope, b"forwarded"))
+        if ip:
+            return ip
+
         ip = _first_forwarded_ip(_scope_header(scope, b"x-forwarded-for"))
         if ip:
             return ip
