@@ -16,7 +16,7 @@ import time
 from typing import Callable
 
 import is_crawler as _ic
-from is_crawler import _bare_compat, _bot_signal, _browser, _known_tool
+from is_crawler.detection import _bare_compat, _bot_signal, _browser, _known_tool
 
 FIXTURES = Path(__file__).parent.parent / "tests" / "fixtures"
 CRAWLERS = [
