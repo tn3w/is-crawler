@@ -261,7 +261,7 @@ ua.browser          # 'Chrome'
 ua.browser_version  # '134.0.0.0'
 ua.browser_major    # '134'
 ua.os               # 'Windows'
-ua.os_version       # '10/11'
+ua.os_version       # '10'
 ua.engine           # 'Blink'
 ua.engine_version   # '537.36'
 ua.device           # 'Desktop'
@@ -271,6 +271,11 @@ ua.cpu              # 'x86_64'
 ua.is_mobile        # False
 ua.is_tablet        # False
 ua.is_crawler       # False
+ua.is_webview       # False
+ua.is_headless      # False
+ua.channel          # None | 'beta' | 'dev' | 'canary' | 'nightly'
+ua.app              # None | 'Facebook' | 'Instagram' | 'TikTok' ...
+ua.app_version      # in-app browser version
 ua.languages        # []
 ua.rendering        # 'KHTML, like Gecko'
 ua.product_token    # 'Mozilla/5.0'
@@ -306,8 +311,8 @@ Python 3.14, Linux x86_64. `cua` = [`crawler-user-agents`](https://pypi.org/proj
 
 | Scenario   | `parser.parse` | `ua-parser` |
 | ---------- | -------------- | ----------- |
-| Warm cache | 21.45 µs       | 443.20 µs   |
-| Cold cache | 21.20 µs       | 443.05 µs   |
+| Warm cache | 17.49 µs       | 443.20 µs   |
+| Cold cache | 17.53 µs       | 443.05 µs   |
 
 **IP verification** warm cache:
 

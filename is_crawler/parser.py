@@ -25,6 +25,11 @@ class UserAgent:
     is_mobile: bool
     is_tablet: bool
     is_crawler: bool
+    is_webview: bool = False
+    is_headless: bool = False
+    channel: str | None = None
+    app: str | None = None
+    app_version: str | None = None
     languages: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
@@ -49,7 +54,13 @@ _BROWSERS: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("Silk", ("Silk/",)),
     ("Vivaldi", ("Vivaldi/",)),
     ("Tor Browser", ("TorBrowser/",)),
-    ("DuckDuckGo", ("DuckDuckGo/",)),
+    ("Mullvad Browser", ("MullvadBrowser/",)),
+    ("LibreWolf", ("LibreWolf/", "Librewolf/")),
+    ("Floorp", ("Floorp/",)),
+    ("Zen", ("Zen/",)),
+    ("Arc", ("Arc/",)),
+    ("Orion", ("Orion/",)),
+    ("DuckDuckGo", ("DuckDuckGo/", "DuckDuckGoSearch/", "DuckDuckGoBrowser/")),
     ("Waterfox", ("Waterfox/",)),
     ("Whale", ("Whale/",)),
     ("QQBrowser", ("QQBrowser/", "MQQBrowser/")),
@@ -136,6 +147,34 @@ _WIN_NT = {
     "5.0": "2000",
     "4.0": "NT 4.0",
 }
+
+_DIRECT_OS_SENTINELS: tuple[str, ...] = (
+    "Windows Phone",
+    "Windows Mobile",
+    "CrOS",
+    "PlayStation",
+    "PLAYSTATION",
+    "Nintendo",
+    "Symbian",
+    "SymbOS",
+    "S60",
+    "Tizen",
+    "KaiOS",
+    "HarmonyOS",
+    "BlackBerry",
+    "BB10",
+    "webOS",
+    "hpwOS",
+    "SunOS",
+    "Solaris",
+    "FreeBSD",
+    "NetBSD",
+    "OpenBSD",
+    "DragonFly",
+    "Haiku",
+    "OS/2",
+    "AmigaOS",
+)
 
 _DIRECT_OS: tuple[tuple[tuple[str, ...], str], ...] = (
     (("Windows Phone OS",), "Windows Phone OS"),
@@ -309,6 +348,9 @@ _CHROME_DISAMBIG = (
     "CriOS/",
     "Silk/",
     "Chromium/",
+    "Arc/",
+    "Orion/",
+    "MullvadBrowser/",
 )
 
 _FIREFOX_DISAMBIG = (
@@ -319,22 +361,106 @@ _FIREFOX_DISAMBIG = (
     "iceweasel/",
     "SeaMonkey/",
     "TorBrowser/",
+    "MullvadBrowser/",
+    "LibreWolf/",
+    "Librewolf/",
+    "Floorp/",
+    "Zen/",
     "FxiOS/",
     "K-Meleon/",
     "Iceape/",
 )
 
+_WEBVIEW_TOKENS = (
+    "; wv)",
+    ";wv)",
+    "; wv;",
+    ";wv;",
+    "WebView/",
+    "FBAN/",
+    "FBAV/",
+    "FBIOS/",
+    "FB_IAB/",
+    "Instagram ",
+    "Twitter for",
+    "TwitterAndroid",
+    "Line/",
+    "Snapchat/",
+    "Pinterest/",
+    "LinkedInApp/",
+    "GSA/",
+    "MicroMessenger/",
+    "WKWebView",
+)
+
+_HEADLESS_TOKENS = (
+    "HeadlessChrome",
+    "PhantomJS",
+    "Headless",
+    "Selenium",
+    "WebDriver",
+    "Playwright",
+    "Puppeteer",
+    "Cypress",
+)
+
+_CHANNEL_TOKENS: tuple[tuple[str, str], ...] = (
+    ("Canary", "canary"),
+    ("Nightly", "nightly"),
+    ("Dev/", "dev"),
+    ("Beta/", "beta"),
+    ("beta/", "beta"),
+    ("aurora", "aurora"),
+)
+
+_APP_TOKENS: tuple[tuple[str, str], ...] = (
+    ("FBAV/", "Facebook"),
+    ("FBAN/FBIOS", "Facebook"),
+    ("Instagram ", "Instagram"),
+    ("Snapchat/", "Snapchat"),
+    ("Pinterest/", "Pinterest"),
+    ("LinkedInApp/", "LinkedIn"),
+    ("TikTok/", "TikTok"),
+    ("musical_ly_", "TikTok"),
+    ("Line/", "Line"),
+    ("MicroMessenger/", "WeChat"),
+    ("Twitter for", "Twitter"),
+)
+
+_APP_VERSION_TOKENS: dict[str, str] = {
+    "Facebook": "FBAV/",
+    "Instagram": "Instagram ",
+    "Snapchat": "Snapchat/",
+    "Pinterest": "Pinterest/",
+    "LinkedIn": "LinkedInApp/",
+    "TikTok": "TikTok/",
+    "Line": "Line/",
+    "WeChat": "MicroMessenger/",
+}
+
+_VR_TOKENS = ("Oculus", "Quest", "Vision Pro", "VisionOS", "Pico ", "Pico/")
+_WEARABLE_TOKENS = ("WatchOS", "Watch OS", "Wear OS", "Tizen Wear")
+_FOLDABLE_TOKENS = ("Fold", "Flip", "ZFlip", "ZFold")
+
+
+_VERSION_CHARS = frozenset("0123456789.")
+_DIGITS = frozenset("0123456789")
+
 
 def _read_version(ua: str, start: int) -> str | None:
     end = start
-    while end < len(ua) and (ua[end].isdigit() or ua[end] == "."):
+    n = len(ua)
+    vc = _VERSION_CHARS
+    while end < n and ua[end] in vc:
         end += 1
     return ua[start:end] or None
 
 
 def _read_int(ua: str, start: int) -> tuple[str, int]:
     end = start
-    while end < len(ua) and ua[end].isdigit():
+    n = len(ua)
+    dg = _DIGITS
+    while end < n and ua[end] in dg:
         end += 1
     return ua[start:end], end
 
@@ -421,7 +547,10 @@ def _token_version(ua: str, token: str) -> str | None:
 
 
 def _has_any(ua: str, tokens: tuple[str, ...]) -> bool:
-    return any(token in ua for token in tokens)
+    for token in tokens:
+        if token in ua:
+            return True
+    return False
 
 
 def _detect_browser(ua: str) -> tuple[str | None, str | None]:
@@ -445,17 +574,13 @@ def _detect_browser(ua: str) -> tuple[str | None, str | None]:
     if "Chrome/" in ua and ("Android" in ua or "iPad" in ua) and "Mobile Safari/" in ua:
         if "; wv)" in ua and "Version/" in ua:
             return "Chrome WebView", _token_version(ua, "Chrome/")
-        if not any(t in ua for t in ("Edg", "OPR/", "SamsungBrowser/", "YaBrowser/")):
+        if not _has_any(ua, ("Edg", "OPR/", "SamsungBrowser/", "YaBrowser/")):
             return "Mobile Chrome", _token_version(ua, "Chrome/")
 
-    if "Chrome/" in ua and not any(t in ua for t in _CHROME_DISAMBIG):
+    if "Chrome/" in ua and not _has_any(ua, _CHROME_DISAMBIG):
         return "Chrome", _token_version(ua, "Chrome/")
 
-    if (
-        "Firefox/" in ua
-        and "Android" not in ua
-        and not any(t in ua for t in _FIREFOX_DISAMBIG)
-    ):
+    if "Firefox/" in ua and "Android" not in ua and not _has_any(ua, _FIREFOX_DISAMBIG):
         return "Firefox", _token_version(ua, "Firefox/")
 
     for family, tokens in _BROWSERS:
@@ -500,6 +625,8 @@ def _detect_browser(ua: str) -> tuple[str | None, str | None]:
 
 
 def _detect_engine(ua: str) -> tuple[str | None, str | None]:
+    if "Edge/" in ua and "AppleWebKit/" not in ua:
+        return "EdgeHTML", _token_version(ua, "Edge/")
     if "AppleWebKit/" in ua:
         version = _token_version(ua, "AppleWebKit/")
         if "Trident/" in ua:
@@ -511,6 +638,8 @@ def _detect_engine(ua: str) -> tuple[str | None, str | None]:
         return "Trident", _token_version(ua, "Trident/")
     if "Goanna/" in ua:
         return "Goanna", _token_version(ua, "Goanna/")
+    if "Servo/" in ua:
+        return "Servo", _token_version(ua, "Servo/")
     if "Gecko/" in ua:
         return "Gecko", _token_version(ua, "Gecko/")
     if "Presto/" in ua:
@@ -537,6 +666,8 @@ def _detect_os(ua: str) -> tuple[str | None, str | None]:
     nt_idx = ua.find("Windows NT")
     if nt_idx != -1 and "Windows Phone" not in ua:
         ver = _read_dotted(ua, nt_idx + 11, 1)
+        if ver == "10.0":
+            return "Windows", "11" if _is_windows_11(ua) else "10"
         if ver and "." in ver:
             return "Windows", _WIN_NT.get(ver, ver)
         return "Windows", "NT"
@@ -546,9 +677,10 @@ def _detect_os(ua: str) -> tuple[str | None, str | None]:
         ver = _read_dotted(ua, idx + 14, 2) if idx != -1 else None
         return "Windows Phone", ver
 
-    for tokens, name in _DIRECT_OS:
-        if _has_any(ua, tokens):
-            return name, _direct_os_version(ua, name)
+    if _has_any(ua, _DIRECT_OS_SENTINELS):
+        for tokens, name in _DIRECT_OS:
+            if _has_any(ua, tokens):
+                return name, _direct_os_version(ua, name)
 
     if "Windows CE" in ua:
         return "Windows", "CE"
@@ -567,7 +699,10 @@ def _detect_os(ua: str) -> tuple[str | None, str | None]:
 
     if _has_any(ua, ("Mac OS X", "Macintosh", "Mac_PowerPC")):
         idx = ua.find("Mac OS X ")
-        return "macOS", _mac_version(ua, idx + 9) if idx != -1 else None
+        version = _mac_version(ua, idx + 9) if idx != -1 else None
+        if "Mobile/" in ua and "Safari/" in ua:
+            return "iPadOS", version
+        return "macOS", version
 
     if "Android" in ua:
         return "Android", _android_version(ua)
@@ -586,6 +721,28 @@ def _detect_os(ua: str) -> tuple[str | None, str | None]:
     return None, None
 
 
+def _is_windows_11(ua: str) -> bool:
+    if "Windows NT 10.0; Win64; x64; arm" in ua:
+        return True
+    return False
+
+
+def _detect_channel(ua: str) -> str | None:
+    for token, name in _CHANNEL_TOKENS:
+        if token in ua:
+            return name
+    return None
+
+
+def _detect_app(ua: str) -> tuple[str | None, str | None]:
+    for token, name in _APP_TOKENS:
+        if token in ua:
+            version_token = _APP_VERSION_TOKENS.get(name)
+            version = _token_version(ua, version_token) if version_token else None
+            return name, version
+    return None, None
+
+
 def _direct_os_version(ua: str, name: str) -> str | None:
     if name == "Chromium OS":
         return _cros_version(ua)
@@ -596,6 +753,8 @@ def _direct_os_version(ua: str, name: str) -> str | None:
                 return ver
     if name == "KaiOS":
         return _token_version(ua, "KaiOS/")
+    if name == "HarmonyOS":
+        return _token_version(ua, "HarmonyOS ") or _token_version(ua, "HarmonyOS/")
     if name == "Tizen":
         return _token_version(ua, "Tizen ") or _token_version(ua, "Tizen/")
     if name == "FreeBSD":
@@ -655,6 +814,10 @@ def _detect_cpu(ua: str) -> str | None:
 
 
 def _detect_device_kind(ua: str) -> str | None:
+    if _has_any(ua, _VR_TOKENS):
+        return "XR"
+    if _has_any(ua, _WEARABLE_TOKENS):
+        return "Wearable"
     for tokens, kind in _DEVICE_KIND:
         if _has_any(ua, tokens):
             return kind
@@ -706,7 +869,10 @@ def _extract_languages(ua: str, parens: list[str] | None = None) -> list[str]:
 
 def _detect_crawler(ua: str) -> bool:
     low = ua.lower()
-    return any(token in low for token in _BOT_TOKENS)
+    for token in _BOT_TOKENS:
+        if token in low:
+            return True
+    return False
 
 
 def _parse_ua(ua: str) -> UserAgent:
@@ -729,6 +895,10 @@ def _parse_ua(ua: str) -> UserAgent:
     device_token, brand, model = _detect_device_brand(ua, parens)
 
     major = browser_version.split(".", 1)[0] if browser_version else None
+    is_webview = _has_any(ua, _WEBVIEW_TOKENS)
+    is_headless = _has_any(ua, _HEADLESS_TOKENS)
+    channel = _detect_channel(ua)
+    app, app_version = _detect_app(ua)
 
     return UserAgent(
         raw=ua,
@@ -749,6 +919,11 @@ def _parse_ua(ua: str) -> UserAgent:
         is_mobile=device_kind == "Mobile",
         is_tablet=device_kind == "Tablet",
         is_crawler=_detect_crawler(ua),
+        is_webview=is_webview,
+        is_headless=is_headless,
+        channel=channel,
+        app=app,
+        app_version=app_version,
         languages=_extract_languages(ua, parens),
     )
 

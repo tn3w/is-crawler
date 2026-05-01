@@ -290,7 +290,7 @@ def test_is_blink_via_token():
 def test_detect_os_windows_nt():
     os_name, os_version = _detect_os(_CHROME_WIN)
     assert os_name == "Windows"
-    assert os_version == "10/11"
+    assert os_version == "10"
 
 
 def test_detect_os_windows_legacy():
@@ -836,3 +836,71 @@ def test_fixture_browser_device_brand_field_coverage():
     uas = _load("browser_user_agents.txt")
     rate = _field_rate(uas, "device_brand")
     assert rate >= _FIELD_THRESHOLDS["device_brand"], f"device_brand coverage {rate:.2%}"
+
+
+def test_webview_flag():
+    ua = "Mozilla/5.0 (Linux; Android 10; SM-G960F; wv) Chrome/90 Mobile Safari/537.36"
+    assert parse(ua).is_webview
+
+
+def test_headless_flag():
+    assert parse("Mozilla/5.0 HeadlessChrome/120.0").is_headless
+    assert parse("PhantomJS/2.1").is_headless
+
+
+def test_browser_channel():
+    assert parse("Mozilla/5.0 Chrome Canary/121").channel == "canary"
+    assert parse("Mozilla/5.0 Firefox Nightly/120").channel == "nightly"
+    assert parse("Mozilla/5.0 Chrome/120 Beta/1").channel == "beta"
+
+
+def test_app_detection():
+    ua = "Mozilla/5.0 (Linux; Android) FBAV/300.0.0.0"
+    parsed = parse(ua)
+    assert parsed.app == "Facebook"
+    assert parsed.app_version == "300.0.0.0"
+
+
+def test_engine_servo():
+    assert parse("Mozilla/5.0 (Mobile; rv:48.0) Servo/1.0").engine == "Servo"
+
+
+def test_engine_edgehtml():
+    ua = "Mozilla/5.0 Edge/12.246"
+    assert parse(ua).engine == "EdgeHTML"
+
+
+def test_windows_11_arm():
+    ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; arm) Chrome/120"
+    assert parse(ua).os_version == "11"
+
+
+def test_ipados_masquerading_as_mac():
+    ua = (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/605 "
+        "Mobile/15E148 Safari/604"
+    )
+    assert parse(ua).os == "iPadOS"
+
+
+def test_harmonyos_version():
+    ua = "Mozilla/5.0 (Linux; HarmonyOS 4.0.0) AppleWebKit/537"
+    parsed = parse(ua)
+    assert parsed.os == "HarmonyOS"
+    assert parsed.os_version == "4.0.0"
+
+
+def test_xr_device():
+    assert parse("Mozilla/5.0 (Linux; Quest 3) AppleWebKit/537").device == "XR"
+
+
+def test_wearable_device():
+    assert parse("Mozilla/5.0 (Wear OS 4.0) AppleWebKit/537").device == "Wearable"
+
+
+def test_librewolf_browser():
+    assert parse("Mozilla/5.0 LibreWolf/120.0").browser == "LibreWolf"
+
+
+def test_arc_browser():
+    assert parse("Mozilla/5.0 Chrome/120 Arc/1.50.0").browser == "Arc"

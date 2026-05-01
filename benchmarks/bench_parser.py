@@ -91,7 +91,10 @@ def bench_cold():
 def bench_fields():
     print("\n── Field coverage on browser_user_agents.txt ──")
     fields = ("browser", "browser_version", "os", "os_version", "device", "device_brand")
-    totals = {f: 0 for f in fields}
+    bool_fields = ("is_webview", "is_headless")
+    str_fields = ("channel", "app", "app_version")
+    totals = {f: 0 for f in (*fields, *str_fields)}
+    bool_totals = {f: 0 for f in bool_fields}
     n = len(BROWSERS)
 
     for ua in BROWSERS:
@@ -99,8 +102,21 @@ def bench_fields():
         for f in fields:
             if getattr(result, f) is not None:
                 totals[f] += 1
+        for f in str_fields:
+            if getattr(result, f) is not None:
+                totals[f] += 1
+        for f in bool_fields:
+            if getattr(result, f):
+                bool_totals[f] += 1
 
     for f in fields:
+        pct = totals[f] / n * 100
+        print(f"  {f:<16}: {totals[f]:5}/{n}  ({pct:.1f}%)")
+
+    print()
+    for f in bool_fields:
+        print(f"  {f:<16}: {bool_totals[f]:5}/{n}  ({bool_totals[f] / n * 100:.1f}%)")
+    for f in str_fields:
         pct = totals[f] / n * 100
         print(f"  {f:<16}: {totals[f]:5}/{n}  ({pct:.1f}%)")
 
