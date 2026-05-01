@@ -15,6 +15,10 @@
     "url": "https://developers.google.com/static/crawling/ipranges/user-triggered-fetchers-google.json",
     "pattern": "\"(?:ipv4Prefix|ipv6Prefix)\"\\s*:\\s*\"([^\"]+)\""
   },
+  "google-user-triggered-agents": {
+    "url": "https://developers.google.com/static/crawling/ipranges/user-triggered-agents.json",
+    "pattern": "\"(?:ipv4Prefix|ipv6Prefix)\"\\s*:\\s*\"([^\"]+)\""
+  },
   "google-cloud": {
     "url": "https://www.gstatic.com/ipranges/cloud.json",
     "pattern": "\"(?:ipv4Prefix|ipv6Prefix)\"\\s*:\\s*\"([^\"]+)\""
@@ -67,10 +71,6 @@
     "url": "https://mistral.ai/mistralai-user-ips.json",
     "pattern": "\"ipv4Prefix\"\\s*:\\s*\"([^\"]+)\""
   },
-  "ccbot": {
-    "url": "https://index.commoncrawl.org/ccbot.json",
-    "pattern": "\"(?:ipv4Prefix|ipv6Prefix)\"\\s*:\\s*\"([^\"]+)\""
-  },
   "cloudflare-v4": {
     "url": "https://www.cloudflare.com/ips-v4",
     "pattern": "(?m)^([0-9]+(?:\\.[0-9]+){3}/[0-9]+)\\s*$"
@@ -109,10 +109,6 @@
   },
   "yandexbot": {
     "url": "https://yandex.com/ips",
-    "pattern": "((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)/[0-9]+)"
-  },
-  "facebookexternalhit": {
-    "url": "https://developers.facebook.com/docs/sharing/webmasters/web-crawlers",
     "pattern": "((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)/[0-9]+)"
   },
   "kagibot": {
@@ -231,10 +227,6 @@
     "url": "https://raw.githubusercontent.com/AnTheMaker/GoodBots/main/iplists/mojeekbot.ips",
     "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)(?:/[0-9]+)?)\\s*$"
   },
-  "twitterbot": {
-    "url": "https://raw.githubusercontent.com/AnTheMaker/GoodBots/main/iplists/twitterbot.ips",
-    "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)(?:/[0-9]+)?)\\s*$"
-  },
   "betteruptimebot": {
     "url": "https://raw.githubusercontent.com/AnTheMaker/GoodBots/main/iplists/betteruptimebot.ips",
     "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)(?:/[0-9]+)?)\\s*$"
@@ -275,27 +267,19 @@
     "url": "https://raw.githubusercontent.com/AnTheMaker/GoodBots/main/iplists/rssapi.ips",
     "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)(?:/[0-9]+)?)\\s*$"
   },
-  "stripewebhook": {
-    "url": "https://raw.githubusercontent.com/AnTheMaker/GoodBots/main/iplists/stripewebhook.ips",
-    "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)(?:/[0-9]+)?)\\s*$"
-  },
-  "commoncrawlbot": {
-    "url": "https://raw.githubusercontent.com/AnTheMaker/GoodBots/main/iplists/commoncrawlbot.ips",
-    "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)(?:/[0-9]+)?)\\s*$"
+  "ccbot": {
+    "url": "https://index.commoncrawl.org/ccbot.json",
+    "pattern": "\"(?:ipv4Prefix|ipv6Prefix)\"\\s*:\\s*\"([^\"]+)\""
   },
   "dataforseobot": {
     "url": "https://dataforseo.com/dataforseo-bot",
     "pattern": "\\b((?:[0-9]{1,3}\\.){3}[0-9]{1,3}/[0-9]{1,2}|[0-9a-fA-F:]+/[0-9]{1,3})\\b"
   },
-  "anthropic-api": {
-    "url": "https://docs.anthropic.com/en/api/ip-addresses",
-    "pattern": "\\b((?:[0-9]{1,3}\\.){3}[0-9]{1,3}/[0-9]{1,2}|[0-9a-fA-F:]+/[0-9]{1,3})\\b"
-  },
-  "meta-crawler": {
+  "facebookexternalhit-v4": {
     "url": "https://raw.githubusercontent.com/lord-alfred/ipranges/main/facebook/ipv4.txt",
     "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3})/[0-9]+)\\s*$"
   },
-  "meta-crawler-v6": {
+  "facebookexternalhit-v6": {
     "url": "https://raw.githubusercontent.com/lord-alfred/ipranges/main/facebook/ipv6.txt",
     "pattern": "(?m)^([0-9a-fA-F:]+/[0-9]+)\\s*$"
   },
@@ -303,11 +287,11 @@
     "url": "https://www.gstatic.com/ipranges/cloud_geofeed",
     "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)/[0-9]+),"
   },
-  "twitter-x": {
+  "twitterbot-v4": {
     "url": "https://raw.githubusercontent.com/lord-alfred/ipranges/main/twitter/ipv4.txt",
     "pattern": "(?m)^((?:[0-9]+(?:\\.[0-9]+){3})/[0-9]+)\\s*$"
   },
-  "twitter-x-v6": {
+  "twitterbot-v6": {
     "url": "https://raw.githubusercontent.com/lord-alfred/ipranges/main/twitter/ipv6.txt",
     "pattern": "(?m)^([0-9a-fA-F:]+/[0-9]+)\\s*$"
   },
@@ -330,5 +314,21 @@
   "lumar-deepcrawl": {
     "url": "https://help.lumar.io/hc/en-us/articles/23917897055761-Request-IP-Addresses",
     "pattern": "\\b((?:[0-9]{1,3}\\.){3}[0-9]{1,3})\\b"
+  },
+  "qwantbot": {
+    "url": "https://help.qwant.com/wp-content/uploads/sites/latest/qwantbot.json",
+    "pattern": "\"((?:[0-9]+(?:\\.[0-9]+){3}|[0-9a-fA-F:]+)/[0-9]+)\""
+  },
+  "seznambot": {
+    "url": "https://napoveda.seznam.cz/en/full-text-search/seznambot-crawler/",
+    "pattern": "\\b((?:[0-9]{1,3}\\.){3}[0-9]{1,3}|[0-9a-fA-F:]+/[0-9]{1,3})\\b"
+  },
+  "bytespider": {
+    "url": "https://zhanzhang.toutiao.com/",
+    "pattern": "\\b((?:[0-9]{1,3}\\.){3}[0-9]{1,3})\\b"
+  },
+  "twilio-media": {
+    "url": "https://www.twilio.com/docs/video/ip-addresses",
+    "pattern": "\\b((?:[0-9]{1,3}\\.){3}[0-9]{1,3}/[0-9]{1,2}|[0-9a-fA-F:]+/[0-9]{1,3})\\b"
   }
 }
