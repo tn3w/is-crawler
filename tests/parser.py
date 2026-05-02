@@ -904,3 +904,24 @@ def test_librewolf_browser():
 
 def test_arc_browser():
     assert parse("Mozilla/5.0 Chrome/120 Arc/1.50.0").browser == "Arc"
+
+
+def test_fixture_crawler_detected_pass_rate():
+    uas = _load("crawler_user_agents.txt")
+    detected = sum(1 for ua in uas if is_crawler(ua))
+    rate = detected / len(uas)
+    assert rate >= 0.75, f"pass rate {rate:.2%} ({detected}/{len(uas)})"
+
+
+def test_fixture_browser_not_detected_pass_rate():
+    uas = _load("browser_user_agents.txt")
+    misses = sum(1 for ua in uas if is_crawler(ua))
+    rate = (len(uas) - misses) / len(uas)
+    assert rate >= 0.99, f"pass rate {rate:.4%} (misses={misses}/{len(uas)})"
+
+
+def test_fixture_loadkpi_crawlers_pass_rate():
+    uas = _load("loadkpi_crawlers.txt")
+    detected = sum(1 for ua in uas if is_crawler(ua))
+    rate = detected / len(uas)
+    assert rate >= 0.62, f"pass rate {rate:.2%} ({detected}/{len(uas)})"

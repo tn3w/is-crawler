@@ -277,18 +277,6 @@ _DEVICE_KIND: tuple[tuple[tuple[str, ...], str], ...] = (
     (("iPhone", "iPod"), "Mobile"),
 )
 
-_BOT_TOKENS = (
-    "bot",
-    "crawler",
-    "spider",
-    "slurp",
-    "scraper",
-    "preview",
-    "fetcher",
-    "monitor",
-    "archiver",
-)
-
 _CPU_PATTERNS: tuple[tuple[str, str], ...] = (
     ("amd64", "x86_64"),
     ("x86_64", "x86_64"),
@@ -869,10 +857,22 @@ def _extract_languages(ua: str, parens: list[str] | None = None) -> list[str]:
 
 def _detect_crawler(ua: str) -> bool:
     low = ua.lower()
-    for token in _BOT_TOKENS:
-        if token in low:
-            return True
-    return False
+    return (
+        "bot" in low
+        or "+http" in low
+        or "https://" in low
+        or "crawler" in low
+        or "spider" in low
+        or "feed" in low
+        or "monitor" in low
+        or "uptime" in low
+        or "python-" in low
+        or "fetcher" in low
+        or "scraper" in low
+        or "archiver" in low
+        or "slurp" in low
+        or "ptst/" in low
+    )
 
 
 def _parse_ua(ua: str) -> UserAgent:
