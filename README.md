@@ -208,6 +208,10 @@ awk -F'"' '{print $6}' access.log | python -m is_crawler | \
   jq -r '.is_crawler' | sort | uniq -c
 ```
 
+## Snippets
+
+Standalone copy-paste gists in [snippets/](snippets/). No install. Single-file, stdlib only: drop into any project. Includes minimal/full `is_crawler`, `crawler_name`, `crawler_version`, and a compact `parse`.
+
 ## robots.txt / ai.txt
 
 Generate directives from tags. Names are extracted from DB patterns, slash/URL-only entries skipped.
@@ -235,7 +239,7 @@ robots_agents_for_tags("ai-crawler")
 build_robots_txt(rules=[("/api", "scanner"), ("/private", "ai-crawler")])
 ```
 
-`assert_crawler(ua)` — like `crawler_info` but raises `ValueError` for unknown UAs.
+`assert_crawler(ua)`: like `crawler_info` but raises `ValueError` for unknown UAs.
 
 ## CLI
 
@@ -296,7 +300,7 @@ Python 3.14, Linux x86_64. `cua` = [`crawler-user-agents`](https://pypi.org/proj
 | Scenario   | `is_crawler` | `crawler_info` | `cua.is_crawler` | `cua.crawler_info` |
 | ---------- | ------------ | -------------- | ---------------- | ------------------ |
 | Warm cache | 0.046 µs     | 0.116 µs       | 66.234 µs        | 1585.007 µs        |
-| Cold cache | 0.151 µs     | 0.987 µs       | —                | —                  |
+| Cold cache | 0.151 µs     | 0.987 µs       | -                | -                  |
 
 ~1440× faster on the hot path, ~13700× faster for `crawler_info` warm. Full classify of 42,512 Apache log UAs runs in 2.15 ms.
 

@@ -182,17 +182,31 @@ def _agent_directives(
 ) -> dict[str, list[str]]:
     directives: dict[str, list[str]] = {}
 
-    for agent in robots_agents_for_tags(disallow) if disallow else []:
+    disallowed_agents = set(robots_agents_for_tags(disallow)) if disallow else set()
+    for agent in disallowed_agents:
         directives.setdefault(agent, []).append(f"Disallow: {path}")
 
     for agent in robots_agents_for_tags(allow) if allow else []:
-        directives.setdefault(agent, []).append(f"Allow: {path}")
+        if agent not in disallowed_agents:
+            directives.setdefault(agent, []).append(f"Allow: {path}")
 
     for rule_path, rule_tags in rules:
         for agent in robots_agents_for_tags(rule_tags):
             directives.setdefault(agent, []).append(f"Disallow: {rule_path}")
 
     return directives
+
+
+def _group_by_directives(directives: dict[str, list[str]], header: str) -> list[str]:
+    groups: dict[tuple[str, ...], list[str]] = {}
+    for agent, lines in directives.items():
+        groups.setdefault(tuple(lines), []).append(agent)
+
+    blocks = []
+    for lines, agents in groups.items():
+        agent_lines = "\n".join(f"{header}: {agent}" for agent in agents)
+        blocks.append(f"{agent_lines}\n" + "\n".join(lines))
+    return blocks
 
 
 def build_robots_txt(
@@ -204,16 +218,12 @@ def build_robots_txt(
     directives = _agent_directives(disallow, allow, path, rules)
     if not directives:
         return ""
-
-    blocks = [
-        f"User-agent: {agent}\n" + "\n".join(lines) for agent, lines in directives.items()
-    ]
-    return "\n\n".join(blocks) + "\n"
+    return "\n\n".join(_group_by_directives(directives, "User-agent")) + "\n"
 
 
 def build_ai_txt(disallow: str | Iterable[str] = "ai-crawler") -> str:
     agents = robots_agents_for_tags(disallow)
     if not agents:
         return ""
-    blocks = [f"User-Agent: {agent}\nDisallow: /" for agent in agents]
-    return "\n\n".join(blocks) + "\n"
+    agent_lines = "\n".join(f"User-Agent: {agent}" for agent in agents)
+    return f"{agent_lines}\nDisallow: /\n"
