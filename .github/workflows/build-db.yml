@@ -19,7 +19,7 @@ jobs:
       - name: Fetch upstream crawler-user-agents.json
         run: |
           curl -fsSL \
-            https://raw.githubusercontent.com/monperrus/crawler-user-agents/refs/heads/master/crawler-user-agents.json \
+            https://raw.githubusercontent.com/tn3w/Crawlerdex/refs/heads/master/crawlers.json \
             -o crawler-user-agents.json
 
       - name: Build crawler DB files

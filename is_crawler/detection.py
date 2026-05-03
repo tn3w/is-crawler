@@ -126,9 +126,7 @@ def crawler_contact(user_agent: str) -> str | None:
     return None
 
 
-def _bot_signal(ua: str) -> bool:
-    low = ua.lower()
-
+def _bot_signal(ua: str, low: str) -> bool:
     if any(k in low for k in _BOT_KEYWORDS):
         return True
     if _find_word(low, "bot") or _find_word(low, "scan"):
@@ -185,9 +183,7 @@ def _semicolon_agent(low: str) -> bool:
     return False
 
 
-def _known_tool(ua: str) -> bool:
-    low = ua.lower()
-
+def _known_tool(ua: str, low: str) -> bool:
     if any(t in low for t in _TOOLS):
         return True
     if _find_word(low, "wget") or _find_word(low, "nmap"):
@@ -261,7 +257,9 @@ def is_crawler(user_agent: str) -> bool:
     )
 
     if suspicious and (
-        _bot_signal(user_agent) or _known_tool(user_agent) or crawler_url(user_agent)
+        _bot_signal(user_agent, low)
+        or _known_tool(user_agent, low)
+        or crawler_url(user_agent)
     ):
         return True
     if (
@@ -275,11 +273,12 @@ def is_crawler(user_agent: str) -> bool:
 
 @lru_cache(maxsize=_CACHE)
 def crawler_signals(user_agent: str) -> list[str]:
+    low = user_agent.lower()
     checks = [
-        ("bot_signal", _bot_signal(user_agent)),
+        ("bot_signal", _bot_signal(user_agent, low)),
         ("no_browser_signature", not _browser(user_agent)),
         ("bare_compatible", _bare_compat(user_agent)),
-        ("known_tool", _known_tool(user_agent)),
+        ("known_tool", _known_tool(user_agent, low)),
         ("url_in_ua", crawler_url(user_agent) is not None),
     ]
     return [name for name, ok in checks if ok]

@@ -16,10 +16,8 @@ import json
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).parent.parent
-TOOLS_DIR = Path(__file__).parent
 
 DEFAULT_INPUT = REPO_ROOT / "crawler-user-agents.json"
-DEFAULT_EXTRA = TOOLS_DIR / "extra-crawler-user-agents.json"
 DEFAULT_OUTPUT = REPO_ROOT / "is_crawler" / "crawler-user-agents.json"
 
 
@@ -28,18 +26,13 @@ def parse_args() -> argparse.Namespace:
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
     p.add_argument("--input", default=DEFAULT_INPUT, type=Path, metavar="FILE")
-    p.add_argument("--extra", default=DEFAULT_EXTRA, type=Path, metavar="FILE")
     p.add_argument("--output", default=DEFAULT_OUTPUT, type=Path, metavar="FILE")
     return p.parse_args()
 
 
-def build_db(input_path: Path, extra_path: Path, output_path: Path) -> None:
+def build_db(input_path: Path, output_path: Path) -> None:
     with input_path.open(encoding="utf-8") as f:
         data = json.load(f)
-
-    if extra_path.exists():
-        with extra_path.open(encoding="utf-8") as f:
-            data = data + json.load(f)
 
     rows = [
         [
@@ -61,4 +54,4 @@ def build_db(input_path: Path, extra_path: Path, output_path: Path) -> None:
 
 if __name__ == "__main__":
     args = parse_args()
-    build_db(args.input, args.extra, args.output)
+    build_db(args.input, args.output)

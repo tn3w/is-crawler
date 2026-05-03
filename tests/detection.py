@@ -117,11 +117,14 @@ def test_crawler_contact_none():
     ],
 )
 def test_bot_signal_true(ua):
-    assert _bot_signal(ua)
+    assert _bot_signal(ua, ua.lower())
 
 
 def test_bot_signal_false():
-    assert not _bot_signal("Mozilla/5.0 (Windows NT 10.0) Chrome/120")
+    assert not _bot_signal(
+        "Mozilla/5.0 (Windows NT 10.0) Chrome/120",
+        "mozilla/5.0 (windows nt 10.0) chrome/120",
+    )
 
 
 # --- _known_tool ---
@@ -149,11 +152,13 @@ def test_bot_signal_false():
     ],
 )
 def test_known_tool_true(ua):
-    assert _known_tool(ua)
+    assert _known_tool(ua, ua.lower())
 
 
 def test_known_tool_false():
-    assert not _known_tool("Mozilla/5.0 Chrome/120 Safari/537.36")
+    assert not _known_tool(
+        "Mozilla/5.0 Chrome/120 Safari/537.36", "mozilla/5.0 chrome/120 safari/537.36"
+    )
 
 
 def test_has_by_domain_at_start():
@@ -852,34 +857,37 @@ def test_crawler_url_space_dash_prefix():
 
 
 def test_bot_signal_https_prefix():
-    assert _bot_signal("checker (+https://example.com)")
+    assert _bot_signal("checker (+https://example.com)", "checker (+https://example.com)")
 
 
 def test_bot_signal_at_sign_invalid():
-    assert not _bot_signal("agent @nodomain")
+    assert not _bot_signal("agent @nodomain", "agent @nodomain")
 
 
 # --- _known_tool additional ---
 
 
 def test_known_tool_wget_word_boundary():
-    assert _known_tool("Wget/1.21")
+    assert _known_tool("Wget/1.21", "wget/1.21")
 
 
 def test_known_tool_nmap_word_boundary():
-    assert _known_tool("Nmap Scripting Engine")
+    assert _known_tool("Nmap Scripting Engine", "nmap scripting engine")
 
 
 def test_known_tool_google_extended():
-    assert _known_tool("Google-Extended")
+    assert _known_tool("Google-Extended", "google-extended")
 
 
 def test_known_tool_leading_domain():
-    assert _known_tool("example.com/crawler")
+    assert _known_tool("example.com/crawler", "example.com/crawler")
 
 
 def test_known_tool_semicolon_agent():
-    assert _known_tool("Mozilla/5.0 (Windows NT 10.0; test-agent) Gecko/20100101")
+    assert _known_tool(
+        "Mozilla/5.0 (Windows NT 10.0; test-agent) Gecko/20100101",
+        "mozilla/5.0 (windows nt 10.0; test-agent) gecko/20100101",
+    )
 
 
 # --- _has_by_domain ---
