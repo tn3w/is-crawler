@@ -73,9 +73,12 @@ def _all_domain_suffixes() -> tuple[str, ...]:
 
 def _normalized_ip(ip: str) -> str | None:
     try:
-        return str(ipaddress.ip_address(ip.strip()))
+        addr = ipaddress.ip_address(ip.strip())
     except ValueError:
         return None
+    if isinstance(addr, ipaddress.IPv6Address) and addr.ipv4_mapped is not None:
+        return str(addr.ipv4_mapped)
+    return str(addr)
 
 
 @lru_cache(maxsize=_CACHE)

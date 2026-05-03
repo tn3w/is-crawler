@@ -194,6 +194,15 @@ def test_reverse_dns_strips_ip_whitespace():
         assert reverse_dns(" 1.2.3.4 \n") == "host.googlebot.com"
 
 
+def test_reverse_dns_normalizes_ipv4_mapped_ipv6():
+    with patch(
+        "socket.gethostbyaddr", return_value=("host.googlebot.com", [], [])
+    ) as lookup:
+        reverse_dns.cache_clear()
+        assert reverse_dns("::ffff:66.249.66.1") == "host.googlebot.com"
+    lookup.assert_called_once_with("66.249.66.1")
+
+
 # --- _forward_ips ---
 
 
@@ -317,13 +326,16 @@ def test_all_domain_suffixes_cached():
 
 def _with_networks(cidrs: list[str]):
     import ipaddress
+    from typing import cast
 
     import is_crawler.ip as ip_mod
 
     original = ip_mod._build_index
     nets = [ipaddress.ip_network(c, strict=False) for c in cidrs]
-    v4 = sorted(ipaddress.collapse_addresses([n for n in nets if n.version == 4]))
-    v6 = sorted(ipaddress.collapse_addresses([n for n in nets if n.version == 6]))
+    v4_nets = [n for n in nets if n.version == 4]
+    v6_nets = [n for n in nets if n.version == 6]
+    v4 = sorted(ipaddress.collapse_addresses(cast(list[ipaddress.IPv4Network], v4_nets)))
+    v6 = sorted(ipaddress.collapse_addresses(cast(list[ipaddress.IPv6Network], v6_nets)))
     index = (
         [int(n.network_address) for n in v4],
         [int(n.broadcast_address) for n in v4],
@@ -362,6 +374,14 @@ def test_ip_in_range_ipv6_hit():
     orig = _with_networks(["2001:4860:4801::/48"])
     try:
         assert ip_in_range("2001:4860:4801::1") is True
+    finally:
+        _restore_networks(orig)
+
+
+def test_ip_in_range_ipv4_mapped_ipv6_hit():
+    orig = _with_networks(["66.249.64.0/19"])
+    try:
+        assert ip_in_range("::ffff:66.249.66.1") is True
     finally:
         _restore_networks(orig)
 
@@ -587,6 +607,25 @@ def test_verify_crawler_ip_accepts_ip_whitespace():
         ),
     ):
         assert verify_crawler_ip(_GOOGLEBOT_UA, " 66.249.66.1 ") is True
+
+
+def test_verify_crawler_ip_accepts_ipv4_mapped_ipv6():
+    reverse_dns.cache_clear()
+    _forward_ips.cache_clear()
+    with (
+        patch(
+            "socket.gethostbyaddr",
+            return_value=("crawl-66-249-66-1.googlebot.com", [], ["66.249.66.1"]),
+        ) as reverse_lookup,
+        patch(
+            "socket.getaddrinfo",
+            return_value=[
+                (socket.AF_INET, socket.SOCK_STREAM, 0, "", ("66.249.66.1", 0)),
+            ],
+        ),
+    ):
+        assert verify_crawler_ip(_GOOGLEBOT_UA, "::ffff:66.249.66.1") is True
+    reverse_lookup.assert_called_once_with("66.249.66.1")
 
 
 def test_verify_crawler_ip_duckduckbot():
