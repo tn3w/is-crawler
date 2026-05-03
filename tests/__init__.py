@@ -68,19 +68,24 @@ def test_all_exports():
     }
 
 
-@pytest.mark.parametrize(
-    "module",
-    ["__init__.py", "__main__.py", "contrib.py", "ip.py", "parser.py", "detection.py"],
-)
-def test_module_does_not_import_regex(module):
+def test_regex_usage_restricted_to_database():
     import ast
 
-    source = (Path(__file__).parent.parent / "is_crawler" / module).read_text()
+    package_dir = Path(__file__).parent.parent / "is_crawler"
     blocked = {"re", "regex"}
 
-    for node in ast.walk(ast.parse(source)):
-        if isinstance(node, ast.Import):
-            for alias in node.names:
-                assert alias.name.split(".")[0] not in blocked, alias.name
-        elif isinstance(node, ast.ImportFrom):
-            assert (node.module or "").split(".")[0] not in blocked, node.module
+    for path in package_dir.glob("*.py"):
+        module = path.name
+        source = path.read_text()
+        tree = ast.parse(source)
+
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    root = alias.name.split(".")[0]
+                    if module != "database.py":
+                        assert root not in blocked, f"{module} imports {root}"
+            elif isinstance(node, ast.ImportFrom):
+                root = (node.module or "").split(".")[0]
+                if module != "database.py":
+                    assert root not in blocked, f"{module} imports {root}"
