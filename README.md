@@ -96,7 +96,7 @@ crawler_contact(ua)    # None
 
 ## Classification
 
-`crawler_info` matches against 1200 curated patterns from [monperrus/crawler-user-agents](https://github.com/monperrus/crawler-user-agents) plus extras. Patterns compile lazily in 48-entry chunks.
+`crawler_info` matches against 1200 curated patterns from [tn3w/Crawlerdex](https://github.com/tn3w/Crawlerdex) plus extras. Patterns compile lazily in 48-entry chunks.
 
 ```python
 info = crawler_info(ua)
@@ -337,7 +337,7 @@ Every public function has a 32k-entry LRU cache. First-call rDNS latency is netw
 Data files are built by scripts in `tools/`:
 
 ```bash
-python3 tools/build_user_agents.py   # crawler-user-agents.json from monperrus/crawler-user-agents
+python3 tools/build_user_agents.py   # crawler-user-agents.json from tn3w/Crawlerdex
 python3 tools/build_ip_ranges.py     # crawler-ip-ranges.json from 39 official sources
 ```
 
