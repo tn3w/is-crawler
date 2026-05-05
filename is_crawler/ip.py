@@ -125,10 +125,13 @@ def forward_confirmed_rdns(ip: str, suffixes: tuple[str, ...]) -> str | None:
 
 @lru_cache(maxsize=1)
 def _build_index() -> tuple[list[int], list[int], list[int], list[int]]:
-    v4: list = []
-    v6: list = []
+    v4: list[ipaddress.IPv4Network] = []
+    v6: list[ipaddress.IPv6Network] = []
     for net in _parse_networks():
-        (v4 if net.version == 4 else v6).append(net)
+        if isinstance(net, ipaddress.IPv4Network):
+            v4.append(net)
+        else:
+            v6.append(net)
 
     collapsed4 = sorted(ipaddress.collapse_addresses(v4)) if v4 else []
     collapsed6 = sorted(ipaddress.collapse_addresses(v6)) if v6 else []

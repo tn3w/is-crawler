@@ -203,7 +203,7 @@ def test_semicolon_agent_no_match():
     ],
 )
 def test_browser_true(ua):
-    assert _browser(ua)
+    assert _browser(ua.lower())
 
 
 def test_browser_false():
@@ -221,7 +221,7 @@ def test_browser_false():
     ],
 )
 def test_bare_compat_true(ua):
-    assert _bare_compat(ua)
+    assert _bare_compat(ua.lower())
 
 
 @pytest.mark.parametrize(
@@ -234,7 +234,7 @@ def test_bare_compat_true(ua):
     ],
 )
 def test_bare_compat_false(ua):
-    assert not _bare_compat(ua)
+    assert not _bare_compat(ua.lower())
 
 
 # --- is_crawler ---

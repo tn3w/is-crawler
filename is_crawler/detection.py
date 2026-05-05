@@ -26,18 +26,6 @@ _TOOLS = (
 )
 _GOOGLE_SUFFIXES = ("favicon", "ads", "safety", "extended")
 _DOMAIN_TLDS = frozenset(("com", "net", "org", "io", "ai"))
-_BROWSER_LITERALS = (
-    "mozilla/",
-    "webkit",
-    "gecko",
-    "trident",
-    "presto",
-    "khtml",
-    "links ",
-    "lynx/",
-)
-_OS_TOKENS = ("windows", "macintosh", "x11", "linux")
-_COMPAT_REJECT = ("windows", "mac", "linux", "msie", "konqueror")
 _BROWSER_TOKENS = frozenset(
     {
         "Mozilla",
@@ -199,25 +187,37 @@ def _known_tool(ua: str, low: str) -> bool:
     return "-agent" in low and _semicolon_agent(low)
 
 
-def _browser(ua: str) -> bool:
-    low = ua.lower()
-
-    if any(b in low for b in _BROWSER_LITERALS):
+def _browser(low: str) -> bool:
+    if (
+        "mozilla/" in low
+        or "webkit" in low
+        or "gecko" in low
+        or "trident" in low
+        or "presto" in low
+        or "khtml" in low
+        or "links " in low
+        or "lynx/" in low
+    ):
         return True
     if _find_word(low, "opera"):
         return True
+    return "(windows" in low or "(macintosh" in low or "(x11" in low or "(linux" in low
 
-    return any(f"({t}" in low for t in _OS_TOKENS)
 
-
-def _bare_compat(ua: str) -> bool:
-    low = ua.lower()
+def _bare_compat(low: str) -> bool:
     i = 0
     while (i := low.find("(compatible;", i)) != -1:
         close = low.find(")", i)
         if close == -1:
             return False
-        if not any(r in low[i : close + 1] for r in _COMPAT_REJECT):
+        chunk = low[i : close + 1]
+        if not (
+            "windows" in chunk
+            or "mac" in chunk
+            or "linux" in chunk
+            or "msie" in chunk
+            or "konqueror" in chunk
+        ):
             return True
         i = close
     return False
@@ -227,33 +227,34 @@ def _bare_compat(ua: str) -> bool:
 def is_crawler(user_agent: str) -> bool:
     low = user_agent.lower()
 
+    # Chained `or` → CONTAINS_OP bytecode; `any(k in low for k in T)` ~3x slower.
     suspicious = (
-        "bot" in low
+        "http://" in user_agent
+        or "bot" in low
+        or "https://" in user_agent
         or "crawl" in low
-        or "spider" in low
-        or "scan" in low
-        or "fetch" in low
-        or "wget" in low
-        or "scrape" in low
-        or "preview" in low
-        or "slurp" in low
-        or "archiv" in low
-        or "headless" in low
-        or "index" in low
-        or "lighthouse" in low
-        or "playwright" in low
-        or "selenium" in low
-        or "nikto" in low
-        or "sqlmap" in low
-        or "pingdom" in low
-        or "httrack" in low
-        or "nmap" in low
+        or "@" in user_agent
         or "google" in low
+        or "spider" in low
+        or "index" in low
+        or "fetch" in low
+        or "scan" in low
+        or "archiv" in low
+        or "preview" in low
         or "by " in low
         or "-agent" in low
-        or "@" in user_agent
-        or "http://" in user_agent
-        or "https://" in user_agent
+        or "scrape" in low
+        or "pingdom" in low
+        or "headless" in low
+        or "lighthouse" in low
+        or "slurp" in low
+        or "wget" in low
+        or "nmap" in low
+        or "nikto" in low
+        or "sqlmap" in low
+        or "httrack" in low
+        or "playwright" in low
+        or "selenium" in low
     )
 
     if suspicious and (
@@ -268,7 +269,7 @@ def is_crawler(user_agent: str) -> bool:
         and _leading_domain(user_agent)
     ):
         return True
-    return not _browser(user_agent) or _bare_compat(user_agent)
+    return not _browser(low) or _bare_compat(low)
 
 
 @lru_cache(maxsize=_CACHE)
@@ -276,8 +277,8 @@ def crawler_signals(user_agent: str) -> list[str]:
     low = user_agent.lower()
     checks = [
         ("bot_signal", _bot_signal(user_agent, low)),
-        ("no_browser_signature", not _browser(user_agent)),
-        ("bare_compatible", _bare_compat(user_agent)),
+        ("no_browser_signature", not _browser(low)),
+        ("bare_compatible", _bare_compat(low)),
         ("known_tool", _known_tool(user_agent, low)),
         ("url_in_ua", crawler_url(user_agent) is not None),
     ]

@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from dataclasses import dataclass, field
-from functools import lru_cache
+from dataclasses import dataclass
+from functools import cached_property, lru_cache
 import json
 from pathlib import Path
 import re
 from typing import NamedTuple
+
+from is_crawler.detection import is_crawler
 
 _CACHE = 32768
 _CHUNK = 48
@@ -21,22 +23,19 @@ class CrawlerInfo(NamedTuple):
 @dataclass
 class _Chunk:
     rows: list
-    _combined: re.Pattern | None = field(default=None, init=False, repr=False)
-    _entries: list | None = field(default=None, init=False, repr=False)
+
+    @cached_property
+    def combined(self) -> re.Pattern:
+        return re.compile("|".join(f"(?:{p})" for p, *_ in self.rows))
+
+    @cached_property
+    def entries(self) -> list[tuple[re.Pattern, CrawlerInfo]]:
+        return [(re.compile(p), CrawlerInfo(u, d, tuple(t))) for p, u, d, t in self.rows]
 
     def match(self, user_agent: str) -> CrawlerInfo | None:
-        if self._combined is None:
-            self._combined = re.compile("|".join(f"(?:{p})" for p, *_ in self.rows))
-
-        if not self._combined.search(user_agent):
+        if not self.combined.search(user_agent):
             return None
-
-        if self._entries is None:
-            self._entries = [
-                (re.compile(p), CrawlerInfo(u, d, tuple(t))) for p, u, d, t in self.rows
-            ]
-
-        for pattern, info in self._entries:
+        for pattern, info in self.entries:
             if pattern.search(user_agent):
                 return info
         return None  # pragma: no cover
@@ -52,8 +51,6 @@ def _load_chunks() -> list[_Chunk]:
 
 @lru_cache(maxsize=_CACHE)
 def crawler_info(user_agent: str) -> CrawlerInfo | None:
-    from is_crawler import is_crawler
-
     if not is_crawler(user_agent):
         return None
 

@@ -2,7 +2,7 @@
 
 # is-crawler
 
-Crawler detection from User-Agent strings in 50 ns. Zero deps, no regex, ReDoS-safe.
+Crawler detection from User-Agent strings in 40 ns. Zero deps, no regex, ReDoS-safe.
 
 [![PyPI](https://img.shields.io/pypi/v/is-crawler?style=flat-square)](https://pypi.org/project/is-crawler/)
 [![Python](https://img.shields.io/pypi/pyversions/is-crawler?style=flat-square)](https://pypi.org/project/is-crawler/)
@@ -52,7 +52,7 @@ cua         ██████████████████████�
 | FCrDNS verify     | yes        | no                  | no        |
 | IP range lookup   | yes        | no                  | no        |
 | WSGI/ASGI MW      | yes        | no                  | no        |
-| Warm `is_crawler` | 0.04 µs    | 64 µs               | n/a       |
+| Warm `is_crawler` | 0.04 µs    | 66 µs               | n/a       |
 
 ## In the wild
 
@@ -299,34 +299,34 @@ Python 3.14, Linux x86_64. `cua` = [`crawler-user-agents`](https://pypi.org/proj
 
 | Scenario   | `is_crawler` | `crawler_info` | `cua.is_crawler` | `cua.crawler_info` |
 | ---------- | ------------ | -------------- | ---------------- | ------------------ |
-| Warm cache | 0.046 µs     | 0.116 µs       | 66.234 µs        | 1585.007 µs        |
-| Cold cache | 0.151 µs     | 0.987 µs       | -                | -                  |
+| Warm cache | 0.037 µs     | 0.116 µs       | 66.234 µs        | 1585.007 µs        |
+| Cold cache | 0.112 µs     | 1.008 µs       | -                | -                  |
 
-~1440× faster on the hot path, ~13700× faster for `crawler_info` warm. Full classify of 42,512 Apache log UAs runs in 2.15 ms.
+~1790× faster on the hot path, ~13660× faster for `crawler_info` warm. Full classify of 42,512 Apache log UAs runs in 1.80 ms.
 
 **Fixture UAs** 2,149 crawlers + 19,910 browsers:
 
 | Scenario   | `is_crawler` (mixed) | `crawler_info` | `cua.is_crawler` (mixed) | `cua.crawler_info` |
 | ---------- | -------------------- | -------------- | ------------------------ | ------------------ |
-| Warm cache | 0.04 µs              | 1.33 µs        | 80.95 µs                 | 563.53 µs          |
-| Cold cache | 2.07 µs              | 4.85 µs        | 82.00 µs                 | 581.76 µs          |
+| Warm cache | 0.05 µs              | 1.24 µs        | 80.95 µs                 | 563.53 µs          |
+| Cold cache | 1.43 µs              | 4.57 µs        | 82.00 µs                 | 581.76 µs          |
 
-**UA parser** 19,910 real browser UAs vs [`ua-parser`](https://pypi.org/project/ua-parser/) (~20× faster):
+**UA parser** 19,910 real browser UAs vs [`ua-parser`](https://pypi.org/project/ua-parser/) (~24× faster):
 
 | Scenario   | `parser.parse` | `ua-parser` |
 | ---------- | -------------- | ----------- |
-| Warm cache | 17.49 µs       | 443.20 µs   |
-| Cold cache | 17.53 µs       | 443.05 µs   |
+| Warm cache | 18.48 µs       | 443.20 µs   |
+| Cold cache | 18.17 µs       | 443.05 µs   |
 
 **IP verification** warm cache:
 
 | Function                 | Time    |
 | ------------------------ | ------- |
 | `ip_in_range`            | 0.06 µs |
-| `reverse_dns`            | 0.48 µs |
-| `verify_crawler_ip`      | 3.23 µs |
-| `forward_confirmed_rdns` | 3.69 µs |
-| `known_crawler_rdns`     | 4.27 µs |
+| `reverse_dns`            | 0.36 µs |
+| `known_crawler_rdns`     | 2.14 µs |
+| `verify_crawler_ip`      | 2.96 µs |
+| `forward_confirmed_rdns` | 3.15 µs |
 
 Every public function has a 32k-entry LRU cache. First-call rDNS latency is network-bound.
 

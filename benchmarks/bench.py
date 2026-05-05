@@ -179,23 +179,28 @@ def bench_cold_cache(with_cua: bool = False):
 
 
 def bench_internals():
-    rows: list[tuple[str, Callable]] = [
-        ("_bot_signal (crawlers) ", _bot_signal),
-        ("_bot_signal (browsers) ", _bot_signal),
-        ("_known_tool (mixed)    ", _known_tool),
-        ("_browser    (mixed)    ", _browser),
-        ("_bare_compat (mixed)   ", _bare_compat),
+    rows: list[tuple[str, Callable, str]] = [
+        ("_bot_signal (crawlers) ", _bot_signal, "ua_low"),
+        ("_bot_signal (browsers) ", _bot_signal, "ua_low"),
+        ("_known_tool (mixed)    ", _known_tool, "ua_low"),
+        ("_browser    (mixed)    ", _browser, "low"),
+        ("_bare_compat (mixed)   ", _bare_compat, "low"),
     ]
     datasets = [CRAWLERS, BROWSERS, ALL_UAS, ALL_UAS, ALL_UAS]
 
     print("\n── Internal helpers (no cache) ──")
-    for (name, fn), args in zip(rows, datasets):
+    for (name, fn, kind), args in zip(rows, datasets):
+        prepared = [(ua, ua.lower()) for ua in args]
         times = []
         for _ in range(5):
             t0 = time.perf_counter()
-            for ua in args:
-                fn(ua)
-            times.append((time.perf_counter() - t0) / len(args))
+            if kind == "ua_low":
+                for ua, low in prepared:
+                    fn(ua, low)
+            else:
+                for _ua, low in prepared:
+                    fn(low)
+            times.append((time.perf_counter() - t0) / len(prepared))
         m, sd = mean(times), stdev(times)
         print(f"  {name}: {_fmt(m, sd)}")
 

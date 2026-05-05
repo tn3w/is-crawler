@@ -950,6 +950,12 @@ def parse_or_none(value: object) -> UserAgent | None:
 
 @lru_cache(maxsize=4096)
 def is_crawler(ua: str) -> bool:
+    """Fast keyword-only crawler check used during UA parsing.
+
+    Intentionally separate from `is_crawler.detection.is_crawler`: this variant
+    trades accuracy for speed (no signal scoring, no URL/email parsing). Use
+    the top-level `is_crawler` for authoritative detection.
+    """
     return _detect_crawler(ua)
 
 

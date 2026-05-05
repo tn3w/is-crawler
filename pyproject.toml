@@ -1,6 +1,6 @@
 [project]
 name = "is-crawler"
-version = "1.5.16"
+version = "1.5.17"
 description = "Crawler detection from User-Agent strings in 50 ns. Zero deps, no regex, ReDoS-safe."
 readme = "README.md"
 authors = [
