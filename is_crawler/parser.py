@@ -107,11 +107,14 @@ _BROWSERS: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("Konqueror", ("Konqueror/",)),
     ("Lynx", ("Lynx/",)),
     ("w3m", ("w3m/",)),
-    ("Links", ("Links (", "Links/")),
     ("ELinks", ("ELinks/",)),
+    ("Links", ("Links (", "Links/")),
 )
 
 _LIB_BROWSERS: tuple[tuple[str, str], ...] = (
+    ("Guzzle", "GuzzleHttp/"),
+    ("PostmanRuntime", "PostmanRuntime/"),
+    ("Apache-HttpClient", "Apache-HttpClient/"),
     ("curl", "curl/"),
     ("Wget", "Wget/"),
     ("HTTPie", "HTTPie/"),
@@ -122,7 +125,6 @@ _LIB_BROWSERS: tuple[tuple[str, str], ...] = (
     ("Go-http-client", "Go-http-client/"),
     ("Java", "Java/"),
     ("OkHttp", "okhttp/"),
-    ("Apache-HttpClient", "Apache-HttpClient/"),
     ("node-fetch", "node-fetch/"),
     ("axios", "axios/"),
     ("got", "got/"),
@@ -131,8 +133,6 @@ _LIB_BROWSERS: tuple[tuple[str, str], ...] = (
     ("Ruby", "Ruby/"),
     ("Faraday", "Faraday "),
     ("PHP", "PHP/"),
-    ("Guzzle", "GuzzleHttp/"),
-    ("PostmanRuntime", "PostmanRuntime/"),
     ("Insomnia", "insomnia/"),
 )
 
@@ -562,7 +562,7 @@ def _detect_browser(ua: str) -> tuple[str | None, str | None]:
     if "Chrome/" in ua and ("Android" in ua or "iPad" in ua) and "Mobile Safari/" in ua:
         if "; wv)" in ua and "Version/" in ua:
             return "Chrome WebView", _token_version(ua, "Chrome/")
-        if not _has_any(ua, ("Edg", "OPR/", "SamsungBrowser/", "YaBrowser/")):
+        if not _has_any(ua, _CHROME_DISAMBIG):
             return "Mobile Chrome", _token_version(ua, "Chrome/")
 
     if "Chrome/" in ua and not _has_any(ua, _CHROME_DISAMBIG):

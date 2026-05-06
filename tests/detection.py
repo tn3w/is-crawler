@@ -1023,3 +1023,249 @@ def test_fixture_loadkpi_crawlers_pass_rate():
     detected = sum(1 for ua in uas if is_crawler(ua))
     rate = detected / len(uas)
     assert rate >= 0.91, f"pass rate {rate:.2%} ({detected}/{len(uas)})"
+
+
+def test_fixture_browser_extended_not_detected():
+    uas = _load("browser_user_agents_extended.txt")
+    misses = sum(1 for ua in uas if is_crawler(ua))
+    rate = (len(uas) - misses) / len(uas)
+    assert rate >= 0.999, f"pass rate {rate:.4%} (misses={misses}/{len(uas)})"
+
+
+def test_fixture_pgts_crawlers_pass_rate():
+    uas = _load("crawler_user_agents_pgts.txt")
+    detected = sum(1 for ua in uas if is_crawler(ua))
+    rate = detected / len(uas)
+    assert rate >= 0.94, f"pass rate {rate:.2%} ({detected}/{len(uas)})"
+
+
+# --- is_crawler: real-world crawlers ---
+
+
+@pytest.mark.parametrize(
+    "ua",
+    [
+        # AI / LLM crawlers
+        "Mozilla/5.0 (compatible; GPTBot/1.0; +https://openai.com/gptbot)",
+        "Mozilla/5.0 (compatible; Claude-Web/1.0; +https://anthropic.com/claude-web)",
+        "Mozilla/5.0 (compatible; PerplexityBot/1.0; +https://perplexity.ai/perplexitybot)",
+        "Mozilla/5.0 (compatible; Amazonbot/0.1; +https://developer.amazon.com/support/amazonbot)",
+        "Mozilla/5.0 (compatible; meta-externalagent/1.1; +https://developers.facebook.com/docs/sharing/webmasters/crawler)",
+        "Mozilla/5.0 (compatible; Bytespider; spider-feedback@bytedance.com)",
+        "Mozilla/5.0 (compatible; CCBot/2.0; https://commoncrawl.org/faq/)",
+        # SEO / analytics tools
+        "Mozilla/5.0 (compatible; MJ12bot/v1.4.8; http://mj12bot.com/)",
+        "Mozilla/5.0 (compatible; DotBot/1.2; +https://moz.com/help/pro/what-is-the-moz-crawler)",
+        "Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)",
+        "Mozilla/5.0 (compatible; Applebot/0.1; +http://www.apple.com/go/applebot)",
+        "Mozilla/5.0 (compatible; SeznamBot/3.2; +http://fulltext.sblog.cz/)",
+        "Mozilla/5.0 (compatible; BaiduSpider/2.0)",
+        "Mozilla/5.0 (compatible; Exabot/3.0; +http://www.exabot.com/go/robot)",
+        # Security scanners
+        "masscan/1.0 tbot/1.0",
+        "ZmEu",
+        "Mozilla/5.0 (compatible; Nuclei/2.0; +https://nuclei.projectdiscovery.io/)",
+        # Feed readers / RSS
+        "Feedbin feed-id:1234 - 5 subscribers",
+        "Feedly/1.0 (+http://www.feedly.com/fetcher.html; 20 subscribers)",
+        "Mozilla/5.0 (compatible; Superfeedr/2.0 http://superfeedr.com)",
+        # Monitoring / uptime
+        "Mozilla/5.0 (compatible; UptimeRobot/2.0; http://www.uptimerobot.com/)",
+        "StatusCake TEST",
+        "Site24x7",
+        # Archiving
+        "ia_archiver (+http://www.alexa.com/site/help/webmasters; crawler@alexa.com)",
+        "ia_archiver-web.archive.org",
+        "Scrapy/2.11.0 (+https://scrapy.org)",
+        # Generic bot patterns
+        "Mozilla/5.0 (compatible; YandexImages/3.0; +http://yandex.com/bots)",
+        "Mozilla/5.0 (compatible; Mail.RU_Bot/2.0; +http://go.mail.ru/help/robots)",
+        "Twitterbot/1.0",
+        "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
+        "LinkedInBot/1.0 (compatible; Mozilla/5.0; Apache-HttpClient)",
+        "WhatsApp/2.21.1 A",
+        "TelegramBot (like TwitterBot)",
+        "Discordbot/2.0 (+https://discordapp.com)",
+        "Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)",
+    ],
+)
+def test_is_crawler_real_world_true(ua):
+    assert is_crawler(ua) is True
+
+
+@pytest.mark.parametrize(
+    "ua",
+    [
+        # Full modern browser UAs that must never be flagged
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_4) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15",
+        "Mozilla/5.0 (X11; Linux x86_64; rv:125.0) Gecko/20100101 Firefox/125.0",
+        "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36",
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1",
+        # App browsers
+        "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/23.0 Chrome/115.0 Mobile Safari/537.36",
+        "Mozilla/5.0 (Linux; Android 13; SAMSUNG SM-G998B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/21.0 Chrome/110.0.5481.154 Mobile Safari/537.36",
+    ],
+)
+def test_is_crawler_real_world_false(ua):
+    assert is_crawler(ua) is False
+
+
+# --- crawler_name: real-world crawlers ---
+
+
+@pytest.mark.parametrize(
+    ("ua", "expected"),
+    [
+        (
+            "Mozilla/5.0 (compatible; GPTBot/1.0; +https://openai.com/gptbot)",
+            "GPTBot",
+        ),
+        (
+            "Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)",
+            "YandexBot",
+        ),
+        (
+            "Mozilla/5.0 (compatible; MJ12bot/v1.4.8; http://mj12bot.com/)",
+            "MJ12bot",
+        ),
+        (
+            "Mozilla/5.0 (compatible; DotBot/1.2; +https://moz.com/help/pro/what-is-the-moz-crawler)",
+            "DotBot",
+        ),
+        (
+            "Mozilla/5.0 (compatible; Applebot/0.1; +http://www.apple.com/go/applebot)",
+            "Applebot",
+        ),
+        (
+            "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
+            "facebookexternalhit",
+        ),
+        ("Twitterbot/1.0", "Twitterbot"),
+        ("Googlebot-Image/1.0", "Googlebot-Image"),
+        ("Googlebot-News", "Googlebot-News"),
+        ("Googlebot-Video/1.0", "Googlebot-Video"),
+        (
+            "Feedbin feed-id:1234 - 5 subscribers",
+            "Feedbin",
+        ),
+        (
+            "Scrapy/2.11.0 (+https://scrapy.org)",
+            "Scrapy",
+        ),
+        (
+            "Mozilla/5.0 (compatible; Bytespider; spider-feedback@bytedance.com)",
+            "Bytespider",
+        ),
+    ],
+)
+def test_crawler_name_real_world(ua, expected):
+    assert crawler_name(ua) == expected
+
+
+# --- crawler_version: real-world crawlers ---
+
+
+@pytest.mark.parametrize(
+    ("ua", "expected"),
+    [
+        ("Mozilla/5.0 (compatible; GPTBot/1.0; +https://openai.com/gptbot)", "1.0"),
+        ("Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)", "3.0"),
+        (
+            "Mozilla/5.0 (compatible; Applebot/0.1; +http://www.apple.com/go/applebot)",
+            "0.1",
+        ),
+        ("Twitterbot/1.0", "1.0"),
+        ("Scrapy/2.11.0 (+https://scrapy.org)", "2.11.0"),
+        (
+            "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
+            "1.1",
+        ),
+        ("Googlebot-Image/1.0", "1.0"),
+        ("Googlebot-Video/1.0", "1.0"),
+    ],
+)
+def test_crawler_version_real_world(ua, expected):
+    assert crawler_version(ua) == expected
+
+
+# --- crawler_url: real-world crawlers ---
+
+
+@pytest.mark.parametrize(
+    ("ua", "expected"),
+    [
+        (
+            "Mozilla/5.0 (compatible; GPTBot/1.0; +https://openai.com/gptbot)",
+            "https://openai.com/gptbot",
+        ),
+        (
+            "Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)",
+            "http://yandex.com/bots",
+        ),
+        (
+            "Scrapy/2.11.0 (+https://scrapy.org)",
+            "https://scrapy.org",
+        ),
+        (
+            "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
+            "http://www.facebook.com/externalhit_uatext.php",
+        ),
+        (
+            "Mozilla/5.0 (compatible; Applebot/0.1; +http://www.apple.com/go/applebot)",
+            "http://www.apple.com/go/applebot",
+        ),
+    ],
+)
+def test_crawler_url_real_world(ua, expected):
+    assert crawler_url(ua) == expected
+
+
+# --- crawler_contact: real-world crawlers ---
+
+
+@pytest.mark.parametrize(
+    ("ua", "expected"),
+    [
+        (
+            "Mozilla/5.0 (compatible; Bytespider; spider-feedback@bytedance.com)",
+            "spider-feedback@bytedance.com",
+        ),
+        (
+            "ia_archiver (+http://www.alexa.com/site/help/webmasters; crawler@alexa.com)",
+            "crawler@alexa.com",
+        ),
+        (
+            "MyBot/1.0 (info@example.com)",
+            "info@example.com",
+        ),
+        (
+            "SomeBot/2.0 (contact: admin@bot.io)",
+            "admin@bot.io",
+        ),
+    ],
+)
+def test_crawler_contact_real_world(ua, expected):
+    assert crawler_contact(ua) == expected
+
+
+# --- crawler_signals: real-world crawlers ---
+
+
+@pytest.mark.parametrize(
+    ("ua", "expected_signal"),
+    [
+        (
+            "Mozilla/5.0 (compatible; GPTBot/1.0; +https://openai.com/gptbot)",
+            "bare_compatible",
+        ),
+        ("Twitterbot/1.0", "bot_signal"),
+        ("Scrapy/2.11.0 (+https://scrapy.org)", "url_in_ua"),
+        ("ia_archiver (+http://www.alexa.com/site/help/webmasters)", "url_in_ua"),
+        ("curl/7.68.0", "no_browser_signature"),
+        ("python-requests/2.28.0", "no_browser_signature"),
+        ("HeadlessChrome/90.0", "bot_signal"),
+    ],
+)
+def test_crawler_signals_real_world(ua, expected_signal):
+    assert expected_signal in crawler_signals(ua)

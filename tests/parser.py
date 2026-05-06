@@ -913,6 +913,38 @@ def test_fixture_crawler_detected_pass_rate():
     assert rate >= 0.75, f"pass rate {rate:.2%} ({detected}/{len(uas)})"
 
 
+def test_fixture_pgts_crawlers_pass_rate():
+    uas = _load("crawler_user_agents_pgts.txt")
+    detected = sum(1 for ua in uas if is_crawler(ua))
+    rate = detected / len(uas)
+    assert rate >= 0.70, f"pass rate {rate:.2%} ({detected}/{len(uas)})"
+
+
+def test_fixture_browser_extended_not_detected():
+    uas = _load("browser_user_agents_extended.txt")
+    misses = sum(1 for ua in uas if is_crawler(ua))
+    rate = (len(uas) - misses) / len(uas)
+    assert rate >= 0.999, f"pass rate {rate:.4%} (misses={misses}/{len(uas)})"
+
+
+def test_fixture_browser_extended_browser_field_coverage():
+    uas = _load("browser_user_agents_extended.txt")
+    rate = _field_rate(uas, "browser")
+    assert rate >= 0.96, f"browser coverage {rate:.2%}"
+
+
+def test_fixture_browser_extended_os_field_coverage():
+    uas = _load("browser_user_agents_extended.txt")
+    rate = _field_rate(uas, "os")
+    assert rate >= 0.97, f"os coverage {rate:.2%}"
+
+
+def test_fixture_browser_extended_device_field_coverage():
+    uas = _load("browser_user_agents_extended.txt")
+    rate = _field_rate(uas, "device")
+    assert rate >= 0.99, f"device coverage {rate:.2%}"
+
+
 def test_fixture_browser_not_detected_pass_rate():
     uas = _load("browser_user_agents.txt")
     misses = sum(1 for ua in uas if is_crawler(ua))
@@ -925,3 +957,677 @@ def test_fixture_loadkpi_crawlers_pass_rate():
     detected = sum(1 for ua in uas if is_crawler(ua))
     rate = detected / len(uas)
     assert rate >= 0.62, f"pass rate {rate:.2%} ({detected}/{len(uas)})"
+
+
+# --- browser detection: more real-world UAs ---
+
+
+def test_detect_browser_vivaldi():
+    ua = (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Vivaldi/6.7.3329.21"
+    )
+    assert parse(ua).browser == "Vivaldi"
+
+
+def test_detect_browser_duckduckgo():
+    ua = (
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) "
+        "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 "
+        "DuckDuckGo/7 Safari/604.1"
+    )
+    assert parse(ua).browser == "DuckDuckGo"
+
+
+def test_detect_browser_yandex():
+    ua = (
+        "Mozilla/5.0 (Linux; Android 13; SM-G998B) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/110.0 Mobile Safari/537.36 YaBrowser/23.1"
+    )
+    assert parse(ua).browser == "Yandex"
+
+
+def test_detect_browser_uc_browser():
+    ua = "Mozilla/5.0 (Linux; U; Android 9) AppleWebKit/537.36 UCBrowser/13.4 Mobile Safari/537.36"
+    assert parse(ua).browser == "UC Browser"
+
+
+def test_detect_browser_silk():
+    ua = (
+        "Mozilla/5.0 (Linux; Android 9; KFMAWI) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Silk/95.3.2 like Chrome/95.0 Safari/537.36"
+    )
+    assert parse(ua).browser == "Silk"
+
+
+def test_detect_browser_miui():
+    ua = (
+        "Mozilla/5.0 (Linux; Android 12; Redmi Note 9) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/89.0 Mobile Safari/537.36 MiuiBrowser/14.0"
+    )
+    assert parse(ua).browser == "MIUI Browser"
+
+
+def test_detect_browser_huawei():
+    ua = (
+        "Mozilla/5.0 (Linux; Android 12; ELS-NX9) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/99.0 Mobile Safari/537.36 HuaweiBrowser/13.0"
+    )
+    assert parse(ua).browser == "Huawei Browser"
+
+
+def test_detect_browser_torbrowser():
+    ua = "Mozilla/5.0 (Windows NT 10.0; rv:109.0) Gecko/20100101 Firefox/115.0 TorBrowser/13.0"
+    assert parse(ua).browser == "Tor Browser"
+
+
+def test_detect_browser_waterfox():
+    ua = "Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0 Waterfox/102.2"
+    assert parse(ua).browser == "Waterfox"
+
+
+def test_detect_browser_palemoon():
+    ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Goanna/6 Firefox/102.0 PaleMoon/32.0"
+    assert parse(ua).browser == "PaleMoon"
+
+
+def test_detect_browser_seamonkey():
+    ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:60.9) Gecko/20100101 Firefox/60.9 SeaMonkey/2.53"
+    assert parse(ua).browser == "SeaMonkey"
+
+
+def test_detect_browser_konqueror():
+    ua = "Mozilla/5.0 (compatible; Konqueror/4.0; Linux; X11)"
+    assert parse(ua).browser == "Konqueror"
+
+
+def test_detect_browser_lynx():
+    ua = "Lynx/2.9.0dev.6 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/3.6.15"
+    assert parse(ua).browser == "Lynx"
+
+
+def test_detect_browser_elinks():
+    ua = "ELinks/0.15.0 (textmode; Linux 5.10.0 x86_64; 220x50)"
+    assert parse(ua).browser == "ELinks"
+
+
+def test_detect_browser_w3m():
+    ua = "w3m/0.5.3+git20230121"
+    assert parse(ua).browser == "w3m"
+
+
+def test_detect_browser_snapchat():
+    ua = (
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) "
+        "AppleWebKit/605.1.15 (KHTML, like Gecko) Snapchat/12.57.0.49"
+    )
+    assert parse(ua).browser == "Snapchat"
+
+
+def test_detect_browser_instagram():
+    ua = (
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) "
+        "AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 "
+        "Instagram 320.0.0.0.0"
+    )
+    assert parse(ua).browser == "Instagram"
+
+
+def test_detect_browser_tiktok():
+    ua = (
+        "Mozilla/5.0 (Linux; Android 13; SM-G998B) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/110.0 Mobile Safari/537.36 TikTok/29.0"
+    )
+    assert parse(ua).browser == "TikTok"
+
+
+def test_detect_browser_pinterest():
+    ua = (
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) "
+        "AppleWebKit/605.1.15 (KHTML, like Gecko) Pinterest/12.0"
+    )
+    assert parse(ua).browser == "Pinterest"
+
+
+def test_detect_browser_wechat():
+    ua = (
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) "
+        "AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 "
+        "MicroMessenger/8.0.42"
+    )
+    assert parse(ua).browser == "WeChat"
+
+
+def test_detect_browser_linkedin():
+    ua = (
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) "
+        "AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 "
+        "LinkedInApp/9.28.4389"
+    )
+    assert parse(ua).browser == "LinkedIn"
+
+
+def test_detect_browser_qq():
+    ua = (
+        "Mozilla/5.0 (Linux; Android 13; SM-G998B) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/110.0 Mobile Safari/537.36 QQBrowser/14.9"
+    )
+    assert parse(ua).browser == "QQBrowser"
+
+
+def test_detect_browser_floorp():
+    ua = "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0 Floorp/11.0"
+    assert parse(ua).browser == "Floorp"
+
+
+def test_detect_browser_mullvad():
+    ua = "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0 MullvadBrowser/13.0"
+    assert parse(ua).browser == "Mullvad Browser"
+
+
+def test_detect_browser_curl():
+    assert parse("curl/8.5.0").browser == "curl"
+    assert parse("curl/8.5.0").browser_version == "8.5.0"
+
+
+def test_detect_browser_wget():
+    assert parse("Wget/1.21.4").browser == "Wget"
+    assert parse("Wget/1.21.4").browser_version == "1.21.4"
+
+
+def test_detect_browser_httpie():
+    assert parse("HTTPie/3.2.2").browser == "HTTPie"
+
+
+def test_detect_browser_python_urllib():
+    assert parse("Python-urllib/3.11").browser == "Python urllib"
+
+
+def test_detect_browser_aiohttp():
+    assert parse("aiohttp/3.9.1").browser == "aiohttp"
+
+
+def test_detect_browser_httpx():
+    assert parse("python-httpx/0.27.0").browser == "httpx"
+
+
+def test_detect_browser_go_http():
+    assert parse("Go-http-client/2.0").browser == "Go-http-client"
+
+
+def test_detect_browser_okhttp():
+    assert parse("okhttp/4.12.0").browser == "OkHttp"
+
+
+def test_detect_browser_node_fetch():
+    assert parse("node-fetch/3.3.2").browser == "node-fetch"
+
+
+def test_detect_browser_axios():
+    assert parse("axios/1.6.8").browser == "axios"
+
+
+def test_detect_browser_postman():
+    assert parse("PostmanRuntime/7.37.0").browser == "PostmanRuntime"
+
+
+def test_detect_browser_guzzle():
+    assert parse("GuzzleHttp/7.8.1 curl/8.5.0 PHP/8.3.0").browser == "Guzzle"
+
+
+def test_detect_browser_php():
+    assert parse("PHP/8.3.0").browser == "PHP"
+
+
+# --- OS detection: more real-world cases ---
+
+
+def test_detect_os_windows_8_1():
+    ua = "Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36"
+    assert parse(ua).os_version == "8.1"
+
+
+def test_detect_os_windows_7():
+    ua = "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36"
+    assert parse(ua).os_version == "7"
+
+
+def test_detect_os_windows_vista():
+    ua = "Mozilla/5.0 (Windows NT 6.0; Win64; x64) AppleWebKit/537.36 Chrome/50 Safari/537.36"
+    assert parse(ua).os_version == "Vista"
+
+
+def test_detect_os_windows_xp():
+    ua = "Mozilla/5.0 (Windows NT 5.1; rv:52.0) Gecko/20100101 Firefox/52.0"
+    assert parse(ua).os_version == "XP"
+
+
+def test_detect_os_android_version():
+    ua = (
+        "Mozilla/5.0 (Linux; Android 14; Pixel 8 Pro) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36"
+    )
+    parsed = parse(ua)
+    assert parsed.os == "Android"
+    assert parsed.os_version is not None and parsed.os_version.startswith("14")
+
+
+def test_detect_os_tizen():
+    ua = "Mozilla/5.0 (SMART-TV; Linux; Tizen 6.5) AppleWebKit/538.1 (KHTML, like Gecko) Version/6.5 TV Safari/538.1"
+    parsed = parse(ua)
+    assert parsed.os == "Tizen"
+    assert parsed.os_version == "6.5"
+
+
+def test_detect_os_kaios():
+    ua = "Mozilla/5.0 (Mobile; KaiOS/2.5.2; rv:48.0) Gecko/48.0 Firefox/48.0"
+    parsed = parse(ua)
+    assert parsed.os == "KaiOS"
+    assert parsed.os_version == "2.5.2"
+
+
+def test_detect_os_harmonyos():
+    ua = "Mozilla/5.0 (Linux; HarmonyOS 3.1; ELS-NX9) AppleWebKit/537.36 Chrome/99 Mobile Safari/537.36"
+    parsed = parse(ua)
+    assert parsed.os == "HarmonyOS"
+    assert parsed.os_version == "3.1"
+
+
+def test_detect_os_webos():
+    ua = "Mozilla/5.0 (webOS/1.4.5; U; en-US) AppleWebKit/532.2 (KHTML, like Gecko) Version/1.0 Safari/532.2 Pre/1.0"
+    assert parse(ua).os == "webOS"
+
+
+def test_detect_os_haiku():
+    ua = "Mozilla/5.0 (compatible; Haiku; U; BePC; Haiku) AppleWebKit/527"
+    assert parse(ua).os == "Haiku"
+
+
+def test_detect_os_os2():
+    ua = "Mozilla/5.0 (OS/2; Warp; U; de) AppleWebKit/533.3"
+    assert parse(ua).os == "OS/2"
+
+
+def test_detect_os_amigaos():
+    ua = "Mozilla/5.0 (AmigaOS 4.1; U; de) AppleWebKit/533.3"
+    assert parse(ua).os == "AmigaOS"
+
+
+def test_detect_os_solaris():
+    ua = "Mozilla/5.0 (SunOS x86_64; rv:78.0) Gecko/20100101 Firefox/78.0"
+    assert parse(ua).os == "Solaris"
+
+
+def test_detect_os_dragonfly():
+    ua = "Mozilla/5.0 (DragonFly amd64; rv:78.0) Gecko/20100101 Firefox/78.0"
+    assert parse(ua).os == "DragonFly"
+
+
+def test_detect_os_playstation():
+    ua = "Mozilla/5.0 (PlayStation 5 3.00) AppleWebKit/605.1.15 (KHTML, like Gecko)"
+    assert parse(ua).os == "PlayStation"
+
+
+def test_detect_os_nintendo():
+    ua = "Mozilla/5.0 (Nintendo Switch; WifiWebAuthApplet) AppleWebKit/609.4 (KHTML, like Gecko)"
+    assert parse(ua).os == "Nintendo"
+
+
+def test_detect_os_windows_phone():
+    ua = "Mozilla/5.0 (compatible; MSIE 10.0; Windows Phone 8.0; Trident/6.0; IEMobile/10.0)"
+    parsed = parse(ua)
+    assert parsed.os == "Windows Phone"
+    assert parsed.os_version == "8.0"
+
+
+def test_detect_os_ubuntu():
+    ua = "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:125.0) Gecko/20100101 Firefox/125.0"
+    assert parse(ua).os == "Ubuntu"
+
+
+def test_detect_os_fedora():
+    ua = "Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:125.0) Gecko/20100101 Firefox/125.0"
+    assert parse(ua).os == "Fedora"
+
+
+# --- device detection: more real-world cases ---
+
+
+def test_detect_device_pixel():
+    ua = (
+        "Mozilla/5.0 (Linux; Android 14; Pixel 8 Pro) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36"
+    )
+    parsed = parse(ua)
+    assert parsed.device_brand == "Google"
+
+
+def test_detect_device_oneplus():
+    ua = (
+        "Mozilla/5.0 (Linux; Android 13; OnePlus 11) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/120.0 Mobile Safari/537.36"
+    )
+    parsed = parse(ua)
+    assert parsed.device_brand == "OnePlus"
+
+
+def test_detect_device_nokia():
+    ua = (
+        "Mozilla/5.0 (Linux; Android 12; Nokia G50) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/110.0 Mobile Safari/537.36"
+    )
+    parsed = parse(ua)
+    assert parsed.device_brand == "Nokia"
+
+
+def test_detect_device_sony():
+    ua = (
+        "Mozilla/5.0 (Linux; Android 12; Sony XPERIA 1 IV) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/110.0 Mobile Safari/537.36"
+    )
+    parsed = parse(ua)
+    assert parsed.device_brand == "Sony"
+
+
+def test_detect_device_xiaomi_redmi():
+    ua = (
+        "Mozilla/5.0 (Linux; Android 13; Redmi Note 12) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/110.0 Mobile Safari/537.36"
+    )
+    parsed = parse(ua)
+    assert parsed.device_brand == "Xiaomi"
+
+
+def test_detect_device_console_playstation():
+    ua = "Mozilla/5.0 (PlayStation 5 3.00) AppleWebKit/605.1.15 (KHTML, like Gecko)"
+    assert parse(ua).device == "Console"
+
+
+def test_detect_device_console_nintendo():
+    ua = "Mozilla/5.0 (Nintendo Switch; WifiWebAuthApplet) AppleWebKit/609.4 (KHTML, like Gecko)"
+    assert parse(ua).device == "Console"
+
+
+def test_detect_device_smarttv_hbbtv():
+    ua = "Mozilla/5.0 (SMART-TV; Linux; Tizen 6.5) AppleWebKit/538.1 TV Safari/538.1"
+    assert parse(ua).device == "SmartTV"
+
+
+def test_detect_device_tablet_ipad():
+    ua = _IPAD_SAFARI
+    assert parse(ua).device == "Tablet"
+    assert parse(ua).is_tablet
+
+
+def test_detect_device_mobile_android():
+    ua = _MOBILE_CHROME
+    parsed = parse(ua)
+    assert parsed.device == "Mobile"
+    assert parsed.is_mobile
+
+
+def test_detect_device_wearable_wear_os():
+    ua = "Mozilla/5.0 (Linux; Android 13; Wear OS 4) AppleWebKit/537.36"
+    assert parse(ua).device == "Wearable"
+
+
+def test_detect_device_xr_quest():
+    ua = "Mozilla/5.0 (Linux; Android 10; Quest 2) AppleWebKit/537.36"
+    assert parse(ua).device == "XR"
+
+
+def test_detect_device_kindle_fire():
+    ua = (
+        "Mozilla/5.0 (Linux; Android 9; KFAPWI Build/PS7528) "
+        "AppleWebKit/537.36 Silk/95.3.2 like Chrome/95.0 Safari/537.36"
+    )
+    parsed = parse(ua)
+    assert parsed.device_brand == "Amazon"
+
+
+def test_detect_device_roku():
+    ua = "Roku/DVP-12.0 (122.00E04170A)"
+    parsed = parse(ua)
+    assert parsed.device_brand == "Roku"
+
+
+# --- CPU detection ---
+
+
+def test_detect_cpu_arm():
+    assert _detect_cpu("armv7l") == "arm"
+
+
+def test_detect_cpu_arm64_aarch64():
+    assert _detect_cpu("Mozilla/5.0 (Linux; aarch64)") == "arm64"
+
+
+def test_detect_cpu_wow64():
+    ua = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36"
+    assert _detect_cpu(ua) == "x86_64"
+
+
+def test_detect_cpu_ppc():
+    ua = "Mozilla/5.0 (Macintosh; PPC Mac OS X) AppleWebKit/125"
+    assert _detect_cpu(ua) == "ppc"
+
+
+def test_detect_cpu_i386():
+    ua = "Mozilla/5.0 (X11; Linux i386; rv:109.0) Gecko/20100101 Firefox/115.0"
+    assert _detect_cpu(ua) == "x86"
+
+
+# --- language extraction ---
+
+
+def test_extract_languages_multi():
+    ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; en-US; fr-FR)"
+    langs = _extract_languages(ua)
+    assert "en-US" in langs
+    assert "fr-FR" in langs
+
+
+def test_extract_languages_zh_cn():
+    ua = "Mozilla/5.0 (Linux; U; Android 10; zh-CN; Mi 9T Pro) AppleWebKit/537.36"
+    langs = _extract_languages(ua)
+    assert "zh-CN" in langs
+
+
+# --- parse / UserAgent fields ---
+
+
+def test_parse_is_mobile_iphone():
+    assert parse(_IPHONE_SAFARI).is_mobile
+
+
+def test_parse_is_tablet_ipad():
+    assert parse(_IPAD_SAFARI).is_tablet
+
+
+def test_parse_not_mobile_desktop():
+    assert not parse(_CHROME_WIN).is_mobile
+
+
+def test_parse_engine_version_blink():
+    parsed = parse(_CHROME_WIN)
+    assert parsed.engine == "Blink"
+    assert parsed.engine_version is not None
+
+
+def test_parse_browser_major():
+    parsed = parse(_CHROME_WIN)
+    assert parsed.browser_major == "120"
+
+
+def test_parse_languages():
+    ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; en-US) Chrome/120 Safari/537.36"
+    parsed = parse(ua)
+    assert "en-US" in parsed.languages
+
+
+def test_parse_to_dict_complete():
+    result = parse(_MOBILE_CHROME).to_dict()
+    assert result["is_mobile"]
+    assert result["browser"] == "Mobile Chrome"
+    assert result["os"] == "Android"
+
+
+def test_normalize_user_agent_strips_cr_lf():
+    assert "\r" not in normalize_user_agent("curl/7.81.0\r\n")
+    assert "\n" not in normalize_user_agent("curl/7.81.0\r\n")
+
+
+def test_normalize_user_agent_int():
+    assert normalize_user_agent(42) == "42"
+
+
+def test_parse_or_none_crawler():
+    result = parse_or_none("Googlebot/2.1 (+http://www.google.com/bot.html)")
+    assert result is not None
+    assert result.is_crawler
+
+
+def test_is_browser_crawler_returns_false():
+    assert not is_browser("Googlebot/2.1 (+http://www.google.com/bot.html)")
+
+
+def test_headless_selenium():
+    assert parse("Mozilla/5.0 Selenium/4.0").is_headless
+
+
+def test_headless_puppeteer():
+    assert parse("Mozilla/5.0 Puppeteer/21.0").is_headless
+
+
+def test_headless_playwright():
+    assert parse("Mozilla/5.0 Playwright/1.40").is_headless
+
+
+def test_headless_cypress():
+    assert parse("Mozilla/5.0 Cypress/13.0").is_headless
+
+
+def test_headless_webdriver():
+    assert parse("Mozilla/5.0 WebDriver/1.0").is_headless
+
+
+def test_channel_dev():
+    assert parse("Mozilla/5.0 Chrome/120 Dev/1").channel == "dev"
+
+
+def test_channel_aurora():
+    assert parse("Mozilla/5.0 Firefox/120 aurora").channel == "aurora"
+
+
+def test_app_instagram():
+    ua = (
+        "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 "
+        "Mobile Safari/537.36 Instagram 320.0.0.0.0"
+    )
+    parsed = parse(ua)
+    assert parsed.app == "Instagram"
+
+
+def test_app_snapchat():
+    ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Snapchat/12.57"
+    parsed = parse(ua)
+    assert parsed.app == "Snapchat"
+
+
+def test_app_twitter():
+    ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Twitter for iPhone/9.0"
+    parsed = parse(ua)
+    assert parsed.app == "Twitter"
+
+
+def test_webview_wkwebview():
+    ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) WKWebView/605.1"
+    assert parse(ua).is_webview
+
+
+def test_webview_fban():
+    ua = (
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) "
+        "AppleWebKit/605.1.15 Mobile/15E148 FBAN/FBIOS"
+    )
+    assert parse(ua).is_webview
+
+
+def test_windows_11_detection():
+    ua = (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    )
+    parsed = parse(ua)
+    assert parsed.os == "Windows"
+    assert parsed.os_version in ("10/11", "10", "11")
+
+
+def test_detect_browser_edge_ios():
+    ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) EdgiOS/120.0 Mobile/15E148"
+    assert parse(ua).browser == "Edge"
+
+
+def test_detect_browser_edge_android():
+    ua = "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 EdgA/120.0 Mobile Safari/537.36"
+    assert parse(ua).browser == "Edge"
+
+
+def test_detect_browser_opera_touch():
+    ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) OPT/4.0 Mobile Safari/604.1"
+    assert parse(ua).browser == "Opera Touch"
+
+
+def test_detect_os_blackberry_bb10():
+    ua = "Mozilla/5.0 (BB10; Smartphone) AppleWebKit/765 (KHTML, like Gecko) Version/10.3"
+    assert parse(ua).os == "BlackBerry"
+
+
+def test_detect_os_windows_mobile():
+    ua = "Mozilla/4.0 (compatible; MSIE 4.01; Windows Mobile; PPC)"
+    assert parse(ua).os in ("Windows Mobile", "Windows")
+
+
+def test_detect_device_brand_htc():
+    _, brand, _ = _detect_device_brand("Mozilla/5.0 (Linux; Android 4.0; HTC One X)")
+    assert brand == "HTC"
+
+
+def test_detect_device_brand_lg():
+    _, brand, _ = _detect_device_brand("Mozilla/5.0 (Linux; Android 9; LG-G8)")
+    assert brand == "LG"
+
+
+def test_detect_device_brand_motorola():
+    _, brand, _ = _detect_device_brand("Mozilla/5.0 (Linux; Android 11; Moto G Power)")
+    assert brand == "Motorola"
+
+
+def test_detect_device_brand_oppo():
+    _, brand, _ = _detect_device_brand("Mozilla/5.0 (Linux; Android 12; OPPO A96)")
+    assert brand == "Oppo"
+
+
+def test_detect_device_brand_vivo():
+    _, brand, _ = _detect_device_brand("Mozilla/5.0 (Linux; Android 12; vivo Y35)")
+    assert brand == "Vivo"
+
+
+def test_detect_device_brand_realme():
+    _, brand, _ = _detect_device_brand("Mozilla/5.0 (Linux; Android 12; realme 9 Pro)")
+    assert brand == "Realme"
+
+
+def test_detect_device_brand_surface():
+    _, brand, _ = _detect_device_brand("Mozilla/5.0 (Windows NT 10.0; Surface Pro 9)")
+    assert brand == "Microsoft"
+
+
+def test_detect_device_brand_lumia():
+    _, brand, _ = _detect_device_brand("Mozilla/5.0 (Windows Phone; Lumia 950)")
+    assert brand == "Microsoft"
+
+
+def test_detect_device_brand_blackberry():
+    _, brand, _ = _detect_device_brand("BlackBerry9700/5.0")
+    assert brand == "BlackBerry"
