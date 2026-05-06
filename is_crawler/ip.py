@@ -71,14 +71,21 @@ def _all_domain_suffixes() -> tuple[str, ...]:
     return tuple(seen)
 
 
-def _normalized_ip(ip: str) -> str | None:
+def _parse_ip(
+    ip: str,
+) -> ipaddress.IPv4Address | ipaddress.IPv6Address | None:
     try:
         addr = ipaddress.ip_address(ip.strip())
     except ValueError:
         return None
     if isinstance(addr, ipaddress.IPv6Address) and addr.ipv4_mapped is not None:
-        return str(addr.ipv4_mapped)
-    return str(addr)
+        return addr.ipv4_mapped
+    return addr
+
+
+def _normalized_ip(ip: str) -> str | None:
+    addr = _parse_ip(ip)
+    return None if addr is None else str(addr)
 
 
 @lru_cache(maxsize=_CACHE)
@@ -146,11 +153,10 @@ def _build_index() -> tuple[list[int], list[int], list[int], list[int]]:
 
 @lru_cache(maxsize=_CACHE)
 def ip_in_range(ip: str) -> bool:
-    normalized = _normalized_ip(ip)
-    if normalized is None:
+    addr = _parse_ip(ip)
+    if addr is None:
         return False
 
-    addr = ipaddress.ip_address(normalized)
     starts4, ends4, starts6, ends6 = _build_index()
 
     if addr.version == 4:

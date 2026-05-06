@@ -4,27 +4,16 @@ from functools import lru_cache
 
 _CACHE = 32768
 
-_BOT_KEYWORDS = (
-    "crawl",
-    "spider",
-    "scrape",
-    "preview",
-    "slurp",
-    "archiv",
-    "headless",
-    "indexer",
-    "indexing",
+_GOOGLE_MARKERS = (
+    "google favicon",
+    "google ads",
+    "google safety",
+    "google extended",
+    "google-favicon",
+    "google-ads",
+    "google-safety",
+    "google-extended",
 )
-_TOOLS = (
-    "lighthouse",
-    "playwright",
-    "selenium",
-    "nikto",
-    "sqlmap",
-    "pingdom",
-    "httrack",
-)
-_GOOGLE_SUFFIXES = ("favicon", "ads", "safety", "extended")
 _DOMAIN_TLDS = frozenset(("com", "net", "org", "io", "ai"))
 _BROWSER_TOKENS = frozenset(
     {
@@ -115,7 +104,17 @@ def crawler_contact(user_agent: str) -> str | None:
 
 
 def _bot_signal(ua: str, low: str) -> bool:
-    if any(k in low for k in _BOT_KEYWORDS):
+    if (
+        "crawl" in low
+        or "spider" in low
+        or "scrape" in low
+        or "preview" in low
+        or "slurp" in low
+        or "archiv" in low
+        or "headless" in low
+        or "indexer" in low
+        or "indexing" in low
+    ):
         return True
     if _find_word(low, "bot") or _find_word(low, "scan"):
         return True
@@ -171,14 +170,24 @@ def _semicolon_agent(low: str) -> bool:
     return False
 
 
+def _has_known_tool_name(low: str) -> bool:
+    return (
+        "lighthouse" in low
+        or "playwright" in low
+        or "selenium" in low
+        or "nikto" in low
+        or "sqlmap" in low
+        or "pingdom" in low
+        or "httrack" in low
+    )
+
+
 def _known_tool(ua: str, low: str) -> bool:
-    if any(t in low for t in _TOOLS):
+    if _has_known_tool_name(low):
         return True
     if _find_word(low, "wget") or _find_word(low, "nmap"):
         return True
-    if "google" in low and any(
-        f"google{sep}{suf}" in low for sep in " -" for suf in _GOOGLE_SUFFIXES
-    ):
+    if "google" in low and any(marker in low for marker in _GOOGLE_MARKERS):
         return True
     if "by " in low and _has_by_domain(low):
         return True
@@ -229,11 +238,10 @@ def is_crawler(user_agent: str) -> bool:
 
     # Chained `or` → CONTAINS_OP bytecode; `any(k in low for k in T)` ~3x slower.
     suspicious = (
-        "http://" in user_agent
+        "http" in low
         or "bot" in low
-        or "https://" in user_agent
-        or "crawl" in low
         or "@" in user_agent
+        or "crawl" in low
         or "google" in low
         or "spider" in low
         or "index" in low

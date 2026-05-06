@@ -309,24 +309,24 @@ Python 3.14, Linux x86_64. `cua` = [`crawler-user-agents`](https://pypi.org/proj
 | Scenario   | `is_crawler` (mixed) | `crawler_info` | `cua.is_crawler` (mixed) | `cua.crawler_info` |
 | ---------- | -------------------- | -------------- | ------------------------ | ------------------ |
 | Warm cache | 0.05 µs              | 1.24 µs        | 80.95 µs                 | 563.53 µs          |
-| Cold cache | 1.43 µs              | 4.57 µs        | 82.00 µs                 | 581.76 µs          |
+| Cold cache | 1.37 µs              | 4.51 µs        | 82.00 µs                 | 581.76 µs          |
 
 **UA parser** 19,910 real browser UAs vs [`ua-parser`](https://pypi.org/project/ua-parser/) (~24× faster):
 
 | Scenario   | `parser.parse` | `ua-parser` |
 | ---------- | -------------- | ----------- |
-| Warm cache | 18.48 µs       | 443.20 µs   |
-| Cold cache | 18.17 µs       | 443.05 µs   |
+| Warm cache | 18.83 µs       | 443.20 µs   |
+| Cold cache | 18.69 µs       | 443.05 µs   |
 
 **IP verification** warm cache:
 
 | Function                 | Time    |
 | ------------------------ | ------- |
 | `ip_in_range`            | 0.06 µs |
-| `reverse_dns`            | 0.36 µs |
-| `known_crawler_rdns`     | 2.14 µs |
-| `verify_crawler_ip`      | 2.96 µs |
-| `forward_confirmed_rdns` | 3.15 µs |
+| `reverse_dns`            | 0.38 µs |
+| `forward_confirmed_rdns` | 2.05 µs |
+| `known_crawler_rdns`     | 2.26 µs |
+| `verify_crawler_ip`      | 3.02 µs |
 
 Every public function has a 32k-entry LRU cache. First-call rDNS latency is network-bound.
 

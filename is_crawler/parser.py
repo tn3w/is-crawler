@@ -844,14 +844,17 @@ def _extract_languages(ua: str, parens: list[str] | None = None) -> list[str]:
     for paren in parens if parens is not None else _find_paren_contents(ua):
         for chunk in paren.split(";"):
             chunk = chunk.strip()
-            if (
-                len(chunk) in (2, 5)
-                and chunk[:2].islower()
-                and chunk[:2].isalpha()
-                and (len(chunk) == 2 or (chunk[2] in "-_" and chunk[3:].isupper()))
-                and chunk not in languages
-            ):
-                languages.append(chunk.replace("_", "-"))
+            n = len(chunk)
+            if n != 2 and n != 5:
+                continue
+            head = chunk[:2]
+            if not (head.islower() and head.isalpha()):
+                continue
+            if n == 5 and not (chunk[2] in "-_" and chunk[3:].isupper()):
+                continue
+            tag = chunk.replace("_", "-")
+            if tag not in languages:
+                languages.append(tag)
     return languages
 
 

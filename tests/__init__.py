@@ -66,6 +66,15 @@ def test_all_exports():
     }
 
 
+def test_unknown_attribute_raises():
+    import pytest
+
+    import is_crawler as mod
+
+    with pytest.raises(AttributeError):
+        mod.does_not_exist
+
+
 def test_regex_usage_restricted_to_database():
     import ast
 
