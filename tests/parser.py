@@ -479,6 +479,11 @@ def test_extract_languages_none():
     assert langs == []
 
 
+def test_extract_languages_invalid_head():
+    langs = _extract_languages("Mozilla/5.0 (X11; EN; DE-DE)")
+    assert langs == []
+
+
 def test_detect_crawler_bot():
     assert _detect_crawler(_GOOGLEBOT)
     assert not _detect_crawler(_CHROME_WIN)
