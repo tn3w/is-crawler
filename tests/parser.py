@@ -480,8 +480,10 @@ def test_extract_languages_none():
 
 
 def test_extract_languages_invalid_head():
-    langs = _extract_languages("Mozilla/5.0 (X11; EN; DE-DE)")
-    assert langs == []
+    assert _extract_languages("Mozilla/5.0 (X11; EN)") == []
+    assert _extract_languages("Mozilla/5.0 (X11; 12)") == []
+    assert _extract_languages("Mozilla/5.0 (X11; EN-US)") == []
+    assert _extract_languages("Mozilla/5.0 (X11; a1)") == []
 
 
 def test_detect_crawler_bot():
