@@ -18,6 +18,7 @@ class CrawlerInfo(NamedTuple):
     url: str
     description: str
     tags: tuple[str, ...]
+    rdns: tuple[str, ...]
 
 
 @dataclass
@@ -30,7 +31,10 @@ class _Chunk:
 
     @cached_property
     def entries(self) -> list[tuple[re.Pattern, CrawlerInfo]]:
-        return [(re.compile(p), CrawlerInfo(u, d, tuple(t))) for p, u, d, t in self.rows]
+        return [
+            (re.compile(p), CrawlerInfo(u, d, tuple(t), tuple(r)))
+            for p, u, d, t, r in self.rows
+        ]
 
     def match(self, user_agent: str) -> CrawlerInfo | None:
         if not self.combined.search(user_agent):
@@ -43,9 +47,19 @@ class _Chunk:
 
 @lru_cache(maxsize=1)
 def _load_chunks() -> list[_Chunk]:
-    path = Path(__file__).parent / "crawler-user-agents.json"
+    path = Path(__file__).parent / "crawlers.min.json"
     with path.open(encoding="utf-8") as f:
-        rows = json.load(f)
+        entries = json.load(f)
+    rows = [
+        [
+            e.get("pattern", ""),
+            e.get("url", ""),
+            e.get("description", ""),
+            e.get("tags") or [],
+            e.get("rdns") or [],
+        ]
+        for e in entries
+    ]
     return [_Chunk(rows[i : i + _CHUNK]) for i in range(0, len(rows), _CHUNK)]
 
 
@@ -90,6 +104,10 @@ def is_search_engine(user_agent: str) -> bool:
 
 def is_ai_crawler(user_agent: str) -> bool:
     return crawler_has_tag(user_agent, "ai-crawler")
+
+
+def is_ai_fetcher(user_agent: str) -> bool:
+    return crawler_has_tag(user_agent, "ai-fetcher")
 
 
 def is_seo(user_agent: str) -> bool:
@@ -156,10 +174,13 @@ def _robots_name(pattern: str) -> str | None:
 
 def iter_crawlers() -> Iterable[tuple[CrawlerInfo, str]]:
     for chunk in _load_chunks():
-        for pattern, url, description, tags in chunk.rows:
+        for pattern, url, description, tags, rdns in chunk.rows:
             name = _robots_name(pattern)
             if name:
-                yield CrawlerInfo(url, description, tuple(tags or ())), name
+                yield (
+                    CrawlerInfo(url, description, tuple(tags or ()), tuple(rdns or ())),
+                    name,
+                )
 
 
 def robots_agents_for_tags(tags: str | Iterable[str]) -> list[str]:

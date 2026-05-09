@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 import socket
 
-from . import crawler_name
+from .database import crawler_info
 
 __all__ = [
     "verify_crawler_ip",
@@ -19,20 +19,6 @@ __all__ = [
 ]
 
 _CACHE = 4096
-
-
-@lru_cache(maxsize=1)
-def _load_domains() -> dict[str, tuple[str, ...]]:
-    path = Path(__file__).parent / "crawler-rdns.json"
-    with path.open(encoding="utf-8") as f:
-        raw = json.load(f)
-
-    mapping: dict[str, tuple[str, ...]] = {}
-    for suffix_key, names in raw.items():
-        suffixes = tuple(suffix_key.split())
-        for name in names:
-            mapping[name.lower()] = suffixes
-    return mapping
 
 
 def _parse_networks() -> list[ipaddress.IPv4Network | ipaddress.IPv6Network]:
@@ -53,21 +39,14 @@ def _parse_networks() -> list[ipaddress.IPv4Network | ipaddress.IPv6Network]:
     return networks
 
 
-def _domains_for(name: str) -> tuple[str, ...] | None:
-    mapping = _load_domains()
-    key = name.lower()
-    if key in mapping:
-        return mapping[key]
-
-    base = key.split("/", 1)[0].split()[0] if key else ""
-    return mapping.get(base)
-
-
 @lru_cache(maxsize=1)
-def _all_domain_suffixes() -> tuple[str, ...]:
+def _all_rdns_suffixes() -> tuple[str, ...]:
+    path = Path(__file__).parent / "crawlers.min.json"
+    with path.open(encoding="utf-8") as f:
+        entries = json.load(f)
     seen: dict[str, None] = {}
-    for group in _load_domains().values():
-        seen.update(dict.fromkeys(group))
+    for e in entries:
+        seen.update(dict.fromkeys(e.get("rdns") or []))
     return tuple(seen)
 
 
@@ -177,20 +156,16 @@ def known_crawler_ip(ip: str) -> bool:
 
 
 def known_crawler_rdns(ip: str) -> bool:
-    return forward_confirmed_rdns(ip, _all_domain_suffixes()) is not None
+    return forward_confirmed_rdns(ip, _all_rdns_suffixes()) is not None
 
 
 def verify_crawler_ip(user_agent: str, ip: str) -> bool:
-    name = crawler_name(user_agent)
-    if not name:
+    info = crawler_info(user_agent)
+    if not info or not info.rdns:
         return False
 
     normalized_ip = _normalized_ip(ip)
     if normalized_ip is None:
         return False
 
-    suffixes = _domains_for(name)
-    if not suffixes:
-        return False
-
-    return forward_confirmed_rdns(normalized_ip, suffixes) is not None
+    return forward_confirmed_rdns(normalized_ip, info.rdns) is not None

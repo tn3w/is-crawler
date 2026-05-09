@@ -61,6 +61,7 @@ What the API returns on real UAs you will actually see:
 | User agent                                                                                                        | `is_crawler` | `crawler_name`        | `crawler_version` | `crawler_url`                                      | `crawler_signals`                                     | `crawler_info.tags`       |
 | ----------------------------------------------------------------------------------------------------------------- | ------------ | --------------------- | ----------------- | -------------------------------------------------- | ----------------------------------------------------- | ------------------------- |
 | `Mozilla/5.0 (compatible; GPTBot/1.2; +https://openai.com/gptbot)`                                                | True         | `GPTBot`              | `'1.2'`           | `'https://openai.com/gptbot'`                      | `['bot_signal', 'bare_compatible', 'url_in_ua']`      | `('ai-crawler',)`         |
+| `ChatGPT-User/1.0`                                                                                                | True         | `ChatGPT-User`        | `'1.0'`           | `None`                                             | `['bot_signal', 'no_browser_signature']`              | `('ai-fetcher',)`         |
 | `Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/120.0.0.0 Safari/537.36`   | True         | `HeadlessChrome`      | `'120.0.0.0'`     | `None`                                             | `['bot_signal']`                                      | `('browser-automation',)` |
 | `curl/8.4.0`                                                                                                      | True         | `curl`                | `'8.4.0'`         | `None`                                             | `['no_browser_signature']`                            | `('http-library',)`       |
 | `python-requests/2.31.0`                                                                                          | True         | `python-requests`     | `'2.31.0'`        | `None`                                             | `['no_browser_signature']`                            | `('http-library',)`       |
@@ -96,7 +97,7 @@ crawler_contact(ua)    # None
 
 ## Classification
 
-`crawler_info` matches against 1200 curated patterns from [tn3w/Crawlerdex](https://github.com/tn3w/Crawlerdex) plus extras. Patterns compile lazily in 48-entry chunks.
+`crawler_info` matches against ~2900 curated patterns from [tn3w/Crawlerdex](https://github.com/tn3w/Crawlerdex), downloaded fresh on each release. Patterns compile lazily in 48-entry chunks.
 
 ```python
 info = crawler_info(ua)
@@ -108,9 +109,9 @@ crawler_has_tag(ua, "search-engine")        # True
 crawler_has_tag(ua, ["ai-crawler", "seo"])  # False
 ```
 
-Tags: `search-engine`, `ai-crawler`, `seo`, `social-preview`, `advertising`, `archiver`, `feed-reader`, `monitoring`, `scanner`, `academic`, `http-library`, `browser-automation`.
+Tags: `search-engine`, `ai-crawler`, `ai-fetcher`, `seo`, `social-preview`, `advertising`, `archiver`, `feed-reader`, `monitoring`, `scanner`, `academic`, `http-library`, `browser-automation`.
 
-One-tag wrappers exist for each: `is_search_engine`, `is_ai_crawler`, `is_seo`, `is_social_preview`, `is_advertising`, `is_archiver`, `is_feed_reader`, `is_monitoring`, `is_scanner`, `is_academic`, `is_http_library`, `is_browser_automation`.
+One-tag wrappers exist for each: `is_search_engine`, `is_ai_crawler`, `is_ai_fetcher`, `is_seo`, `is_social_preview`, `is_advertising`, `is_archiver`, `is_feed_reader`, `is_monitoring`, `is_scanner`, `is_academic`, `is_http_library`, `is_browser_automation`.
 
 Quick gates:
 
@@ -119,7 +120,7 @@ is_good_crawler(ua)   # search-engine, social-preview, feed-reader, archiver, ac
 is_bad_crawler(ua)    # ai-crawler, scanner, http-library, browser-automation, seo
 ```
 
-`advertising` and `monitoring` are policy-dependent and belong to neither group.
+`ai-fetcher`, `advertising`, and `monitoring` are policy-dependent and belong to neither group.
 
 ## IP verification
 
@@ -334,10 +335,9 @@ Every public function has a 32k-entry LRU cache. First-call rDNS latency is netw
 
 `is_crawler` uses `str.find` and char scans, never regex, so hostile UAs cannot trigger backtracking. `crawler_info` does use `re`, but only against curated upstream patterns that are simple by construction.
 
-Data files are built by scripts in `tools/`:
+Data files live in `is_crawler/`. `crawlers.min.json` is downloaded fresh from [tn3w/Crawlerdex releases](https://github.com/tn3w/Crawlerdex/releases/latest) on each publish. IP ranges are built by:
 
 ```bash
-python3 tools/build_user_agents.py   # crawler-user-agents.json from tn3w/Crawlerdex
 python3 tools/build_ip_ranges.py     # crawler-ip-ranges.json from 39 official sources
 ```
 

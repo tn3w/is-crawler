@@ -43,6 +43,7 @@ def test_all_exports():
         "crawler_has_tag",
         "is_search_engine",
         "is_ai_crawler",
+        "is_ai_fetcher",
         "is_seo",
         "is_social_preview",
         "is_advertising",

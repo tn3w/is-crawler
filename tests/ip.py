@@ -4,11 +4,10 @@ from unittest.mock import patch
 
 import pytest
 
+from is_crawler.database import crawler_info
 from is_crawler.ip import (
-    _all_domain_suffixes,
-    _domains_for,
+    _all_rdns_suffixes,
     _forward_ips,
-    _load_domains,
     _parse_networks,
     forward_confirmed_rdns,
     ip_in_range,
@@ -18,92 +17,74 @@ from is_crawler.ip import (
     verify_crawler_ip,
 )
 
-# --- _load_domains ---
-
-
-def test_load_domains_returns_dict():
-    mapping = _load_domains()
-    assert isinstance(mapping, dict)
-    assert len(mapping) > 100
-
-
-def test_load_domains_cached():
-    assert _load_domains() is _load_domains()
-
-
-def test_load_domains_keys_lowercase():
-    mapping = _load_domains()
-    assert all(k == k.lower() for k in mapping)
-
-
-def test_load_domains_values_are_tuples_of_dotted_strings():
-    for suffixes in _load_domains().values():
-        assert isinstance(suffixes, tuple)
-        assert all(s.startswith(".") for s in suffixes)
-
-
-# --- _domains_for ---
+# --- crawler_info rdns ---
 
 
 @pytest.mark.parametrize(
-    ("name", "expected_suffix"),
+    ("user_agent", "expected_suffix"),
     [
-        ("Googlebot", ".googlebot.com"),
-        ("bingbot", ".search.msn.com"),
-        ("Applebot", ".applebot.apple.com"),
-        ("DuckDuckBot", ".duckduckgo.com"),
-        ("YandexBot", ".yandex.ru"),
-        ("Baiduspider", ".baidu.com"),
-        ("facebookexternalhit", ".facebook.com"),
-        ("GPTBot", ".openai.com"),
-        ("ClaudeBot", ".anthropic.com"),
-        ("PerplexityBot", ".perplexity.ai"),
-        ("AhrefsBot", ".ahrefs.com"),
-        ("SemrushBot", ".semrush.com"),
-        ("MJ12bot", ".majestic12.co.uk"),
-        ("CCBot", ".commoncrawl.org"),
-        ("ia_archiver", ".archive.org"),
-        ("Bytespider", ".bytespider.bytedance.com"),
-        ("PetalBot", ".petalsearch.com"),
-        ("YandexImages", ".yandex.ru"),
-        ("Twitterbot", ".twttr.com"),
-        ("LinkedInBot", ".linkedin.com"),
-        ("Slurp", ".crawl.yahoo.net"),
-        ("SeznamBot", ".seznam.cz"),
-        ("DotBot", ".moz.com"),
-        ("Diffbot", ".diffbot.com"),
-        ("MojeekBot", ".mojeek.com"),
+        ("Googlebot/2.1 (+http://www.google.com/bot.html)", ".googlebot.com"),
+        (
+            "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)",
+            ".search.msn.com",
+        ),
+        (
+            "Mozilla/5.0 (compatible; Applebot/0.1; +http://www.apple.com/go/applebot)",
+            ".applebot.apple.com",
+        ),
+        ("DuckDuckBot/1.1", ".duckduckgo.com"),
+        (
+            "Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)",
+            ".yandex.ru",
+        ),
+        (
+            "Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)",
+            ".baidu.com",
+        ),
+        ("facebookexternalhit/1.1", ".facebook.com"),
+        (
+            "Mozilla/5.0 (compatible; GPTBot/1.0; +https://openai.com/gptbot)",
+            ".openai.com",
+        ),
+        (
+            "Mozilla/5.0 (compatible; ClaudeBot/1.0; +https://anthropic.com/bot)",
+            ".anthropic.com",
+        ),
+        ("Mozilla/5.0 (compatible; PerplexityBot/1.0)", ".perplexity.ai"),
+        ("Mozilla/5.0 (compatible; AhrefsBot/7.0)", ".ahrefs.com"),
+        ("Mozilla/5.0 (compatible; SemrushBot/7~bl)", ".semrush.com"),
+        ("Mozilla/5.0 (compatible; MJ12bot/v1.4.8)", ".majestic12.co.uk"),
+        ("CCBot/2.0", ".commoncrawl.org"),
+        ("ia_archiver (+http://www.alexa.com/site/help/webmasters)", ".archive.org"),
+        ("Bytespider;spider-feedback@bytedance.com", ".bytedance.com"),
+        ("Mozilla/5.0 (compatible; PetalBot)", ".petalsearch.com"),
+        ("Twitterbot/1.0", ".twttr.com"),
+        ("LinkedInBot/1.0", ".linkedin.com"),
+        ("Mozilla/5.0 (compatible; dotbot/1.2)", ".moz.com"),
+        ("Diffbot/1.0", ".diffbot.com"),
+        ("MojeekBot/0.11", ".mojeek.com"),
     ],
 )
-def test_domains_for_known_crawlers(name, expected_suffix):
-    suffixes = _domains_for(name)
-    assert suffixes is not None
-    assert expected_suffix in suffixes
+def test_crawler_info_rdns_known_crawlers(user_agent, expected_suffix):
+    info = crawler_info(user_agent)
+    assert info is not None
+    assert expected_suffix in info.rdns
 
 
-def test_domains_for_unknown_returns_none():
-    assert _domains_for("UnknownRandomBot12345") is None
+def test_crawler_info_rdns_unknown_returns_none():
+    assert crawler_info("UnknownRandomBot12345/1.0 (not a real crawler)") is None
 
 
-def test_domains_for_empty_string():
-    assert _domains_for("") is None
+def test_all_rdns_suffixes_nonempty():
+    suffixes = _all_rdns_suffixes()
+    assert isinstance(suffixes, tuple)
+    assert len(suffixes) > 10
+    assert all(s.startswith(".") for s in suffixes)
 
 
-def test_domains_for_name_with_version_slash():
-    suffixes = _domains_for("Googlebot/2.1")
-    assert suffixes is not None
-    assert ".googlebot.com" in suffixes
-
-
-def test_domains_for_name_with_space():
-    suffixes = _domains_for("Sogou Web Spider")
-    assert suffixes is not None
-    assert ".sogou.com" in suffixes
-
-
-def test_domains_for_case_insensitive():
-    assert _domains_for("GOOGLEBOT") == _domains_for("googlebot")
-    assert _domains_for("gOoGlEbOt") == _domains_for("googlebot")
+def test_all_rdns_suffixes_cached():
+    _all_rdns_suffixes.cache_clear()
+    assert _all_rdns_suffixes() is _all_rdns_suffixes()
 
 
 # --- _parse_networks ---
@@ -316,9 +297,9 @@ def test_forward_confirmed_rdns_invalid_ip_returns_none_without_lookup():
     lookup.assert_not_called()
 
 
-def test_all_domain_suffixes_cached():
-    _all_domain_suffixes.cache_clear()
-    assert _all_domain_suffixes() is _all_domain_suffixes()
+def test_all_rdns_suffixes_cached_inline():
+    _all_rdns_suffixes.cache_clear()
+    assert _all_rdns_suffixes() is _all_rdns_suffixes()
 
 
 # --- ip_in_range / known_crawler_ip ---

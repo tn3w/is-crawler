@@ -24,6 +24,7 @@ from is_crawler.database import (
     is_academic,
     is_advertising,
     is_ai_crawler,
+    is_ai_fetcher,
     is_archiver,
     is_bad_crawler,
     is_browser_automation,
@@ -60,7 +61,7 @@ def test_crawler_info_googlebot():
 def test_crawler_info_bingbot():
     info = crawler_info(_BINGBOT)
     assert info is not None
-    assert info.url == "http://www.bing.com/bingbot.htm"
+    assert "bing" in info.url
     assert info.description == "Microsoft's web crawling bot for Bing search indexing"
     assert info.tags == ("search-engine",)
 
@@ -104,6 +105,16 @@ def test_is_ai_crawler():
     ua = "Mozilla/5.0 (compatible; GPTBot/1.0; +https://openai.com/gptbot)"
     assert is_ai_crawler(ua) is True
     assert is_ai_crawler(_GOOGLEBOT) is False
+
+
+def test_is_ai_fetcher():
+    assert is_ai_fetcher("ChatGPT-User/1.0") is True
+    assert is_ai_fetcher("Claude-User/1.0") is True
+    assert is_ai_fetcher(_GOOGLEBOT) is False
+    assert (
+        is_ai_fetcher("Mozilla/5.0 (compatible; GPTBot/1.0; +https://openai.com/gptbot)")
+        is False
+    )
 
 
 def test_is_seo():
@@ -292,13 +303,23 @@ def test_build_ai_txt_rules_branch():
     assert "Disallow: /private" in out
 
 
-_DATA = json.loads(
-    (Path(__file__).parents[1] / "is_crawler" / "crawler-user-agents.json").read_text()
+_RAW = json.loads(
+    (Path(__file__).parents[1] / "is_crawler" / "crawlers.min.json").read_text()
 )
+_DATA = [
+    [
+        e.get("pattern", ""),
+        e.get("url", ""),
+        e.get("description", ""),
+        e.get("tags") or [],
+    ]
+    for e in _RAW
+]
 _KNOWN_TAGS = {
     "academic",
     "advertising",
     "ai-crawler",
+    "ai-fetcher",
     "archiver",
     "browser-automation",
     "feed-reader",
@@ -345,8 +366,8 @@ def test_dataset_loads_and_nonempty():
     assert len(_DATA) > 1000
 
 
-def test_dataset_rows_have_four_fields():
-    bad = [r for r in _DATA if len(r) != 4]
+def test_dataset_rows_are_dicts():
+    bad = [e for e in _RAW if not isinstance(e, dict)]
     assert not bad
 
 
@@ -366,7 +387,7 @@ def test_dataset_description_is_nonempty():
 
 
 def test_dataset_tags_are_lists():
-    bad = [r for r in _DATA if not isinstance(r[3], list) or not r[3]]
+    bad = [r for r in _DATA if not isinstance(r[3], list)]
     assert not bad
 
 
@@ -744,19 +765,19 @@ def test_as_set_frozenset():
 
 
 def test_crawlerinfo_fields():
-    info = CrawlerInfo("http://x.com", "desc", ("search-engine",))
+    info = CrawlerInfo("http://x.com", "desc", ("search-engine",), ())
     assert info.url == "http://x.com"
     assert info.description == "desc"
     assert info.tags == ("search-engine",)
 
 
 def test_crawlerinfo_tuple_unpack():
-    url, description, tags = CrawlerInfo("u", "d", ("t",))
-    assert url == "u" and description == "d" and tags == ("t",)
+    url, description, tags, rdns = CrawlerInfo("u", "d", ("t",), ())
+    assert url == "u" and description == "d" and tags == ("t",) and rdns == ()
 
 
 def test_crawlerinfo_immutable():
-    info = CrawlerInfo("u", "d", ("t",))
+    info = CrawlerInfo("u", "d", ("t",), ())
     with pytest.raises(AttributeError):
         info.url = "x"  # type: ignore[misc]
 

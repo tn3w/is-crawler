@@ -46,12 +46,43 @@ jobs:
           pip install -e ".[dev]"
           pytest
 
-  build:
-    needs: [check-version, test]
+  fetch-db:
+    needs: check-version
     if: needs.check-version.outputs.is_new == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Fetch crawlers.min.json from Crawlerdex
+        run: |
+          curl -fsSL \
+            https://github.com/tn3w/Crawlerdex/releases/latest/download/crawlers.min.json \
+            -o is_crawler/crawlers.min.json
+
+      - name: Build IP ranges
+        run: python3 tools/build_ip_ranges.py --skip-errors
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: db
+          path: |
+            is_crawler/crawlers.min.json
+            is_crawler/crawler-ip-ranges.json
+
+  build:
+    needs: [test, fetch-db]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: db
+          path: is_crawler/
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -70,8 +101,7 @@ jobs:
           path: dist/
 
   publish:
-    needs:
-      - build
+    needs: build
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
