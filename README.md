@@ -74,7 +74,8 @@ What the API returns on real UAs you will actually see:
 
 ```python
 from is_crawler import (
-    is_crawler, crawler_signals, crawler_info, crawler_has_tag,
+    is_crawler, crawler_signals, crawler_match, crawler_matches,
+    crawler_info, crawler_has_tag,
     crawler_name, crawler_version, crawler_url, crawler_contact,
 )
 
@@ -85,6 +86,8 @@ crawler_name(ua)       # 'Googlebot'
 crawler_version(ua)    # '2.1'
 crawler_url(ua)        # 'http://www.google.com/bot.html'
 crawler_signals(ua)    # ['bot_signal', 'no_browser_signature', 'url_in_ua']
+crawler_match(ua)      # 'bot'
+crawler_matches(ua)    # ['bot', '+http://']
 
 ua2 = "MyBot/1.0 (contact: bot@example.com)"
 crawler_contact(ua2)   # 'bot@example.com'
@@ -93,7 +96,7 @@ crawler_contact(ua)    # None
 
 `is_crawler` short-circuits on three rules: positive bot signal (keywords like `bot`/`crawl`/`spider`, known tools, embedded URL/email), missing browser signature (no `Mozilla/`, `WebKit`, OS token, etc.), or a bare `(compatible; ...)` block.
 
-`crawler_signals` exposes which rules fired, for logging and diagnostics.
+`crawler_signals` exposes which rules fired, for logging and diagnostics. `crawler_match` / `crawler_matches` return the original-case substring(s) that fired the bot signal (`'GPTBot'`, `'+http://'`, an embedded contact email), or `None` / `[]` when none did.
 
 ## Classification
 

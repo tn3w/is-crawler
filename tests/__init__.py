@@ -39,6 +39,8 @@ def test_all_exports():
         "crawler_version",
         "crawler_url",
         "crawler_signals",
+        "crawler_match",
+        "crawler_matches",
         "crawler_info",
         "crawler_has_tag",
         "is_search_engine",

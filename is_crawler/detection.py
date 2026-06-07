@@ -44,13 +44,17 @@ def _word_ends(s: str, end: int) -> bool:
     return end >= len(s) or not _word_char(s[end])
 
 
-def _find_word(s: str, word: str) -> bool:
+def _word_at(s: str, word: str) -> int:
     i = 0
     while (i := s.find(word, i)) != -1:
         if _word_ends(s, i + len(word)):
-            return True
+            return i
         i += 1
-    return False
+    return -1
+
+
+def _find_word(s: str, word: str) -> bool:
+    return _word_at(s, word) != -1
 
 
 def _fetch_not_api(s: str) -> bool:
@@ -291,6 +295,54 @@ def crawler_signals(user_agent: str) -> list[str]:
         ("url_in_ua", crawler_url(user_agent) is not None),
     ]
     return [name for name, ok in checks if ok]
+
+
+_BOT_SUBSTRINGS = (
+    "crawl",
+    "spider",
+    "scrape",
+    "preview",
+    "slurp",
+    "archiv",
+    "headless",
+    "indexer",
+    "indexing",
+)
+_BOT_WORDS = ("bot", "scan")
+
+
+def _original_at(ua: str, low: str, keyword: str) -> str:
+    i = low.find(keyword)
+    return ua[i : i + len(keyword)]
+
+
+def _bot_matches(ua: str, low: str) -> list[str]:
+    matches = [_original_at(ua, low, k) for k in _BOT_SUBSTRINGS if k in low]
+    for word in _BOT_WORDS:
+        at = _word_at(low, word)
+        if at != -1:
+            matches.append(ua[at : at + len(word)])
+    if "fetch" in low and _fetch_not_api(low):
+        matches.append(_original_at(ua, low, "fetch"))
+    if "+http://" in ua:
+        matches.append("+http://")
+    elif "+https://" in ua:
+        matches.append("+https://")
+    if "@" in ua and (contact := crawler_contact(ua)) is not None:
+        matches.append(contact)
+    return matches
+
+
+@lru_cache(maxsize=_CACHE)
+def crawler_matches(user_agent: str) -> list[str]:
+    """Substrings that fired the bot signal, in scan order."""
+    return _bot_matches(user_agent, user_agent.lower())
+
+
+def crawler_match(user_agent: str) -> str | None:
+    """First substring that fired the bot signal, or None."""
+    matches = crawler_matches(user_agent)
+    return matches[0] if matches else None
 
 
 def _name_chars_end(s: str, start: int) -> int:

@@ -33,6 +33,8 @@ from is_crawler.detection import (
     _word_char,
     _word_ends,
     crawler_contact,
+    crawler_match,
+    crawler_matches,
     crawler_name,
     crawler_signals,
     crawler_url,
@@ -325,6 +327,45 @@ def test_signals_bare_compatible():
 
 def test_signals_url_in_ua():
     assert "url_in_ua" in crawler_signals("Feed - http://example.com")
+
+
+# --- crawler_match / crawler_matches ---
+
+
+def test_match_original_case():
+    assert crawler_match("GPTBot/1.0") == "Bot"
+
+
+def test_match_substring_keyword():
+    assert crawler_match("MySpiderTool") == "Spider"
+
+
+def test_matches_multiple():
+    matches = crawler_matches("GPTBot (+http://openai.com/gptbot)")
+    assert "Bot" in matches and "+http://" in matches
+
+
+def test_matches_contact():
+    assert "contact@example.com" in crawler_matches("Agent contact@example.com")
+
+
+def test_match_none_for_browser():
+    ua = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    assert crawler_match(ua) is None
+    assert crawler_matches(ua) == []
+
+
+def test_matches_bot_word_boundary():
+    assert crawler_matches("Abbots Reader/1.0") == []
+    assert "Bot" in crawler_matches("Abbots Bot/1.0")
+
+
+def test_matches_fetch():
+    assert "Fetch" in crawler_matches("MyFetcher/1.0")
+
+
+def test_matches_secure_url():
+    assert "+https://" in crawler_matches("Agent (+https://example.com)")
 
 
 # --- crawler_name ---

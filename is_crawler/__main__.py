@@ -7,6 +7,7 @@ from . import (
     __version__,
     crawler_contact,
     crawler_info,
+    crawler_matches,
     crawler_name,
     crawler_signals,
     crawler_url,
@@ -35,6 +36,7 @@ def _analyze(user_agent: str) -> dict:
         "url": crawler_url(user_agent),
         "contact": crawler_contact(user_agent),
         "signals": crawler_signals(user_agent),
+        "matches": crawler_matches(user_agent),
         "info": info._asdict() if info else None,
     }
 

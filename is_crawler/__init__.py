@@ -32,6 +32,8 @@ if TYPE_CHECKING:
     )
     from is_crawler.detection import (
         crawler_contact,
+        crawler_match,
+        crawler_matches,
         crawler_name,
         crawler_signals,
         crawler_url,
@@ -52,6 +54,8 @@ _DETECTION = frozenset(
         "crawler_url",
         "crawler_contact",
         "crawler_signals",
+        "crawler_match",
+        "crawler_matches",
     }
 )
 
@@ -62,6 +66,8 @@ __all__ = [
     "crawler_url",
     "crawler_contact",
     "crawler_signals",
+    "crawler_match",
+    "crawler_matches",
     "crawler_info",
     "assert_crawler",
     "crawler_has_tag",
