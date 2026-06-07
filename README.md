@@ -248,13 +248,28 @@ build_robots_txt(rules=[("/api", "scanner"), ("/private", "ai-crawler")])
 ## CLI
 
 ```bash
-python -m is_crawler "Googlebot/2.1 (+http://www.google.com/bot.html)"
-tail -f access.log | awk -F'"' '{print $6}' | python -m is_crawler
-python -m is_crawler --help     # usage
-python -m is_crawler --version  # show version
+is-crawler "Googlebot/2.1 (+http://www.google.com/bot.html)"   # detect (default)
+tail -f access.log | awk -F'"' '{print $6}' | is-crawler        # stream from stdin
+is-crawler parse "Mozilla/5.0 ... Chrome/134.0.0.0 Safari/537.36"
+is-crawler verify "Googlebot/2.1" 66.249.66.1                   # FCrDNS spoof check
+is-crawler ip 66.249.66.1 8.8.8.8                               # range + rDNS lookup
+is-crawler robots --disallow ai-crawler,scanner --path /        # generate robots.txt
+is-crawler ai-txt                                               # generate ai.txt
 ```
 
-One JSON object per UA with `is_crawler`, `name`, `version`, `url`, `contact`, `signals`, `info`.
+Commands (also runnable as `python -m is_crawler`):
+
+| Command            | Output                                                                                       |
+| ------------------ | -------------------------------------------------------------------------------------------- |
+| `detect [UA...]`   | JSON per UA: `is_crawler`, `name`, `version`, `url`, `contact`, `signals`, `matches`, `info` |
+| `parse [UA...]`    | Full `UserAgent` parse as JSON (browser, OS, device, ...)                                    |
+| `verify <UA> <IP>` | `verified`, `in_ip_range`, `rdns`, `rdns_match`                                              |
+| `ip <IP...>`       | `in_ip_range`, `rdns`, `rdns_match` per IP                                                   |
+| `robots`           | robots.txt from `--disallow` / `--allow` / `--path` tags                                     |
+| `ai-txt`           | ai.txt disallowing `--disallow` tags (default `ai-crawler`)                                  |
+
+`detect`/`parse` read UAs from stdin when none are given. Global flags: `-p`/`--pretty`
+(indented JSON), `-h`/`--help`, `-V`/`--version`. Tags are comma-separated.
 
 ## UA Parser
 
