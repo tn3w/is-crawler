@@ -1269,3 +1269,212 @@ def test_crawler_contact_real_world(ua, expected):
 )
 def test_crawler_signals_real_world(ua, expected_signal):
     assert expected_signal in crawler_signals(ua)
+
+
+# --- is_crawler: manual curated sets ---
+
+
+HUMANS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like "
+    "Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, "
+    "like Gecko) Version/17.1 Safari/605.1.15",
+    "Mozilla/5.0 (X11; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15 "
+    "(KHTML, like Gecko) Version/17.1 Mobile/15E148 Safari/604.1",
+    "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like "
+    "Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, "
+    "like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0",
+    "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/120.0.0.0 Safari/537.36 OPR/106.0",
+    "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)",
+    "Opera/9.80 (Windows NT 6.0) Presto/2.12.388 Version/12.14",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like "
+    "Gecko) Brave Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like "
+    "Gecko) Chrome/120.0.0.0 Safari/537.36 Vivaldi/6.5",
+    "Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 (KHTML, like Gecko) "
+    "SamsungBrowser/23.0 Chrome/115 Mobile Safari/537.36",
+    "Mozilla/5.0 (Linux; Android 10; HUAWEI) AppleWebKit/537.36 HuaweiBrowser/14.0 "
+    "Chrome/114 Mobile Safari/537.36",
+    "Mozilla/5.0 (Linux; U; Android 11) AppleWebKit/537.36 UCBrowser/15.5 Mobile "
+    "Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 Chrome/120 YaBrowser/24.1 "
+    "Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; rv:115.0) Gecko/20100101 Firefox/115.0",
+    "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0",
+    "Mozilla/5.0 (iPad; CPU OS 17_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, "
+    "like Gecko) Version/17.1 Mobile/15E148 Safari/604.1",
+    "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0",
+    "Mozilla/5.0 (Linux; Android 13; SM-S918B) AppleWebKit/537.36 (KHTML, like "
+    "Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, "
+    "like Gecko) Version/16.6 Safari/605.1.15",
+]
+
+BOTS = [
+    "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+    "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)",
+    "Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)",
+    "Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)",
+    "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
+    "Twitterbot/1.0",
+    "Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)",
+    "Mozilla/5.0 (compatible; SemrushBot/7~bl; +http://www.semrush.com/bot.html)",
+    "curl/8.4.0",
+    "Wget/1.21.4",
+    "python-requests/2.31.0",
+    "Go-http-client/2.0",
+    "Java/17.0.2",
+    "axios/1.6.0",
+    "node-fetch/1.0",
+    "okhttp/4.12.0",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) "
+    "HeadlessChrome/120.0.0.0 Safari/537.36",
+    "Scrapy/2.11 (+https://scrapy.org)",
+    "GPTBot/1.0 (+https://openai.com/gptbot)",
+    "PostmanRuntime/7.36.0",
+    "",
+    "Mozilla/5.0 (compatible; UptimeRobot/2.0; http://www.uptimerobot.com/)",
+    "Mozilla/5.0 (compatible; DuckDuckBot/1.1; +http://duckduckgo.com/duckduckbot.html)",
+    "Mozilla/5.0 (compatible; ClaudeBot/1.0; +claudebot@anthropic.com)",
+    "Mozilla/5.0 (compatible; OAI-SearchBot/1.0; +https://openai.com/searchbot)",
+    "Mozilla/5.0 (compatible; archive.org_bot +http://www.archive.org/details/"
+    "archive.org_bot)",
+    "libwww-perl/6.67",
+    "Python-urllib/3.11",
+    "WordPress/6.4; https://example.com",
+    "Apache-HttpClient/4.5.13 (Java/11.0.16)",
+    "Mozilla/5.0 (compatible; SerpstatBot/2.1; +http://serpstatbot.com/)",
+    "Mediapartners-Google",
+    "check_http/v2.3 (monitoring-plugins 2.3)",
+]
+
+STEALTH_BOTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like "
+    "Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 SomeService",
+    "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0",
+]
+
+
+@pytest.mark.parametrize("ua", HUMANS)
+def test_manual_humans_not_crawlers(ua):
+    assert is_crawler(ua) is False
+
+
+@pytest.mark.parametrize("ua", BOTS)
+def test_manual_bots_are_crawlers(ua):
+    assert is_crawler(ua) is True
+
+
+@pytest.mark.parametrize("ua", STEALTH_BOTS)
+def test_manual_stealth_bots_evade_ua_detection(ua):
+    assert is_crawler(ua) is False
+
+
+# --- is_crawler: extremely quirky edge cases ---
+
+
+@pytest.mark.parametrize(
+    "ua",
+    [
+        "   ",
+        "\t",
+        "\n",
+        "\x00",
+        "﻿",
+    ],
+)
+def test_quirky_blank_or_invisible_is_crawler(ua):
+    """No browser signature in blank/control-only UA → treated as crawler."""
+    assert is_crawler(ua) is True
+
+
+@pytest.mark.parametrize(
+    "ua",
+    [
+        "🤖 crawler 🤖",
+        "Ｇｏｏｇｌｅｂｏｔ",
+        "Googlebоt/2.1",
+        "ＳＰＩＤＥＲ spider",
+    ],
+)
+def test_quirky_unicode_bots_detected(ua):
+    """Bot keywords survive emoji/fullwidth/cyrillic neighbors."""
+    assert is_crawler(ua) is True
+
+
+@pytest.mark.parametrize(
+    "ua",
+    [
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Abbottabad",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Scandinavia",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 scandal",
+    ],
+)
+def test_quirky_substring_false_friends_not_detected(ua):
+    """`scan` inside `scandal` lacks a word boundary → not a bot signal."""
+    assert is_crawler(ua) is False
+
+
+@pytest.mark.parametrize("word", ["robot", "abbot", "foobot"])
+def test_quirky_bot_matches_at_trailing_boundary(word):
+    """`_find_word` checks the END boundary only → trailing `bot` matches."""
+    assert _find_word(word, "bot") is True
+
+
+def test_quirky_scan_no_trailing_boundary_misses():
+    assert _find_word("scandal", "scan") is False
+
+
+def test_quirky_huge_user_agent_mozilla_wins():
+    """5KB junk after `Mozilla/` still parses as a browser, no crash."""
+    ua = "Mozilla/5.0 " + "A" * 5000
+    assert is_crawler(ua) is False
+
+
+def test_quirky_null_byte_preserved_in_name():
+    assert crawler_name("Foo\x00Bot") == "Foo\x00Bot"
+
+
+def test_quirky_newline_splits_name():
+    assert crawler_name("FooBot\n/1.0") == "FooBot"
+
+
+def test_quirky_cyrillic_lookalike_name_extracted():
+    assert crawler_name("Googlebоt/2.1") == "Googlebоt"
+
+
+def test_quirky_blank_user_agent_has_no_name():
+    assert crawler_name("   ") is None
+
+
+def test_quirky_double_at_is_not_a_contact():
+    assert crawler_contact("foo@@bar.com") is None
+
+
+def test_quirky_email_without_local_part_rejected():
+    assert crawler_contact("@bar.com bot") is None
+
+
+def test_quirky_at_in_querystring_still_extracted():
+    assert crawler_contact("Bot/1.0 (+http://x.com/?a@b.com)") == "a@b.com"
+
+
+def test_quirky_ftp_url_not_extracted():
+    assert crawler_url("Bot/1.0 (+ftp://x.com)") is None
+
+
+def test_quirky_dev_suffix_version():
+    assert crawler_version("Mozilla/5.0 (compatible; Bot/2.0.x-dev)") == "2.0.x-dev"
+
+
+def test_quirky_wget_trailing_boundary_substring():
+    """`wget` ends `fidgwget` at a boundary → flagged as a known tool."""
+    assert _known_tool("fidgwget", "fidgwget") is True
