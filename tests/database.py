@@ -19,8 +19,10 @@ from is_crawler.database import (
     assert_crawler,
     build_ai_txt,
     build_robots_txt,
+    clear_custom_crawlers,
     crawler_has_tag,
     crawler_info,
+    custom_crawlers,
     is_academic,
     is_advertising,
     is_ai_crawler,
@@ -37,7 +39,9 @@ from is_crawler.database import (
     is_seo,
     is_social_preview,
     iter_crawlers,
+    register_crawler,
     robots_agents_for_tags,
+    unregister_crawler,
 )
 
 _GOOGLEBOT = "Googlebot/2.1 (+http://www.google.com/bot.html)"
@@ -994,3 +998,82 @@ def test_iter_crawlers_info_type():
 def test_assert_crawler_unknown_synthetic():
     with pytest.raises(ValueError, match="not a known crawler"):
         assert_crawler("RandomThing/1.0 +http://x.com")
+
+
+# --- custom patterns ---
+
+
+@pytest.fixture(autouse=True)
+def _clean_custom():
+    clear_custom_crawlers()
+    yield
+    clear_custom_crawlers()
+
+
+def test_register_classifies_non_bot_ua():
+    ua = "InternalScraper/1.0"
+    assert crawler_info(ua) is None
+
+    register_crawler("internal", "InternalScraper", tags=["internal"])
+    info = crawler_info(ua)
+    assert info is not None and info.tags == ("internal",)
+    assert crawler_has_tag(ua, "internal")
+
+
+def test_register_overrides_db():
+    register_crawler("fake-google", "Googlebot", tags=["false-positive"])
+    assert crawler_info(_GOOGLEBOT).tags == ("false-positive",)
+
+
+def test_custom_miss_falls_through_to_db():
+    register_crawler("internal", "InternalScraper", tags=["internal"])
+    assert crawler_info(_GOOGLEBOT).tags == ("search-engine",)
+
+
+def test_unregister():
+    register_crawler("internal", "InternalScraper", tags=["internal"])
+    assert unregister_crawler("internal") is True
+    assert crawler_info("InternalScraper/1.0") is None
+    assert unregister_crawler("internal") is False
+
+
+def test_register_full_info():
+    register_crawler(
+        "internal",
+        "InternalScraper",
+        url="https://x.com",
+        description="internal tool",
+        tags=["internal"],
+        rdns=[".x.com"],
+    )
+    info = crawler_info("InternalScraper/1.0")
+    assert info.url == "https://x.com"
+    assert info.description == "internal tool"
+    assert info.rdns == (".x.com",)
+
+
+def test_register_invalid_pattern():
+    with pytest.raises(re.error):
+        register_crawler("bad", "(unclosed")
+
+
+def test_clear_when_empty_noop():
+    clear_custom_crawlers()
+    assert crawler_info("InternalScraper/1.0") is None
+
+
+def test_custom_crawlers_context_restores():
+    entry = {"name": "internal", "pattern": "InternalScraper", "tags": ["internal"]}
+    with custom_crawlers(entry):
+        assert crawler_has_tag("InternalScraper/1.0", "internal")
+    assert crawler_info("InternalScraper/1.0") is None
+
+
+def test_custom_crawlers_context_nests_over_existing():
+    register_crawler("base", "BaseBot", tags=["base"])
+    override = {"name": "temp", "pattern": "TempBot", "tags": ["temp"]}
+    with custom_crawlers(override):
+        assert crawler_has_tag("TempBot/1.0", "temp")
+        assert crawler_has_tag("BaseBot/1.0", "base")
+    assert crawler_info("TempBot/1.0") is None
+    assert crawler_has_tag("BaseBot/1.0", "base")

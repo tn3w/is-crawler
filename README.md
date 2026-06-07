@@ -125,6 +125,40 @@ is_bad_crawler(ua)    # ai-crawler, scanner, http-library, browser-automation, s
 
 `ai-fetcher`, `advertising`, and `monitoring` are policy-dependent and belong to neither group.
 
+## Custom patterns
+
+Register runtime patterns to tag internal scrapers or override false-positives.
+Matched **before** the bundled DB, so they win on conflict. The optimized lookup
+(combined regex) rebuilds on every change; the hot path stays untouched when no
+custom patterns exist (one `is None` check).
+
+```python
+from is_crawler import register_crawler, unregister_crawler, crawler_info, crawler_has_tag
+
+register_crawler("internal", "InternalScraper", tags=["internal"], rdns=[".corp.example"])
+
+crawler_has_tag("InternalScraper/1.0", "internal")  # True (even though not bot-like)
+crawler_info("Googlebot/2.1")                        # unchanged, DB still wins on miss
+
+register_crawler("not-a-bot", "Googlebot", tags=[])  # override a false-positive
+unregister_crawler("internal")                       # True if it existed
+```
+
+`register_crawler(name, pattern, *, url, description, tags, rdns)` — `name` is the
+registry key, `pattern` a regex searched against the UA. `rdns` feeds straight into
+`verify_crawler_ip`, so custom crawlers get FCrDNS verification too.
+
+`custom_crawlers(*entries)` is a context manager for per-test overrides — it
+restores the prior registry on exit. `clear_custom_crawlers()` wipes all.
+
+```python
+from is_crawler import custom_crawlers
+
+with custom_crawlers({"name": "test", "pattern": "MyTestBot", "tags": ["test"]}):
+    assert crawler_has_tag("MyTestBot/1.0", "test")
+# registry restored here
+```
+
 ## IP verification
 
 Two strategies, use either or both. `socket` only, no deps.

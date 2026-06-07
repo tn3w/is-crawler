@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+from contextlib import contextmanager
 from dataclasses import dataclass
 from functools import cached_property, lru_cache
 import json
@@ -12,6 +13,9 @@ from is_crawler.detection import is_crawler
 
 _CACHE = 32768
 _CHUNK = 48
+
+_custom_rows: dict[str, list] = {}
+_custom_chunk: "_Chunk | None" = None
 
 
 class CrawlerInfo(NamedTuple):
@@ -65,6 +69,11 @@ def _load_chunks() -> list[_Chunk]:
 
 @lru_cache(maxsize=_CACHE)
 def crawler_info(user_agent: str) -> CrawlerInfo | None:
+    if _custom_chunk is not None:
+        custom = _custom_chunk.match(user_agent)
+        if custom is not None:
+            return custom
+
     if not is_crawler(user_agent):
         return None
 
@@ -74,6 +83,56 @@ def crawler_info(user_agent: str) -> CrawlerInfo | None:
             return info
 
     return None  # pragma: no cover
+
+
+def _rebuild_custom() -> None:
+    global _custom_chunk
+    _custom_chunk = _Chunk(list(_custom_rows.values())) if _custom_rows else None
+    crawler_info.cache_clear()
+
+
+def register_crawler(
+    name: str,
+    pattern: str,
+    *,
+    url: str = "",
+    description: str = "",
+    tags: Iterable[str] = (),
+    rdns: Iterable[str] = (),
+) -> None:
+    """Register a custom crawler pattern, matched before the bundled DB."""
+    re.compile(pattern)
+    _custom_rows[name] = [pattern, url, description, list(tags), list(rdns)]
+    _rebuild_custom()
+
+
+def unregister_crawler(name: str) -> bool:
+    """Remove a custom pattern by name. Returns whether it existed."""
+    if _custom_rows.pop(name, None) is None:
+        return False
+    _rebuild_custom()
+    return True
+
+
+def clear_custom_crawlers() -> None:
+    """Remove all custom crawler patterns."""
+    if _custom_rows:
+        _custom_rows.clear()
+        _rebuild_custom()
+
+
+@contextmanager
+def custom_crawlers(*entries: dict):
+    """Temporarily register crawlers; restore the prior registry on exit."""
+    global _custom_rows
+    saved = {name: list(row) for name, row in _custom_rows.items()}
+    try:
+        for entry in entries:
+            register_crawler(**entry)
+        yield
+    finally:
+        _custom_rows = saved
+        _rebuild_custom()
 
 
 def assert_crawler(user_agent: str) -> CrawlerInfo:

@@ -10,8 +10,10 @@ if TYPE_CHECKING:
         assert_crawler,
         build_ai_txt,
         build_robots_txt,
+        clear_custom_crawlers,
         crawler_has_tag,
         crawler_info,
+        custom_crawlers,
         is_academic,
         is_advertising,
         is_ai_crawler,
@@ -28,7 +30,9 @@ if TYPE_CHECKING:
         is_seo,
         is_social_preview,
         iter_crawlers,
+        register_crawler,
         robots_agents_for_tags,
+        unregister_crawler,
     )
     from is_crawler.detection import (
         crawler_contact,
@@ -90,6 +94,10 @@ __all__ = [
     "robots_agents_for_tags",
     "build_robots_txt",
     "build_ai_txt",
+    "register_crawler",
+    "unregister_crawler",
+    "clear_custom_crawlers",
+    "custom_crawlers",
     "CrawlerInfo",
     "__version__",
 ]
