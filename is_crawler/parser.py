@@ -4,6 +4,8 @@ from dataclasses import asdict, dataclass, field
 from functools import lru_cache
 from typing import Any
 
+_CACHE = 4096
+
 
 @dataclass
 class UserAgent:
@@ -137,7 +139,6 @@ _LIB_BROWSERS: tuple[tuple[str, str], ...] = (
 )
 
 _WIN_NT = {
-    "10.0": "10/11",
     "6.3": "8.1",
     "6.2": "8",
     "6.1": "7",
@@ -148,37 +149,7 @@ _WIN_NT = {
     "4.0": "NT 4.0",
 }
 
-_DIRECT_OS_SENTINELS: tuple[str, ...] = (
-    "Windows Phone",
-    "Windows Mobile",
-    "CrOS",
-    "PlayStation",
-    "PLAYSTATION",
-    "Nintendo",
-    "Symbian",
-    "SymbOS",
-    "S60",
-    "Tizen",
-    "KaiOS",
-    "HarmonyOS",
-    "BlackBerry",
-    "BB10",
-    "webOS",
-    "hpwOS",
-    "SunOS",
-    "Solaris",
-    "FreeBSD",
-    "NetBSD",
-    "OpenBSD",
-    "DragonFly",
-    "Haiku",
-    "OS/2",
-    "AmigaOS",
-)
-
 _DIRECT_OS: tuple[tuple[tuple[str, ...], str], ...] = (
-    (("Windows Phone OS",), "Windows Phone OS"),
-    (("Windows Phone",), "Windows Phone"),
     (("Windows Mobile",), "Windows Mobile"),
     (("CrOS",), "Chromium OS"),
     (("PlayStation", "PLAYSTATION"), "PlayStation"),
@@ -197,6 +168,10 @@ _DIRECT_OS: tuple[tuple[tuple[str, ...], str], ...] = (
     (("Haiku",), "Haiku"),
     (("OS/2",), "OS/2"),
     (("AmigaOS",), "AmigaOS"),
+)
+
+_DIRECT_OS_SENTINELS: tuple[str, ...] = tuple(
+    token for tokens, _ in _DIRECT_OS for token in tokens
 )
 
 _LINUX_DISTROS = (
@@ -468,32 +443,26 @@ def _read_dotted(ua: str, start: int, max_extra: int) -> str | None:
     return ".".join(parts)
 
 
-def _underscore_version(ua: str, start: int) -> str | None:
+def _sep_version(ua: str, start: int, seps: str) -> str | None:
     a, p = _read_int(ua, start)
-    if not a or p >= len(ua) or ua[p] != "_":
+    if not a or p >= len(ua) or ua[p] not in seps:
         return None
     b, p = _read_int(ua, p + 1)
     if not b:
         return None
-    if p < len(ua) and ua[p] == "_":
+    if p < len(ua) and ua[p] in seps:
         c, p = _read_int(ua, p + 1)
         if c:
             return f"{a}.{b}.{c}"
     return f"{a}.{b}"
+
+
+def _underscore_version(ua: str, start: int) -> str | None:
+    return _sep_version(ua, start, "_")
 
 
 def _mac_version(ua: str, start: int) -> str | None:
-    a, p = _read_int(ua, start)
-    if not a or p >= len(ua) or ua[p] not in "._":
-        return None
-    b, p = _read_int(ua, p + 1)
-    if not b:
-        return None
-    if p < len(ua) and ua[p] in "._":
-        c, p = _read_int(ua, p + 1)
-        if c:
-            return f"{a}.{b}.{c}"
-    return f"{a}.{b}"
+    return _sep_version(ua, start, "._")
 
 
 def _ios_version(ua: str) -> str | None:
@@ -527,6 +496,10 @@ def _find_paren_contents(ua: str) -> list[str]:
             out.append(ua[i + 1 : end])
         i = end + 1
     return out
+
+
+def _parens(ua: str, parens: list[str] | None) -> list[str]:
+    return _find_paren_contents(ua) if parens is None else parens
 
 
 def _token_version(ua: str, token: str) -> str | None:
@@ -710,9 +683,7 @@ def _detect_os(ua: str) -> tuple[str | None, str | None]:
 
 
 def _is_windows_11(ua: str) -> bool:
-    if "Windows NT 10.0; Win64; x64; arm" in ua:
-        return True
-    return False
+    return "Windows NT 10.0; Win64; x64; arm" in ua
 
 
 def _detect_channel(ua: str) -> str | None:
@@ -827,7 +798,7 @@ def _detect_device_brand(
         if token in ua:
             return token, brand, model
     if "Android" in ua:
-        for paren in parens if parens is not None else _find_paren_contents(ua):
+        for paren in _parens(ua, parens):
             for chunk in paren.split(";"):
                 chunk = chunk.strip()
                 if chunk.startswith(("Linux", "Android")) or chunk == "K":
@@ -841,7 +812,7 @@ def _detect_device_brand(
 
 def _extract_languages(ua: str, parens: list[str] | None = None) -> list[str]:
     languages: list[str] = []
-    for paren in parens if parens is not None else _find_paren_contents(ua):
+    for paren in _parens(ua, parens):
         for chunk in paren.split(";"):
             chunk = chunk.strip()
             n = len(chunk)
@@ -938,10 +909,10 @@ def normalize_user_agent(value: object) -> str:
         return ""
     elif not isinstance(value, str):
         value = str(value)
-    return " ".join(value.replace("\r", " ").replace("\n", " ").split())
+    return " ".join(value.split())
 
 
-@lru_cache(maxsize=4096)
+@lru_cache(maxsize=_CACHE)
 def parse(ua: str) -> UserAgent:
     return _parse_ua(ua)
 
@@ -951,7 +922,7 @@ def parse_or_none(value: object) -> UserAgent | None:
     return parse(normalized) if normalized else None
 
 
-@lru_cache(maxsize=4096)
+@lru_cache(maxsize=_CACHE)
 def is_crawler(ua: str) -> bool:
     """Fast keyword-only crawler check used during UA parsing.
 

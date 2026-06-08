@@ -226,7 +226,7 @@ def _robots_name(pattern: str) -> str | None:
     name = _ROBOTS_CHARCLASS.sub(lambda m: m.group(1)[0], pattern)
     name = _ROBOTS_ESCAPE.sub(r"\1", name).lstrip("^")
     name = _ROBOTS_META.split(name)[0].strip("/-. \t")
-    if not name or "://" in name or "/" in name:
+    if not name or "/" in name:
         return None
     return name
 
@@ -236,10 +236,7 @@ def iter_crawlers() -> Iterable[tuple[CrawlerInfo, str]]:
         for pattern, url, description, tags, rdns in chunk.rows:
             name = _robots_name(pattern)
             if name:
-                yield (
-                    CrawlerInfo(url, description, tuple(tags or ()), tuple(rdns or ())),
-                    name,
-                )
+                yield CrawlerInfo(url, description, tuple(tags), tuple(rdns)), name
 
 
 def robots_agents_for_tags(tags: str | Iterable[str]) -> list[str]:

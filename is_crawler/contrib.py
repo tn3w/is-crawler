@@ -13,7 +13,9 @@ __all__ = [
     "ASGICrawlerMiddleware",
 ]
 
-_HEADERS = [(b"content-type", b"text/plain; charset=utf-8")]
+_CONTENT_TYPE = "text/plain; charset=utf-8"
+_WSGI_HEADERS = [("Content-Type", _CONTENT_TYPE)]
+_HEADERS = [(b"content-type", _CONTENT_TYPE.encode())]
 
 
 @dataclass(frozen=True)
@@ -54,7 +56,7 @@ def _inspect(
         ip=ip,
         is_crawler=detected,
         name=name,
-        verified=bool(verified),
+        verified=verified,
         in_ip_range=in_range,
         rdns_match=rdns,
     )
@@ -213,10 +215,7 @@ class WSGICrawlerMiddleware(_BaseCrawlerMiddleware):
         environ[self.environ_key] = result
 
         if self._should_block(result):
-            start_response(
-                self.status,
-                [("Content-Type", "text/plain; charset=utf-8")],
-            )
+            start_response(self.status, _WSGI_HEADERS)
             return [self.body]
 
         return self.app(environ, start_response)

@@ -172,10 +172,10 @@ def _take_flag(args: list[str], *names: str) -> bool:
 def main() -> int:
     args = sys.argv[1:]
 
-    if any(flag in args for flag in ("-h", "--help")):
+    if _take_flag(args, "-h", "--help"):
         print(_USAGE)
         return 0
-    if any(flag in args for flag in ("-V", "--version")):
+    if _take_flag(args, "-V", "--version"):
         print(__version__)
         return 0
 

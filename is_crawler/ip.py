@@ -164,8 +164,4 @@ def verify_crawler_ip(user_agent: str, ip: str) -> bool:
     if not info or not info.rdns:
         return False
 
-    normalized_ip = _normalized_ip(ip)
-    if normalized_ip is None:
-        return False
-
-    return forward_confirmed_rdns(normalized_ip, info.rdns) is not None
+    return forward_confirmed_rdns(ip, info.rdns) is not None

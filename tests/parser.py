@@ -1567,7 +1567,7 @@ def test_windows_11_detection():
     )
     parsed = parse(ua)
     assert parsed.os == "Windows"
-    assert parsed.os_version in ("10/11", "10", "11")
+    assert parsed.os_version == "10"
 
 
 def test_detect_browser_edge_ios():
