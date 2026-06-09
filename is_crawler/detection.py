@@ -240,6 +240,11 @@ def _bare_compat(low: str) -> bool:
 def is_crawler(user_agent: str) -> bool:
     low = user_agent.lower()
 
+    if not _browser(low):
+        return True
+    if _bare_compat(low):
+        return True
+
     # Chained `or` → CONTAINS_OP bytecode; `any(k in low for k in T)` ~3x slower.
     suspicious = (
         "http" in low
@@ -275,13 +280,11 @@ def is_crawler(user_agent: str) -> bool:
         or crawler_url(user_agent)
     ):
         return True
-    if (
+    return (
         not suspicious
         and not user_agent.startswith("Mozilla/")
         and _leading_domain(user_agent)
-    ):
-        return True
-    return not _browser(low) or _bare_compat(low)
+    )
 
 
 @lru_cache(maxsize=_CACHE)
