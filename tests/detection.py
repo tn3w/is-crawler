@@ -4,21 +4,25 @@ import pytest
 
 from is_crawler.detection import (
     _bare_compat,
+    _bot_matches,
     _bot_signal,
     _browser,
     _compat_name,
+    _compat_name_span,
     _domain_end,
     _domain_tld,
     _fetch_not_api,
     _find_word,
     _grab_name_sequence,
     _has_by_domain,
+    _has_known_tool_name,
     _is_name_start,
     _known_tool,
     _leading_domain,
     _local_start,
     _name_chars_end,
     _name_non_mozilla,
+    _original_at,
     _prefix_name,
     _scan_mozilla_name,
     _semicolon_agent,
@@ -30,6 +34,7 @@ from is_crawler.detection import (
     _version_from_compat,
     _version_mozilla,
     _version_non_mozilla,
+    _word_at,
     _word_char,
     _word_ends,
     crawler_contact,
@@ -1519,3 +1524,158 @@ def test_quirky_dev_suffix_version():
 def test_quirky_wget_trailing_boundary_substring():
     """`wget` ends `fidgwget` at a boundary → flagged as a known tool."""
     assert _known_tool("fidgwget", "fidgwget") is True
+
+
+# --- _word_at ---
+
+
+def test_word_at_returns_index():
+    assert _word_at("foo bot bar", "bot") == 4
+
+
+def test_word_at_skips_non_boundary():
+    assert _word_at("robotics bot", "bot") == 9
+
+
+def test_word_at_first_word():
+    assert _word_at("bot here", "bot") == 0
+
+
+def test_word_at_miss():
+    assert _word_at("nothing", "bot") == -1
+
+
+def test_word_at_only_embedded_misses():
+    assert _word_at("robotics", "bot") == -1
+
+
+# --- _has_known_tool_name ---
+
+
+@pytest.mark.parametrize(
+    "low",
+    [
+        "lighthouse",
+        "playwright",
+        "selenium",
+        "nikto",
+        "sqlmap",
+        "pingdom",
+        "httrack",
+    ],
+)
+def test_has_known_tool_name_true(low):
+    assert _has_known_tool_name(low)
+
+
+def test_has_known_tool_name_false():
+    assert not _has_known_tool_name("mozilla/5.0 chrome/120")
+
+
+# --- _original_at ---
+
+
+def test_original_at_preserves_case():
+    assert _original_at("FooSPIDER", "foospider", "spider") == "SPIDER"
+
+
+def test_original_at_first_occurrence():
+    assert _original_at("BotXBot", "botxbot", "bot") == "Bot"
+
+
+# --- _bot_matches ---
+
+
+def test_bot_matches_substring_original_case():
+    assert _bot_matches("MyCRAWLer/1.0", "mycrawler/1.0") == ["CRAWL"]
+
+
+def test_bot_matches_word_and_substring():
+    matches = _bot_matches("SpiderBot/1.0", "spiderbot/1.0")
+    assert "Spider" in matches and "Bot" in matches
+
+
+def test_bot_matches_fetch_excludes_api():
+    assert _bot_matches("FetchAPI/1.0", "fetchapi/1.0") == []
+
+
+def test_bot_matches_plain_http_url():
+    assert "+http://" in _bot_matches("Bot (+http://x.com)", "bot (+http://x.com)")
+
+
+def test_bot_matches_empty_for_browser():
+    ua = "Mozilla/5.0 (Windows NT 10.0) Chrome/120 Safari/537.36"
+    assert _bot_matches(ua, ua.lower()) == []
+
+
+# --- _compat_name_span ---
+
+
+def test_compat_name_span_none_without_compatible():
+    assert _compat_name_span("Mozilla/5.0 (Windows NT 10.0)") is None
+
+
+def test_compat_name_span_none_when_digit_start():
+    assert _compat_name_span("Mozilla/5.0 (compatible; 1bot)") is None
+
+
+def test_compat_name_span_returns_bounds():
+    ua = "Mozilla/5.0 (compatible; MyBot/1.0)"
+    span = _compat_name_span(ua)
+    assert span is not None
+    start, end = span
+    assert ua[start:end] == "MyBot"
+
+
+def test_compat_name_span_none_at_eof():
+    assert _compat_name_span("Mozilla/5.0 (compatible; ") is None
+
+
+# --- is_crawler: more real-world false positives to guard ---
+
+
+@pytest.mark.parametrize(
+    "ua",
+    [
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 "
+        "Firefox/118.0",
+        "Mozilla/5.0 (Windows Phone 10.0; Android 6.0.1) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/52.0.2743 Mobile Safari/537.36 Edge/15.15254",
+        "Mozilla/5.0 (PlayStation 5 5.00) AppleWebKit/605.1.15 (KHTML, like Gecko)",
+        "Mozilla/5.0 (Nintendo Switch; WifiWebAuthApplet) AppleWebKit/606.4 "
+        "(KHTML, like Gecko) NF/6.0.1.15.4 NintendoBrowser/5.1.0.20393",
+    ],
+)
+def test_is_crawler_uncommon_browsers_false(ua):
+    assert is_crawler(ua) is False
+
+
+@pytest.mark.parametrize(
+    "ua",
+    [
+        "Mozilla/5.0 (compatible; coccocbot-web/1.0; +http://help.coccoc.com/)",
+        "Mozilla/5.0 (compatible; AwarioBot/1.0; +https://awario.com/bots.html)",
+        "Mozilla/5.0 (compatible; SiteAuditBot/0.97; +https://www.semrush.com/bot/)",
+        "Buck/2.4; (+https://app.hypefactors.com/media-monitoring/about.html)",
+        "Mozilla/5.0 (compatible; ImagesiftBot; +imagesift.com)",
+        "Sogou web spider/4.0(+http://www.sogou.com/docs/help/webmasters.htm#07)",
+    ],
+)
+def test_is_crawler_more_real_world_true(ua):
+    assert is_crawler(ua) is True
+
+
+# --- crawler_matches / crawler_match: additional ---
+
+
+def test_crawler_matches_order_preserved():
+    matches = crawler_matches("CrawlerBot/1.0")
+    assert matches[0] == "Crawl"
+
+
+def test_crawler_match_scan_word():
+    assert crawler_match("PortScan/1.0") == "Scan"
+
+
+def test_crawler_matches_archiv_substring():
+    assert "Archiv" in crawler_matches("ArchiverBot/1.0")
