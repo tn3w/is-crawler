@@ -34,6 +34,16 @@ One call, runs on every request without blinking.
  /| |\
 ```
 
+## One-liner
+
+~80% crawler recall, 0.1% browser FP. For robust detection use `is_crawler`.
+
+```python
+keywords = "http bot .com crawl google url spider @ uptime java check site"
+if any(word in ua.lower() for word in keywords.split()):
+    ...  # treat as crawler
+```
+
 ## Why
 
 Crawler detection sits on the request hot path. Most libraries reach for big regex tables, which means slow first hits, ReDoS exposure on hostile UAs, and millisecond-scale latency you pay forever.

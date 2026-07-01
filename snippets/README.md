@@ -4,10 +4,12 @@ Copy-paste single-file gists. No deps. Stdlib only.
 
 | File                                           | What                                                                  |
 | ---------------------------------------------- | --------------------------------------------------------------------- |
+| [is_crawler_oneliner.py](is_crawler_oneliner.py) | 12-keyword one-liner. ~80% crawler recall, 0.1% browser FP.          |
 | [is_crawler_minimal.py](is_crawler_minimal.py) | 14-token `in` check. ~75% crawler recall, 0% browser FP. Fastest.     |
 | [is_crawler_full.py](is_crawler_full.py)       | Keywords + URL/email + browser-signature negation. Higher recall.     |
 | [crawler_name.py](crawler_name.py)             | Bot name from `(compatible; X/...)` or leading product.               |
 | [crawler_version.py](crawler_version.py)       | Paired version.                                                       |
+| [crawler_name_version.py](crawler_name_version.py) | Name + version in one pass, as a `(name, version)` tuple.         |
 | [crawler_url.py](crawler_url.py)               | Embedded `+http(s)://` URL and `contact: a@b.c` email.                |
 | [parse_user_agent.py](parse_user_agent.py)     | Browser/engine/OS/device dataclass.                                   |
 | [detect_os.py](detect_os.py)                   | OS + version (Windows/iOS/macOS/Android/Linux).                       |
