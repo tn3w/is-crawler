@@ -1,4 +1,3 @@
-from collections import Counter
 import json
 from pathlib import Path
 import re
@@ -15,7 +14,6 @@ from is_crawler import (
 from is_crawler.database import (
     CrawlerInfo,
     _as_set,
-    _robots_name,
     assert_crawler,
     build_ai_txt,
     build_robots_txt,
@@ -190,42 +188,6 @@ def test_good_bad_on_browser():
     assert is_bad_crawler(ua) is False
 
 
-def test_robots_name_plain():
-    assert _robots_name("Googlebot\\/") == "Googlebot"
-
-
-def test_robots_name_escaped():
-    assert _robots_name("AdsBot-Google([^-]|$)") == "AdsBot-Google"
-
-
-def test_robots_name_charclass():
-    assert _robots_name("[wW]get") == "wget"
-
-
-def test_robots_name_escaped_dot():
-    assert _robots_name("grub\\.org") == "grub.org"
-
-
-def test_robots_name_escaped_parens():
-    assert _robots_name("Mediapartners \\(Googlebot\\)") == "Mediapartners"
-
-
-def test_robots_name_trailing_space():
-    assert _robots_name("webmon ") == "webmon"
-
-
-def test_robots_name_anchored():
-    assert _robots_name("^curl") == "curl"
-
-
-def test_robots_name_drops_urls():
-    assert _robots_name("https://example.com/bot") is None
-
-
-def test_robots_name_empty():
-    assert _robots_name("(compatible)") is None
-
-
 def test_iter_crawlers():
     items = list(iter_crawlers())
     assert len(items) > 500
@@ -312,7 +274,7 @@ _RAW = json.loads(
 )
 _DATA = [
     [
-        e.get("pattern", ""),
+        e.get("match", []),
         e.get("url", ""),
         e.get("description", ""),
         e.get("tags") or [],
@@ -351,13 +313,11 @@ _TAG_TO_FN = {
 
 
 def _samples() -> list[tuple[str, str, str, tuple[str, ...]]]:
-    out = []
-    for pattern, url, desc, tags in _DATA:
-        name = _robots_name(pattern)
-        if not name:
-            continue
-        out.append((pattern, name, url, tuple(tags)))
-    return out
+    return [
+        (e["match"], e["name"], e.get("url", ""), tuple(e["tags"]))
+        for e in _RAW
+        if "name" in e
+    ]
 
 
 _SAMPLES = _samples()
@@ -375,8 +335,8 @@ def test_dataset_rows_are_dicts():
     assert not bad
 
 
-def test_dataset_pattern_is_nonempty_string():
-    bad = [r for r in _DATA if not isinstance(r[0], str) or not r[0]]
+def test_dataset_match_is_nonempty_list():
+    bad = [r for r in _DATA if not isinstance(r[0], list) or not r[0]]
     assert not bad
 
 
@@ -401,20 +361,9 @@ def test_dataset_tags_within_known_set():
     assert not unknown, f"unknown tags: {unknown}"
 
 
-def test_dataset_no_duplicate_patterns():
-    counts = Counter(r[0] for r in _DATA)
-    dupes = {p: c for p, c in counts.items() if c > 1}
-    assert not dupes, f"duplicate patterns: {list(dupes)[:5]}"
-
-
-def test_dataset_patterns_compile():
-    bad = []
-    for r in _DATA:
-        try:
-            re.compile(r[0])
-        except re.error as e:
-            bad.append((r[0], str(e)))
-    assert not bad, f"invalid regex: {bad[:3]}"
+def test_dataset_match_parts_are_lowercase():
+    parts = [p for r in _DATA for m in r[0] for p in ([m] if isinstance(m, str) else m)]
+    assert all(p == p.lower() for p in parts)
 
 
 def test_dataset_urls_mostly_well_formed():
@@ -427,8 +376,7 @@ def test_dataset_urls_mostly_well_formed():
 
 
 def test_robots_name_resolves_for_most_rows():
-    resolved = sum(1 for r in _DATA if _robots_name(r[0]))
-    rate = resolved / len(_DATA)
+    rate = len(_SAMPLES) / len(_DATA)
     assert rate >= 0.95, f"{rate:.2%} resolvable to robots name"
 
 
@@ -784,45 +732,6 @@ def test_crawlerinfo_immutable():
     info = CrawlerInfo("u", "d", ("t",), ())
     with pytest.raises(AttributeError):
         info.url = "x"  # type: ignore[misc]
-
-
-# --- _robots_name additional ---
-
-
-def test_robots_name_leading_dot():
-    assert _robots_name(".Bot") == "Bot"
-
-
-def test_robots_name_leading_dash():
-    assert _robots_name("-Bot") == "Bot"
-
-
-def test_robots_name_trailing_dot():
-    assert _robots_name("Bot.") == "Bot"
-
-
-def test_robots_name_question_mark_splits():
-    assert _robots_name("Bot?extra") == "Bot"
-
-
-def test_robots_name_star_splits():
-    assert _robots_name("*Bot") is None
-
-
-def test_robots_name_only_dots():
-    assert _robots_name("...") is None
-
-
-def test_robots_name_slash_only():
-    assert _robots_name("/") is None
-
-
-def test_robots_name_empty_string():
-    assert _robots_name("") is None
-
-
-def test_robots_name_charclass_uses_first_char():
-    assert _robots_name("[Gg]ooglebot") == "Googlebot"
 
 
 # --- tag predicate negatives ---

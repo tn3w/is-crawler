@@ -57,11 +57,8 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Fetch crawlers.min.json from Crawlerdex
-        run: |
-          curl -fsSL \
-            https://github.com/tn3w/Crawlerdex/releases/latest/download/crawlers.min.json \
-            -o is_crawler/crawlers.min.json
+      - name: Build crawlers.min.json from uaid
+        run: python3 tools/build_crawlers.py
 
       - name: Build IP ranges
         run: python3 tools/build_ip_ranges.py --skip-errors

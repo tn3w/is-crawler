@@ -24,7 +24,7 @@ pip install is-crawler
 from is_crawler import is_crawler
 
 is_crawler("Googlebot/2.1 (+http://www.google.com/bot.html)")  # True
-is_crawler("Mozilla/5.0 (X11; Linux x86_64) Firefox/120.0")    # False
+is_crawler("Mozilla/5.0 (X11; Linux x86_64) Firefox/120.0")  # False
 ```
 
 One call, runs on every request without blinking.
@@ -84,24 +84,31 @@ What the API returns on real UAs you will actually see:
 
 ```python
 from is_crawler import (
-    is_crawler, crawler_signals, crawler_match, crawler_matches,
-    crawler_info, crawler_has_tag,
-    crawler_name, crawler_version, crawler_url, crawler_contact,
+    is_crawler,
+    crawler_signals,
+    crawler_match,
+    crawler_matches,
+    crawler_info,
+    crawler_has_tag,
+    crawler_name,
+    crawler_version,
+    crawler_url,
+    crawler_contact,
 )
 
 ua = "Googlebot/2.1 (+http://www.google.com/bot.html)"
 
-is_crawler(ua)         # True
-crawler_name(ua)       # 'Googlebot'
-crawler_version(ua)    # '2.1'
-crawler_url(ua)        # 'http://www.google.com/bot.html'
-crawler_signals(ua)    # ['bot_signal', 'no_browser_signature', 'url_in_ua']
-crawler_match(ua)      # 'bot'
-crawler_matches(ua)    # ['bot', '+http://']
+is_crawler(ua)  # True
+crawler_name(ua)  # 'Googlebot'
+crawler_version(ua)  # '2.1'
+crawler_url(ua)  # 'http://www.google.com/bot.html'
+crawler_signals(ua)  # ['bot_signal', 'no_browser_signature', 'url_in_ua']
+crawler_match(ua)  # 'bot'
+crawler_matches(ua)  # ['bot', '+http://']
 
 ua2 = "MyBot/1.0 (contact: bot@example.com)"
-crawler_contact(ua2)   # 'bot@example.com'
-crawler_contact(ua)    # None
+crawler_contact(ua2)  # 'bot@example.com'
+crawler_contact(ua)  # None
 ```
 
 `is_crawler` short-circuits on three rules: positive bot signal (keywords like `bot`/`crawl`/`spider`, known tools, embedded URL/email), missing browser signature (no `Mozilla/`, `WebKit`, OS token, etc.), or a bare `(compatible; ...)` block.
@@ -110,15 +117,15 @@ crawler_contact(ua)    # None
 
 ## Classification
 
-`crawler_info` matches against ~2900 curated patterns from [tn3w/Crawlerdex](https://github.com/tn3w/Crawlerdex), downloaded fresh on each release. Patterns compile lazily in 48-entry chunks.
+`crawler_info` matches against ~4500 crawlers from [tn3w/uaid](https://github.com/tn3w/uaid), downloaded fresh on each release. Rules are case-insensitive substrings, looked up through a trigram index; the most specific rule wins.
 
 ```python
 info = crawler_info(ua)
-info.url            # 'http://www.google.com/bot.html'
-info.description    # "Google's main web crawling bot..."
-info.tags           # ('search-engine',)
+info.url  # 'http://www.google.com/bot.html'
+info.description  # "Google's main web crawling bot..."
+info.tags  # ('search-engine',)
 
-crawler_has_tag(ua, "search-engine")        # True
+crawler_has_tag(ua, "search-engine")  # True
 crawler_has_tag(ua, ["ai-crawler", "seo"])  # False
 ```
 
@@ -129,8 +136,8 @@ One-tag wrappers exist for each: `is_search_engine`, `is_ai_crawler`, `is_ai_fet
 Quick gates:
 
 ```python
-is_good_crawler(ua)   # search-engine, social-preview, feed-reader, archiver, academic
-is_bad_crawler(ua)    # ai-crawler, scanner, http-library, browser-automation, seo
+is_good_crawler(ua)  # search-engine, social-preview, feed-reader, archiver, academic
+is_bad_crawler(ua)  # ai-crawler, scanner, http-library, browser-automation, seo
 ```
 
 `ai-fetcher`, `advertising`, and `monitoring` are policy-dependent and belong to neither group.
@@ -148,10 +155,10 @@ from is_crawler import register_crawler, unregister_crawler, crawler_info, crawl
 register_crawler("internal", "InternalScraper", tags=["internal"], rdns=[".corp.example"])
 
 crawler_has_tag("InternalScraper/1.0", "internal")  # True (even though not bot-like)
-crawler_info("Googlebot/2.1")                        # unchanged, DB still wins on miss
+crawler_info("Googlebot/2.1")  # unchanged, DB still wins on miss
 
 register_crawler("not-a-bot", "Googlebot", tags=[])  # override a false-positive
-unregister_crawler("internal")                       # True if it existed
+unregister_crawler("internal")  # True if it existed
 ```
 
 `register_crawler(name, pattern, *, url, description, tags, rdns)` — `name` is the
@@ -175,17 +182,21 @@ Two strategies, use either or both. `socket` only, no deps.
 
 ```python
 from is_crawler.ip import (
-    verify_crawler_ip, reverse_dns, forward_confirmed_rdns,
-    ip_in_range, known_crawler_ip, known_crawler_rdns,
+    verify_crawler_ip,
+    reverse_dns,
+    forward_confirmed_rdns,
+    ip_in_range,
+    known_crawler_ip,
+    known_crawler_rdns,
 )
 
 verify_crawler_ip("Googlebot/2.1", "66.249.66.1")  # True (FCrDNS, UA-name matched)
-verify_crawler_ip("Googlebot/2.1", "8.8.8.8")      # False (spoof)
+verify_crawler_ip("Googlebot/2.1", "8.8.8.8")  # False (spoof)
 
-ip_in_range("66.249.66.1")        # True (CIDR lookup, offline)
-known_crawler_rdns("66.249.66.1") # True (rDNS suffix matches any known crawler)
+ip_in_range("66.249.66.1")  # True (CIDR lookup, offline)
+known_crawler_rdns("66.249.66.1")  # True (rDNS suffix matches any known crawler)
 
-reverse_dns("8.8.8.8")                                      # 'dns.google'
+reverse_dns("8.8.8.8")  # 'dns.google'
 forward_confirmed_rdns("66.249.66.1", (".googlebot.com",))  # hostname or None
 ```
 
@@ -200,8 +211,10 @@ Drop-in for any WSGI or ASGI app. Zero deps.
 ```python
 from is_crawler.contrib import WSGICrawlerMiddleware, ASGICrawlerMiddleware
 
-app = WSGICrawlerMiddleware(app)                                  # Flask, Django
-app = ASGICrawlerMiddleware(app, block=True, block_tags="ai-crawler")  # FastAPI, Starlette
+app = WSGICrawlerMiddleware(app)  # Flask, Django
+app = ASGICrawlerMiddleware(
+    app, block=True, block_tags="ai-crawler"
+)  # FastAPI, Starlette
 
 # Flask:    request.environ["is_crawler"].is_crawler
 # Django:   request.META["is_crawler"].name
@@ -225,7 +238,9 @@ from fastapi import FastAPI
 from is_crawler.contrib import ASGICrawlerMiddleware
 
 app = FastAPI()
-app = ASGICrawlerMiddleware(app, block=True, block_tags="ai-crawler", trust_forwarded=True)
+app = ASGICrawlerMiddleware(
+    app, block=True, block_tags="ai-crawler", trust_forwarded=True
+)
 ```
 
 Serve a live `robots.txt` from the DB (Flask):
@@ -234,9 +249,12 @@ Serve a live `robots.txt` from the DB (Flask):
 from flask import Response
 from is_crawler import build_robots_txt
 
+
 @app.route("/robots.txt")
 def robots():
-    return Response(build_robots_txt(disallow=["ai-crawler", "scanner"]), mimetype="text/plain")
+    return Response(
+        build_robots_txt(disallow=["ai-crawler", "scanner"]), mimetype="text/plain"
+    )
 ```
 
 Verify Googlebot is real before trusting it:
@@ -272,7 +290,7 @@ print(build_robots_txt(disallow=["ai-crawler", "scanner"]))
 # Disallow: /
 # ...
 
-print(build_ai_txt())          # disallows all ai-crawler agents by default
+print(build_ai_txt())  # disallows all ai-crawler agents by default
 # User-Agent: GPTBot
 # Disallow: /
 # ...
@@ -322,34 +340,36 @@ Commands (also runnable as `python -m is_crawler`):
 ```python
 from is_crawler.parser import parse, parse_or_none
 
-ua = parse("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36")
+ua = parse(
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
+)
 
-ua.browser          # 'Chrome'
+ua.browser  # 'Chrome'
 ua.browser_version  # '134.0.0.0'
-ua.browser_major    # '134'
-ua.os               # 'Windows'
-ua.os_version       # '10'
-ua.engine           # 'Blink'
-ua.engine_version   # '537.36'
-ua.device           # 'Desktop'
-ua.device_brand     # None
-ua.device_model     # None
-ua.cpu              # 'x86_64'
-ua.is_mobile        # False
-ua.is_tablet        # False
-ua.is_crawler       # False
-ua.is_webview       # False
-ua.is_headless      # False
-ua.channel          # None | 'beta' | 'dev' | 'canary' | 'nightly'
-ua.app              # None | 'Facebook' | 'Instagram' | 'TikTok' ...
-ua.app_version      # in-app browser version
-ua.languages        # []
-ua.rendering        # 'KHTML, like Gecko'
-ua.product_token    # 'Mozilla/5.0'
-ua.comment          # '(Windows NT 10.0; Win64; x64)'
-ua.raw              # original string
+ua.browser_major  # '134'
+ua.os  # 'Windows'
+ua.os_version  # '10'
+ua.engine  # 'Blink'
+ua.engine_version  # '537.36'
+ua.device  # 'Desktop'
+ua.device_brand  # None
+ua.device_model  # None
+ua.cpu  # 'x86_64'
+ua.is_mobile  # False
+ua.is_tablet  # False
+ua.is_crawler  # False
+ua.is_webview  # False
+ua.is_headless  # False
+ua.channel  # None | 'beta' | 'dev' | 'canary' | 'nightly'
+ua.app  # None | 'Facebook' | 'Instagram' | 'TikTok' ...
+ua.app_version  # in-app browser version
+ua.languages  # []
+ua.rendering  # 'KHTML, like Gecko'
+ua.product_token  # 'Mozilla/5.0'
+ua.comment  # '(Windows NT 10.0; Win64; x64)'
+ua.raw  # original string
 
-ua.to_dict()        # all fields as dict
+ua.to_dict()  # all fields as dict
 ```
 
 `parse_or_none(value)` normalises bytes/None/non-str, returns `None` for empty input.
@@ -397,7 +417,7 @@ Every public function has a 32k-entry LRU cache. First-call rDNS latency is netw
 
 `is_crawler` uses `str.find` and char scans, never regex, so hostile UAs cannot trigger backtracking. `crawler_info` does use `re`, but only against curated upstream patterns that are simple by construction.
 
-Data files live in `is_crawler/`. `crawlers.min.json` is downloaded fresh from [tn3w/Crawlerdex releases](https://github.com/tn3w/Crawlerdex/releases/latest) on each publish. IP ranges are built by:
+Data files live in `is_crawler/`. `crawlers.min.json` is built from [tn3w/uaid](https://github.com/tn3w/uaid) by `tools/build_crawlers.py` on each publish. IP ranges are built by:
 
 ```bash
 python3 tools/build_ip_ranges.py     # crawler-ip-ranges.json from 39 official sources

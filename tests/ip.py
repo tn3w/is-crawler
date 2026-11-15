@@ -72,7 +72,7 @@ def test_crawler_info_rdns_known_crawlers(user_agent, expected_suffix):
 
 
 def test_crawler_info_rdns_unknown_returns_none():
-    assert crawler_info("UnknownRandomBot12345/1.0 (not a real crawler)") is None
+    assert crawler_info("Zqxwv12345/1.0 (not a real crawler)") is None
 
 
 def test_all_rdns_suffixes_nonempty():

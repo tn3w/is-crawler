@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import Counter
 from collections.abc import Iterable
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -12,7 +13,6 @@ from typing import NamedTuple
 from is_crawler.detection import is_crawler
 
 _CACHE = 32768
-_CHUNK = 48
 
 _custom_rows: dict[str, list] = {}
 _custom_chunk: "_Chunk | None" = None
@@ -23,6 +23,18 @@ class CrawlerInfo(NamedTuple):
     description: str
     tags: tuple[str, ...]
     rdns: tuple[str, ...]
+
+
+class _Rule(NamedTuple):
+    first: str
+    rest: tuple[str, ...]
+    info: CrawlerInfo
+
+
+class _Database(NamedTuple):
+    rules: list[_Rule]
+    index: dict[str, list[int]]
+    names: list[tuple[CrawlerInfo, str]]
 
 
 @dataclass
@@ -49,22 +61,61 @@ class _Chunk:
         return None  # pragma: no cover
 
 
+def _trigrams(text: str) -> set[str]:
+    return {text[start : start + 3] for start in range(len(text) - 2)}
+
+
+def _rules(entry: dict, info: CrawlerInfo) -> Iterable[_Rule]:
+    for rule in entry["match"]:
+        parts = [rule] if isinstance(rule, str) else sorted(rule, key=len, reverse=True)
+        yield _Rule(parts[0], tuple(parts[1:]), info)
+
+
+def _rule_length(rule: _Rule) -> int:
+    return len(rule.first) + sum(map(len, rule.rest))
+
+
+def _build_index(rules: list[_Rule]) -> dict[str, list[int]]:
+    counts = Counter(gram for rule in rules for gram in _trigrams(rule.first))
+    index: dict[str, list[int]] = {}
+    for position, rule in enumerate(rules):
+        rarest = min(sorted(_trigrams(rule.first)), key=counts.__getitem__)
+        index.setdefault(rarest, []).append(position)
+    return index
+
+
 @lru_cache(maxsize=1)
-def _load_chunks() -> list[_Chunk]:
+def _load_database() -> _Database:
     path = Path(__file__).parent / "crawlers.min.json"
     with path.open(encoding="utf-8") as f:
         entries = json.load(f)
-    rows = [
-        [
-            e.get("pattern", ""),
-            e.get("url", ""),
-            e.get("description", ""),
-            e.get("tags") or [],
-            e.get("rdns") or [],
-        ]
-        for e in entries
-    ]
-    return [_Chunk(rows[i : i + _CHUNK]) for i in range(0, len(rows), _CHUNK)]
+
+    rules: list[_Rule] = []
+    names: list[tuple[CrawlerInfo, str]] = []
+    for entry in entries:
+        info = CrawlerInfo(
+            entry.get("url", ""),
+            entry.get("description", ""),
+            tuple(entry.get("tags") or ()),
+            tuple(entry.get("rdns") or ()),
+        )
+        rules.extend(_rules(entry, info))
+        if entry.get("name"):
+            names.append((info, entry["name"]))
+
+    rules.sort(key=_rule_length, reverse=True)
+    return _Database(rules, _build_index(rules), names)
+
+
+def _match_database(user_agent: str) -> CrawlerInfo | None:
+    database = _load_database()
+    lowered = "^" + user_agent.lower()
+    grams = _trigrams(lowered) & database.index.keys()
+    for position in sorted(p for gram in grams for p in database.index[gram]):
+        rule = database.rules[position]
+        if rule.first in lowered and all(part in lowered for part in rule.rest):
+            return rule.info
+    return None
 
 
 @lru_cache(maxsize=_CACHE)
@@ -77,12 +128,7 @@ def crawler_info(user_agent: str) -> CrawlerInfo | None:
     if not is_crawler(user_agent):
         return None
 
-    for chunk in _load_chunks():
-        info = chunk.match(user_agent)
-        if info is not None:
-            return info
-
-    return None  # pragma: no cover
+    return _match_database(user_agent)
 
 
 def _rebuild_custom() -> None:
@@ -217,26 +263,8 @@ def is_bad_crawler(user_agent: str) -> bool:
     return crawler_has_tag(user_agent, _BAD_TAGS)
 
 
-_ROBOTS_CHARCLASS = re.compile(r"\[([^\]]+)\]")
-_ROBOTS_ESCAPE = re.compile(r"\\(.)")
-_ROBOTS_META = re.compile(r"[(|$?*+]")
-
-
-def _robots_name(pattern: str) -> str | None:
-    name = _ROBOTS_CHARCLASS.sub(lambda m: m.group(1)[0], pattern)
-    name = _ROBOTS_ESCAPE.sub(r"\1", name).lstrip("^")
-    name = _ROBOTS_META.split(name)[0].strip("/-. \t")
-    if not name or "/" in name:
-        return None
-    return name
-
-
 def iter_crawlers() -> Iterable[tuple[CrawlerInfo, str]]:
-    for chunk in _load_chunks():
-        for pattern, url, description, tags, rdns in chunk.rows:
-            name = _robots_name(pattern)
-            if name:
-                yield CrawlerInfo(url, description, tuple(tags), tuple(rdns)), name
+    return iter(_load_database().names)
 
 
 def robots_agents_for_tags(tags: str | Iterable[str]) -> list[str]:
